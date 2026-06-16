@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Research Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1B2A4A;
+    --navy-dark: #0F1B33;
+    --blue: #2563EB;
+    --blue-light: #60A5FA;
+    --blue-pale: #EEF4FF;
+    --white: #F8FAFF;
+    --muted: #a0b0cc;
+    --text-dark: #1B2A4A;
+    --text-mid: #6B7FA3;
+    --border: #dde6f5;
+    --sidebar-w: 240px;
+  }
+
+  html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff; color: var(--text-dark); }
+
+  .app-shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { width: var(--sidebar-w); background: var(--navy-dark); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
+  .sidebar-logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sidebar-logo-icon svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sidebar-logo-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #fff; }
+  .sidebar-section { padding: 20px 12px 8px; }
+  .sidebar-section-label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; text-decoration: none; }
+  .nav-item:hover { background: rgba(255,255,255,0.06); }
+  .nav-item.active { background: var(--blue); }
+  .nav-item svg { width: 17px; height: 17px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; transition: stroke 0.15s; }
+  .nav-item.active svg, .nav-item:hover svg { stroke: #fff; }
+  .nav-item span { font-size: 13px; color: var(--muted); transition: color 0.15s; }
+  .nav-item.active span, .nav-item:hover span { color: #fff; }
+  .nav-item .nav-badge { margin-left: auto; background: var(--blue-light); color: var(--navy-dark); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .nav-item.active .nav-badge { background: rgba(255,255,255,0.25); color: #fff; }
+  .sidebar-bottom { margin-top: auto; padding: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+  .user-card:hover { background: rgba(255,255,255,0.06); }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 12px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--muted); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text-dark); }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-sm { background: var(--blue); color: #fff; border: none; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+  .btn-sm:hover { background: #1d4ed8; }
+  .btn-sm-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; }
+  .btn-sm-outline:hover { background: var(--blue-pale); }
+
+  .content { flex: 1; overflow-y: auto; padding: 28px; }
+
+  /* ── PROFILE PAGE ── */
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--navy-dark); margin-bottom: 6px; }
+  .page-header p { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+  .profile-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+
+  /* FORM CARD */
+  .form-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .form-card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .form-card-header h3 { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+  .form-card-icon { width: 32px; height: 32px; background: var(--blue-pale); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .form-card-icon svg { width: 16px; height: 16px; fill: none; stroke: var(--blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .form-card-body { padding: 24px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text-dark); }
+  .form-label span { color: var(--blue); }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  .form-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .form-hint { font-size: 11px; color: var(--text-mid); }
+
+  .form-divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* CITATION STYLES */
+  .citation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .citation-option { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
+  .citation-option:hover { border-color: var(--blue-light); background: var(--blue-pale); }
+  .citation-option.selected { border-color: var(--blue); background: var(--blue-pale); }
+  .citation-option input { display: none; }
+  .citation-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .citation-option.selected .citation-name { color: var(--blue); }
+  .citation-desc { font-size: 10px; color: var(--text-mid); margin-top: 2px; }
+
+  /* LANGUAGE TOGGLE */
+  .lang-toggle { display: flex; gap: 8px; }
+  .lang-btn { flex: 1; padding: 9px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; font-family: 'Inter', sans-serif; background: #fff; color: var(--text-mid); transition: all 0.15s; }
+  .lang-btn:hover { border-color: var(--blue-light); }
+  .lang-btn.selected { border-color: var(--blue); background: var(--blue-pale); color: var(--blue); }
+
+  /* SIDEBAR CARD */
+  .sidebar-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+  .sidebar-card-header { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .sidebar-card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .sidebar-card-body { padding: 18px; }
+
+  .completion-circle { text-align: center; padding: 8px 0 16px; }
+  .completion-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--navy-dark); line-height: 1; }
+  .completion-label { font-size: 12px; color: var(--text-mid); margin-top: 4px; }
+
+  .completion-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .completion-fill { height: 100%; background: var(--blue); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+
+  .checklist { display: flex; flex-direction: column; gap: 10px; }
+  .check-item { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .check-icon { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .check-icon.done { background: var(--blue); border-color: var(--blue); }
+  .check-icon svg { width: 10px; height: 10px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .check-label { color: var(--text-mid); }
+  .check-label.done { color: var(--text-dark); }
+
+  .tip-box { background: var(--blue-pale); border: 1px solid #c7d9f8; border-radius: 10px; padding: 14px; }
+  .tip-box p { font-size: 12px; color: var(--navy); line-height: 1.6; }
+  .tip-box strong { font-weight: 600; }
+
+  .form-actions { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-top: 1px solid var(--border); background: #fafcff; }
+
+  @media (max-width: 900px) {
+    .profile-grid { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+    .form-row.triple { grid-template-columns: 1fr; }
+    .citation-grid { grid-template-columns: repeat(2, 1fr); }
+    .content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item active" href="profile.html">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>My profile</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html">
+        <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span>Topic generator</span>
+        <span class="nav-badge">New</span>
+      </a>
+      <a class="nav-item" href="proposal.html">
+        <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span>Proposal builder</span>
+      </a>
+      <a class="nav-item" href="upload.html">
+        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <span>Upload & analyze</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="citations.html">
+        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span>Citations</span>
+      </a>
+      <a class="nav-item" href="export.html">
+        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span>Export</span>
+      </a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">DR</div>
+        <div class="user-info">
+          <div class="user-name">Dr. Researcher</div>
+          <div class="user-role">PhD Candidate</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Research profile</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="window.location.href='app.html'">← Dashboard</button>
+        <button class="btn-sm" onclick="saveProfile()">Save profile</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-header">
+        <h1>Set up your research profile</h1>
+        <p>This information personalizes every output Dr. NIRA generates — your topic suggestions, proposal sections, citation format, and exports.</p>
+      </div>
+
+      <div class="profile-grid">
+
+        <!-- LEFT: FORM -->
+        <div>
+
+          <!-- PERSONAL INFO -->
+          <div class="form-card" style="margin-bottom:16px">
+            <div class="form-card-header">
+              <div class="form-card-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <h3>Personal information</h3>
+            </div>
+            <div class="form-card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Full name <span>*</span></label>
+                  <input class="form-input" type="text" id="fullName" placeholder="e.g. Dr. Sarah Johnson">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email address <span>*</span></label>
+                  <input class="form-input" type="email" id="email" placeholder="your@university.edu">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">University / Institution <span>*</span></label>
+                  <input class="form-input" type="text" id="university" placeholder="e.g. University of Oxford">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Country</label>
+                  <select class="form-select" id="country">
+                    <option value="">Select country</option>
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Canada</option>
+                    <option>Australia</option>
+                    <option>Germany</option>
+                    <option>Netherlands</option>
+                    <option>Sweden</option>
+                    <option>Iran</option>
+                    <option>Turkey</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row single">
+                <div class="form-group">
+                  <label class="form-label">Supervisor name <span style="color:var(--text-mid);font-weight:400">(optional)</span></label>
+                  <input class="form-input" type="text" id="supervisor" placeholder="e.g. Prof. Michael Smith">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACADEMIC INFO -->
+          <div class="form-card" style="margin-bottom:16px">
+            <div class="form-card-header">
+              <div class="form-card-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+              </div>
+              <h3>Academic information</h3>
+            </div>
+            <div class="form-card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Degree level <span>*</span></label>
+                  <select class="form-select" id="degree" onchange="updateChecklist()">
+                    <option value="">Select degree</option>
+                    <option>Bachelor's</option>
+                    <option>Master's</option>
+                    <option>PhD / Doctorate</option>
+                    <option>Postdoctoral</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Field of study <span>*</span></label>
+                  <input class="form-input" type="text" id="field" placeholder="e.g. Applied Linguistics" onchange="updateChecklist()">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Specialization / Subfield</label>
+                  <input class="form-input" type="text" id="specialization" placeholder="e.g. Second Language Acquisition">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Target pages</label>
+                  <select class="form-select" id="pages">
+                    <option value="">Select range</option>
+                    <option>10–20 pages</option>
+                    <option>20–40 pages</option>
+                    <option>40–80 pages</option>
+                    <option>80–150 pages</option>
+                    <option>150+ pages</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Submission deadline</label>
+                  <input class="form-input" type="date" id="deadline">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Research type</label>
+                  <select class="form-select" id="researchType">
+                    <option value="">Select type</option>
+                    <option>Quantitative</option>
+                    <option>Qualitative</option>
+                    <option>Mixed methods</option>
+                    <option>Not decided yet</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row single">
+                <div class="form-group">
+                  <label class="form-label">Research interests / Keywords</label>
+                  <input class="form-input" type="text" id="keywords" placeholder="e.g. AI in education, language acquisition, corpus linguistics">
+                  <span class="form-hint">Separate with commas — used to personalize topic suggestions</span>
+                </div>
+              </div>
+              <div class="form-row single">
+                <div class="form-group">
+                  <label class="form-label">Brief description of your research idea <span style="color:var(--text-mid);font-weight:400">(optional)</span></label>
+                  <textarea class="form-textarea" id="researchIdea" placeholder="Describe your initial research idea, problem, or area of interest in a few sentences..."></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LANGUAGE & FORMAT -->
+          <div class="form-card" style="margin-bottom:16px">
+            <div class="form-card-header">
+              <div class="form-card-icon">
+                <svg viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
+              </div>
+              <h3>Language & format</h3>
+            </div>
+            <div class="form-card-body">
+              <div class="form-row single" style="margin-bottom:20px">
+                <div class="form-group">
+                  <label class="form-label">Proposal language <span>*</span></label>
+                  <div class="lang-toggle">
+                    <button class="lang-btn selected" id="lang-en" onclick="selectLang('en')">🇬🇧 English</button>
+                    <button class="lang-btn" id="lang-fa" onclick="selectLang('fa')">🇮🇷 Persian (فارسی)</button>
+                    <button class="lang-btn" id="lang-ar" onclick="selectLang('ar')">🇸🇦 Arabic</button>
+                    <button class="lang-btn" id="lang-fr" onclick="selectLang('fr')">🇫🇷 French</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-divider"></div>
+
+              <div class="form-group">
+                <label class="form-label" style="margin-bottom:10px">Citation format <span>*</span></label>
+                <div class="citation-grid" id="citationGrid">
+                  <label class="citation-option selected" onclick="selectCitation(this)">
+                    <input type="radio" name="citation" value="APA 7" checked>
+                    <div class="citation-name">APA 7</div>
+                    <div class="citation-desc">Most common in social sciences</div>
+                  </label>
+                  <label class="citation-option" onclick="selectCitation(this)">
+                    <input type="radio" name="citation" value="APA 6">
+                    <div class="citation-name">APA 6</div>
+                    <div class="citation-desc">Previous APA standard</div>
+                  </label>
+                  <label class="citation-option" onclick="selectCitation(this)">
+                    <input type="radio" name="citation" value="MLA">
+                    <div class="citation-name">MLA</div>
+                    <div class="citation-desc">Humanities & literature</div>
+                  </label>
+                  <label class="citation-option" onclick="selectCitation(this)">
+                    <input type="radio" name="citation" value="IEEE">
+                    <div class="citation-name">IEEE</div>
+                    <div class="citation-desc">Engineering & tech</div>
+                  </label>
+                  <label class="citation-option" onclick="selectCitation(this)">
+                    <input type="radio" name="citation" value="Chicago">
+                    <div class="citation-name">Chicago</div>
+                    <div class="citation-desc">History & arts</div>
+                  </label>
+                  <label class="citation-option" onclick="selectCitation(this)">
+                    <input type="radio" name="citation" value="Vancouver">
+                    <div class="citation-name">Vancouver</div>
+                    <div class="citation-desc">Medical & health sciences</div>
+                  </label>
+                  <label class="citation-option" onclick="selectCitation(this)">
+                    <input type="radio" name="citation" value="Harvard">
+                    <div class="citation-name">Harvard</div>
+                    <div class="citation-desc">Business & management</div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <span style="font-size:12px;color:var(--text-mid)">All fields marked <span style="color:var(--blue)">*</span> are required</span>
+              <button class="btn-sm" onclick="saveProfile()">
+                Save & continue
+                <svg style="width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <div>
+
+          <!-- COMPLETION -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">
+              <h3>Profile completion</h3>
+            </div>
+            <div class="sidebar-card-body">
+              <div class="completion-circle">
+                <div class="completion-num" id="completionNum">0%</div>
+                <div class="completion-label">Complete</div>
+              </div>
+              <div class="completion-bar">
+                <div class="completion-fill" id="completionFill"></div>
+              </div>
+              <div class="checklist" id="checklist">
+                <div class="check-item" id="check-name">
+                  <div class="check-icon"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+                  <span class="check-label">Full name</span>
+                </div>
+                <div class="check-item" id="check-email">
+                  <div class="check-icon"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+                  <span class="check-label">Email address</span>
+                </div>
+                <div class="check-item" id="check-university">
+                  <div class="check-icon"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+                  <span class="check-label">University</span>
+                </div>
+                <div class="check-item" id="check-degree">
+                  <div class="check-icon"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+                  <span class="check-label">Degree level</span>
+                </div>
+                <div class="check-item" id="check-field">
+                  <div class="check-icon"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+                  <span class="check-label">Field of study</span>
+                </div>
+                <div class="check-item" id="check-citation">
+                  <div class="check-icon done"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+                  <span class="check-label done">Citation format</span>
+                </div>
+                <div class="check-item" id="check-lang">
+                  <div class="check-icon done"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+                  <span class="check-label done">Language</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TIP -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">
+              <h3>Why this matters</h3>
+            </div>
+            <div class="sidebar-card-body">
+              <div class="tip-box">
+                <p><strong>Your profile shapes everything.</strong> Dr. NIRA uses this information to generate topics in your exact field, write proposals at your academic level, apply your preferred citation style, and format exports for your university's standards.</p>
+              </div>
+              <p style="font-size:12px;color:var(--text-mid);margin-top:14px;line-height:1.6">You can update your profile at any time — changes apply to all future outputs.</p>
+            </div>
+          </div>
+
+          <!-- NEXT STEP -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">
+              <h3>Next step</h3>
+            </div>
+            <div class="sidebar-card-body">
+              <p style="font-size:12px;color:var(--text-mid);line-height:1.6;margin-bottom:14px">After saving your profile, go to the Topic Generator to find a novel, gap-based research topic personalized to your field.</p>
+              <button class="btn-sm" style="width:100%;justify-content:center" onclick="window.location.href='topic.html'">
+                Go to Topic generator
+                <svg style="width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const checks = {
+    name: false, email: false, university: false,
+    degree: false, field: false, citation: true, lang: true
+  };
+
+  function markDone(id, done) {
+    checks[id] = done;
+    const item = document.getElementById('check-' + id);
+    if (!item) return;
+    const icon = item.querySelector('.check-icon');
+    const label = item.querySelector('.check-label');
+    if (done) {
+      icon.classList.add('done');
+      label.classList.add('done');
+    } else {
+      icon.classList.remove('done');
+      label.classList.remove('done');
+    }
+    updateCompletion();
+  }
+
+  function updateCompletion() {
+    const done = Object.values(checks).filter(Boolean).length;
+    const total = Object.keys(checks).length;
+    const pct = Math.round((done / total) * 100);
+    document.getElementById('completionNum').textContent = pct + '%';
+    document.getElementById('completionFill').style.width = pct + '%';
+  }
+
+  document.getElementById('fullName').addEventListener('input', function() { markDone('name', this.value.trim().length > 1); });
+  document.getElementById('email').addEventListener('input', function() { markDone('email', this.value.includes('@')); });
+  document.getElementById('university').addEventListener('input', function() { markDone('university', this.value.trim().length > 1); });
+  document.getElementById('degree').addEventListener('change', function() { markDone('degree', this.value !== ''); });
+  document.getElementById('field').addEventListener('input', function() { markDone('field', this.value.trim().length > 1); });
+
+  function updateChecklist() {}
+
+  function selectLang(code) {
+    ['en','fa','ar','fr'].forEach(l => document.getElementById('lang-'+l).classList.remove('selected'));
+    document.getElementById('lang-'+code).classList.add('selected');
+  }
+
+  function selectCitation(el) {
+    document.querySelectorAll('.citation-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function saveProfile() {
+    const profile = {
+      fullName: document.getElementById('fullName').value,
+      email: document.getElementById('email').value,
+      university: document.getElementById('university').value,
+      country: document.getElementById('country').value,
+      supervisor: document.getElementById('supervisor').value,
+      degree: document.getElementById('degree').value,
+      field: document.getElementById('field').value,
+      specialization: document.getElementById('specialization').value,
+      pages: document.getElementById('pages').value,
+      deadline: document.getElementById('deadline').value,
+      researchType: document.getElementById('researchType').value,
+      keywords: document.getElementById('keywords').value,
+      researchIdea: document.getElementById('researchIdea').value,
+      citation: document.querySelector('input[name="citation"]:checked')?.value || 'APA 7',
+      language: document.querySelector('.lang-btn.selected')?.id?.replace('lang-','') || 'en'
+    };
+
+    if (!profile.fullName || !profile.email || !profile.university || !profile.degree || !profile.field) {
+      alert('Please fill in all required fields before saving.');
+      return;
+    }
+
+    localStorage.setItem('nira_profile', JSON.stringify(profile));
+    window.location.href = 'topic.html';
+  }
+
+  // Load saved profile
+  window.addEventListener('load', function() {
+    const saved = localStorage.getItem('nira_profile');
+    if (!saved) return;
+    const p = JSON.parse(saved);
+    if (p.fullName) { document.getElementById('fullName').value = p.fullName; markDone('name', true); }
+    if (p.email) { document.getElementById('email').value = p.email; markDone('email', true); }
+    if (p.university) { document.getElementById('university').value = p.university; markDone('university', true); }
+    if (p.country) document.getElementById('country').value = p.country;
+    if (p.supervisor) document.getElementById('supervisor').value = p.supervisor;
+    if (p.degree) { document.getElementById('degree').value = p.degree; markDone('degree', true); }
+    if (p.field) { document.getElementById('field').value = p.field; markDone('field', true); }
+    if (p.specialization) document.getElementById('specialization').value = p.specialization;
+    if (p.pages) document.getElementById('pages').value = p.pages;
+    if (p.deadline) document.getElementById('deadline').value = p.deadline;
+    if (p.researchType) document.getElementById('researchType').value = p.researchType;
+    if (p.keywords) document.getElementById('keywords').value = p.keywords;
+    if (p.researchIdea) document.getElementById('researchIdea').value = p.researchIdea;
+    if (p.language) selectLang(p.language);
+    if (p.citation) {
+      document.querySelectorAll('.citation-option').forEach(o => {
+        if (o.querySelector('input').value === p.citation) {
+          document.querySelectorAll('.citation-option').forEach(x => x.classList.remove('selected'));
+          o.classList.add('selected');
+        }
+      });
+    }
+  });
+</script>
+</body>
+</html>
