@@ -709,18 +709,64 @@
   .footer-links a:hover { color: #fff; }
 
   @media (max-width: 768px) {
-    header { padding: 0 20px; }
+    /* HEADER */
+    header { padding: 0 16px; height: 56px; }
     nav { display: none; }
-    .hero { padding: 52px 20px; }
-    .hero h1 { font-size: 32px; }
-    .stats { grid-template-columns: repeat(2, 1fr); padding: 20px; }
-    .features { padding: 48px 20px; }
-    .features-grid { grid-template-columns: 1fr; }
-    .upload-inner { grid-template-columns: 1fr; }
-    .upload-section { padding: 48px 20px; }
-    .how-steps { grid-template-columns: repeat(2, 1fr); }
-    .how { padding: 48px 20px; }
-    footer { flex-direction: column; gap: 16px; text-align: center; }
+    .header-actions { gap: 6px; }
+    .btn-ghost { padding: 6px 12px; font-size: 12px; }
+    .btn-primary { padding: 6px 12px; font-size: 12px; }
+
+    /* HERO */
+    .hero { padding: 40px 20px 48px; }
+    .hero h1 { font-size: 28px; line-height: 1.25; }
+    .hero p { font-size: 14px; }
+    .hero-actions { flex-direction: column; align-items: center; gap: 10px; }
+    .btn-hero { width: 100%; max-width: 300px; justify-content: center; font-size: 15px; padding: 13px 24px; }
+    .btn-hero-outline { width: 100%; max-width: 300px; font-size: 14px; padding: 12px 24px; }
+
+    /* STATS */
+    .stats { grid-template-columns: repeat(2, 1fr); padding: 20px 16px; gap: 0; }
+    .stat { padding: 12px 0; }
+    .stat-num { font-size: 24px; }
+
+    /* FEATURES */
+    .features { padding: 40px 16px; }
+    .section-title { font-size: 22px; }
+    .features-grid { grid-template-columns: 1fr; gap: 12px; }
+    .feature-card { padding: 20px 16px; }
+
+    /* UPLOAD */
+    .upload-section { padding: 40px 16px; }
+    .upload-inner { grid-template-columns: 1fr; gap: 28px; }
+    .upload-text h2 { font-size: 22px; }
+    .analysis-preview { display: none; }
+
+    /* HOW IT WORKS */
+    .how { padding: 40px 16px; }
+    .how-steps { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .how-step { padding: 20px 12px; }
+
+    /* FOUNDER */
+    .founder-grid { grid-template-columns: 1fr !important; }
+    .founder-avatar-wrap { order: -1; }
+
+    /* CTA */
+    .cta { padding: 48px 20px; }
+    .cta h2 { font-size: 24px; }
+    .btn-hero[onclick] { width: auto; }
+
+    /* FOOTER */
+    footer { flex-direction: column; gap: 12px; text-align: center; padding: 20px 16px; }
+    .footer-links { justify-content: center; }
+
+    /* NIR BADGE */
+    .nir-label { font-size: 12px; }
+  }
+
+  @media (max-width: 400px) {
+    .hero h1 { font-size: 24px; }
+    .how-steps { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -954,7 +1000,7 @@
 
 <!-- FOUNDER -->
 <section style="padding:72px 40px;background:#fff">
-  <div style="max-width:860px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center">
+  <div style="max-width:860px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center" class="founder-grid">
     <div>
       <p style="font-size:11px;font-weight:600;color:var(--blue);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">About the founder</p>
       <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--navy-dark);line-height:1.3;margin-bottom:16px">Dr. Niki Majidi</h2>
