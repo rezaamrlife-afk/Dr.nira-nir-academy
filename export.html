@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Export Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1B2A4A; --navy-dark: #0F1B33; --blue: #2563EB;
+    --blue-light: #60A5FA; --blue-pale: #EEF4FF;
+    --muted: #a0b0cc; --text-dark: #1B2A4A; --text-mid: #6B7FA3;
+    --border: #dde6f5; --sidebar-w: 240px;
+    --green: #16a34a; --green-pale: #f0fdf4;
+  }
+  html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff; color: var(--text-dark); }
+  .app-shell { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: var(--sidebar-w); background: var(--navy-dark); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
+  .sidebar-logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .sidebar-logo-icon svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sidebar-logo-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #fff; }
+  .sidebar-section { padding: 20px 12px 8px; }
+  .sidebar-section-label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; text-decoration: none; }
+  .nav-item:hover { background: rgba(255,255,255,0.06); }
+  .nav-item.active { background: var(--blue); }
+  .nav-item svg { width: 17px; height: 17px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .nav-item.active svg, .nav-item:hover svg { stroke: #fff; }
+  .nav-item span { font-size: 13px; color: var(--muted); }
+  .nav-item.active span, .nav-item:hover span { color: #fff; }
+  .nav-item .nav-badge { margin-left: auto; background: var(--blue-light); color: var(--navy-dark); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .sidebar-bottom { margin-top: auto; padding: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
+  .user-name { font-size: 12px; font-weight: 500; color: #fff; }
+  .user-role { font-size: 11px; color: var(--muted); }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text-dark); }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-sm { background: var(--blue); color: #fff; border: none; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+  .btn-sm:hover { background: #1d4ed8; }
+  .btn-sm-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-sm-outline:hover { background: var(--blue-pale); }
+  .content { flex: 1; overflow-y: auto; padding: 28px; }
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--navy-dark); margin-bottom: 6px; }
+  .page-header p { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+  .export-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+
+  /* PREVIEW */
+  .preview-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .card-header-meta { font-size: 12px; color: var(--text-mid); }
+
+  /* DOCUMENT PREVIEW */
+  .doc-preview { padding: 32px 40px; background: #fff; min-height: 500px; font-family: 'Times New Roman', serif; }
+  .doc-title-block { text-align: center; margin-bottom: 36px; border-bottom: 2px solid var(--navy-dark); padding-bottom: 20px; }
+  .doc-institution { font-size: 13px; color: var(--text-mid); margin-bottom: 8px; font-family: 'Inter', sans-serif; }
+  .doc-main-title { font-size: 20px; font-weight: 700; color: var(--navy-dark); line-height: 1.3; margin-bottom: 10px; }
+  .doc-subtitle { font-size: 13px; color: var(--text-mid); font-family: 'Inter', sans-serif; }
+  .doc-meta-row { display: flex; justify-content: center; gap: 32px; margin-top: 16px; }
+  .doc-meta-item { text-align: center; font-family: 'Inter', sans-serif; }
+  .doc-meta-label { font-size: 10px; text-transform: uppercase; color: var(--text-mid); letter-spacing: 0.08em; margin-bottom: 3px; }
+  .doc-meta-value { font-size: 12px; font-weight: 500; color: var(--text-dark); }
+
+  .doc-section { margin-bottom: 24px; }
+  .doc-section-title { font-size: 14px; font-weight: 700; color: var(--navy-dark); margin-bottom: 10px; padding-bottom: 4px; border-bottom: 1px solid var(--border); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+  .doc-section-content { font-size: 13px; line-height: 1.8; color: #2d3748; white-space: pre-wrap; }
+
+  .doc-empty { text-align: center; padding: 60px 24px; color: var(--text-mid); }
+  .doc-empty h3 { font-size: 15px; margin-bottom: 8px; color: var(--text-dark); }
+  .doc-empty p { font-size: 13px; line-height: 1.6; }
+
+  /* RIGHT PANEL */
+  .export-options-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+  .export-options-header { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .export-options-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .export-options-body { padding: 18px; }
+
+  /* FORMAT CARDS */
+  .format-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .format-card { border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px; }
+  .format-card:hover { border-color: var(--blue-light); background: #f8faff; }
+  .format-card.selected { border-color: var(--blue); background: var(--blue-pale); }
+  .format-icon { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .format-icon.docx { background: #dbeafe; color: var(--blue); }
+  .format-icon.pdf { background: #fee2e2; color: #dc2626; }
+  .format-icon.txt { background: #f3f4f6; color: #374151; }
+  .format-info h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
+  .format-info p { font-size: 11px; color: var(--text-mid); }
+  .format-check { margin-left: auto; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .format-card.selected .format-check { background: var(--blue); border-color: var(--blue); }
+  .format-card.selected .format-check::after { content: '✓'; font-size: 10px; color: #fff; font-weight: 700; }
+
+  /* SETTINGS */
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { font-size: 12px; font-weight: 500; color: var(--text-dark); }
+  .setting-sub { font-size: 11px; color: var(--text-mid); margin-top: 2px; }
+  .toggle { width: 36px; height: 20px; background: var(--border); border-radius: 10px; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.on { background: var(--blue); }
+  .toggle::after { content: ''; width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
+  .toggle.on::after { transform: translateX(16px); }
+
+  /* EXPORT BTN */
+  .export-btn { width: 100%; padding: 13px; background: var(--blue); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; margin-bottom: 10px; }
+  .export-btn:hover { background: #1d4ed8; }
+  .export-btn:disabled { background: #93b4f0; cursor: not-allowed; }
+
+  /* STATS */
+  .proposal-stats { background: var(--blue-pale); border: 1px solid #c7d9f8; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-item { text-align: center; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--navy-dark); line-height: 1; }
+  .stat-label { font-size: 10px; color: var(--text-mid); margin-top: 3px; }
+
+  /* SECTIONS CHECKLIST */
+  .sections-check { display: flex; flex-direction: column; gap: 6px; }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .check-dot { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .check-dot.done { background: var(--green); }
+  .check-dot.empty { background: var(--border); }
+  .check-dot svg { width: 8px; height: 8px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .check-row-label { color: var(--text-dark); }
+  .check-row-label.empty { color: var(--text-mid); }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .export-layout { grid-template-columns: 1fr; }
+    .content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span><span class="nav-badge">New</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item active" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">DR</div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Export proposal</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="window.location.href='proposal.html'">← Proposal builder</button>
+        <button class="btn-sm" onclick="exportDoc()">
+          <svg style="width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Download now
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-header">
+        <h1>Export your proposal</h1>
+        <p>Preview your complete proposal and download it as DOCX or PDF — formatted and ready to submit.</p>
+      </div>
+
+      <div class="export-layout">
+
+        <!-- PREVIEW -->
+        <div class="preview-card">
+          <div class="card-header">
+            <h3>Document preview</h3>
+            <span class="card-header-meta" id="previewMeta">Loading...</span>
+          </div>
+          <div class="doc-preview" id="docPreview">
+            <div class="doc-empty">
+              <h3>No proposal found</h3>
+              <p>Go to Proposal builder and generate your sections first, then come back to export.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div>
+
+          <!-- STATS -->
+          <div class="export-options-card" id="statsCard" style="display:none">
+            <div class="export-options-header"><h3>Proposal summary</h3></div>
+            <div class="export-options-body">
+              <div class="proposal-stats">
+                <div class="stats-grid">
+                  <div class="stat-item"><div class="stat-num" id="statSections">0</div><div class="stat-label">Sections</div></div>
+                  <div class="stat-item"><div class="stat-num" id="statWords">0</div><div class="stat-label">Words</div></div>
+                  <div class="stat-item"><div class="stat-num" id="statPages">~0</div><div class="stat-label">Est. pages</div></div>
+                  <div class="stat-item"><div class="stat-num" id="statComplete">0%</div><div class="stat-label">Complete</div></div>
+                </div>
+              </div>
+              <div class="sections-check" id="sectionsCheck"></div>
+            </div>
+          </div>
+
+          <!-- FORMAT -->
+          <div class="export-options-card">
+            <div class="export-options-header"><h3>Export format</h3></div>
+            <div class="export-options-body">
+              <div class="format-cards">
+                <div class="format-card selected" onclick="selectFormat(this, 'docx')">
+                  <div class="format-icon docx">DOCX</div>
+                  <div class="format-info"><h4>Word Document</h4><p>Editable · Compatible with MS Word & Google Docs</p></div>
+                  <div class="format-check"></div>
+                </div>
+                <div class="format-card" onclick="selectFormat(this, 'pdf')">
+                  <div class="format-icon pdf">PDF</div>
+                  <div class="format-info"><h4>PDF Document</h4><p>Print-ready · Best for submission</p></div>
+                  <div class="format-check"></div>
+                </div>
+                <div class="format-card" onclick="selectFormat(this, 'txt')">
+                  <div class="format-icon txt">TXT</div>
+                  <div class="format-info"><h4>Plain Text</h4><p>Raw text · Use in any editor</p></div>
+                  <div class="format-check"></div>
+                </div>
+              </div>
+
+              <p style="font-size:12px;font-weight:600;color:var(--text-dark);margin-bottom:10px">Options</p>
+              <div>
+                <div class="setting-row">
+                  <div><div class="setting-label">Cover page</div><div class="setting-sub">Include title, author, university</div></div>
+                  <div class="toggle on" id="toggle-cover" onclick="toggleSetting(this)"></div>
+                </div>
+                <div class="setting-row">
+                  <div><div class="setting-label">Table of contents</div><div class="setting-sub">Auto-generated from sections</div></div>
+                  <div class="toggle on" id="toggle-toc" onclick="toggleSetting(this)"></div>
+                </div>
+                <div class="setting-row">
+                  <div><div class="setting-label">Page numbers</div><div class="setting-sub">Bottom center</div></div>
+                  <div class="toggle on" id="toggle-pages" onclick="toggleSetting(this)"></div>
+                </div>
+                <div class="setting-row">
+                  <div><div class="setting-label">Section headings</div><div class="setting-sub">Bold numbered headings</div></div>
+                  <div class="toggle on" id="toggle-headings" onclick="toggleSetting(this)"></div>
+                </div>
+              </div>
+
+              <button class="export-btn" onclick="exportDoc()" id="exportBtn" style="margin-top:16px">
+                <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download proposal
+              </button>
+              <button class="btn-sm-outline" style="width:100%;justify-content:center;display:flex" onclick="copyToClipboard()">Copy all text</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SECTION_LABELS = {
+    title: 'Title', problem: 'Problem Statement', objectives: 'Objectives',
+    questions: 'Research Questions', hypotheses: 'Hypotheses',
+    literature: 'Literature Review', novelty: 'Innovation & Necessity',
+    methodology: 'Methodology', limitations: 'Limitations', references: 'References'
+  };
+
+  let proposal = {};
+  let profile = {};
+  let topic = {};
+  let selectedFormat = 'docx';
+
+  window.addEventListener('load', function() {
+    const sp = localStorage.getItem('nira_profile');
+    if (sp) {
+      profile = JSON.parse(sp);
+      document.getElementById('sidebarName').textContent = profile.fullName || 'Dr. Researcher';
+      document.getElementById('sidebarRole').textContent = (profile.degree || 'PhD') + ' Candidate';
+      if (profile.fullName) document.getElementById('sidebarAvatar').textContent = profile.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    }
+    const st = localStorage.getItem('nira_selected_topic');
+    if (st) topic = JSON.parse(st);
+    const sg = localStorage.getItem('nira_proposal');
+    if (sg) proposal = JSON.parse(sg);
+    renderPreview();
+    renderStats();
+  });
+
+  function renderPreview() {
+    const keys = Object.keys(SECTION_LABELS);
+    const done = keys.filter(k => proposal[k]);
+    const totalWords = done.reduce((acc, k) => acc + (proposal[k] || '').trim().split(/\s+/).length, 0);
+    document.getElementById('previewMeta').textContent = done.length + ' sections · ' + totalWords.toLocaleString() + ' words';
+
+    if (done.length === 0) return;
+
+    const p = profile;
+    const t = topic;
+    const topicTitle = t.title_en || (proposal.title ? proposal.title.split('\n')[0] : 'PhD Research Proposal');
+
+    let html = `
+      <div class="doc-title-block">
+        <div class="doc-institution">${p.university || 'University / Institution'}</div>
+        <div class="doc-main-title">${topicTitle}</div>
+        <div class="doc-subtitle">PhD Research Proposal</div>
+        <div class="doc-meta-row">
+          <div class="doc-meta-item"><div class="doc-meta-label">Researcher</div><div class="doc-meta-value">${p.fullName || '—'}</div></div>
+          <div class="doc-meta-item"><div class="doc-meta-label">Field</div><div class="doc-meta-value">${p.field || '—'}</div></div>
+          <div class="doc-meta-item"><div class="doc-meta-label">Citation</div><div class="doc-meta-value">${p.citation || 'APA 7'}</div></div>
+          <div class="doc-meta-item"><div class="doc-meta-label">Date</div><div class="doc-meta-value">${new Date().toLocaleDateString('en-GB', {year:'numeric',month:'long'})}</div></div>
+        </div>
+      </div>
+    `;
+
+    keys.forEach((k, i) => {
+      if (proposal[k]) {
+        html += `
+          <div class="doc-section">
+            <div class="doc-section-title">${i+1}. ${SECTION_LABELS[k]}</div>
+            <div class="doc-section-content">${proposal[k]}</div>
+          </div>
+        `;
+      }
+    });
+
+    document.getElementById('docPreview').innerHTML = html;
+  }
+
+  function renderStats() {
+    const keys = Object.keys(SECTION_LABELS);
+    const done = keys.filter(k => proposal[k]);
+    if (done.length === 0) return;
+
+    document.getElementById('statsCard').style.display = 'block';
+    const totalWords = done.reduce((acc, k) => acc + (proposal[k] || '').trim().split(/\s+/).length, 0);
+    const estPages = Math.round(totalWords / 250);
+    const pct = Math.round((done.length / keys.length) * 100);
+
+    document.getElementById('statSections').textContent = done.length + '/' + keys.length;
+    document.getElementById('statWords').textContent = totalWords > 999 ? (totalWords/1000).toFixed(1) + 'k' : totalWords;
+    document.getElementById('statPages').textContent = '~' + estPages;
+    document.getElementById('statComplete').textContent = pct + '%';
+
+    document.getElementById('sectionsCheck').innerHTML = keys.map(k => `
+      <div class="check-row">
+        <div class="check-dot ${proposal[k] ? 'done' : 'empty'}">
+          ${proposal[k] ? '<svg viewBox="0 0 10 10"><path d="M2 5l2 2 4-4"/></svg>' : ''}
+        </div>
+        <span class="check-row-label ${proposal[k] ? '' : 'empty'}">${SECTION_LABELS[k]}</span>
+      </div>
+    `).join('');
+  }
+
+  function selectFormat(el, fmt) {
+    document.querySelectorAll('.format-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedFormat = fmt;
+  }
+
+  function toggleSetting(el) { el.classList.toggle('on'); }
+
+  function buildFullText() {
+    const keys = Object.keys(SECTION_LABELS);
+    const p = profile;
+    const t = topic;
+    const topicTitle = t.title_en || 'PhD Research Proposal';
+    const includeCover = document.getElementById('toggle-cover').classList.contains('on');
+    const includeToc = document.getElementById('toggle-toc').classList.contains('on');
+    const includeHeadings = document.getElementById('toggle-headings').classList.contains('on');
+
+    let text = '';
+
+    if (includeCover) {
+      text += `PhD RESEARCH PROPOSAL\n`;
+      text += `${'='.repeat(50)}\n\n`;
+      text += `Title: ${topicTitle}\n`;
+      text += `Researcher: ${p.fullName || '—'}\n`;
+      text += `University: ${p.university || '—'}\n`;
+      text += `Field: ${p.field || '—'}\n`;
+      text += `Degree: ${p.degree || 'PhD'}\n`;
+      text += `Citation Format: ${p.citation || 'APA 7'}\n`;
+      text += `Date: ${new Date().toLocaleDateString('en-GB', {year:'numeric',month:'long',day:'numeric'})}\n\n`;
+    }
+
+    if (includeToc) {
+      text += `TABLE OF CONTENTS\n${'─'.repeat(40)}\n`;
+      let num = 1;
+      keys.forEach(k => { if (proposal[k]) { text += `${num}. ${SECTION_LABELS[k]}\n`; num++; } });
+      text += '\n';
+    }
+
+    let num = 1;
+    keys.forEach(k => {
+      if (proposal[k]) {
+        if (includeHeadings) text += `\n${num}. ${SECTION_LABELS[k].toUpperCase()}\n${'─'.repeat(40)}\n`;
+        text += proposal[k] + '\n\n';
+        num++;
+      }
+    });
+
+    return text;
+  }
+
+  function exportDoc() {
+    const done = Object.keys(SECTION_LABELS).filter(k => proposal[k]);
+    if (done.length === 0) { alert('No sections generated yet. Go to Proposal Builder first.'); return; }
+
+    const text = buildFullText();
+    const topicTitle = topic.title_en || 'PhD-Proposal';
+    const safeName = topicTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 40);
+
+    if (selectedFormat === 'txt') {
+      downloadFile(text, safeName + '.txt', 'text/plain');
+    } else if (selectedFormat === 'pdf') {
+      exportPDF(text, topicTitle);
+    } else {
+      exportDOCX(text, topicTitle, safeName);
+    }
+  }
+
+  function downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportPDF(text, title) {
+    const printWin = window.open('', '_blank');
+    const p = profile;
+    const keys = Object.keys(SECTION_LABELS);
+    const includeCover = document.getElementById('toggle-cover').classList.contains('on');
+    const includePages = document.getElementById('toggle-pages').classList.contains('on');
+
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+      body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.8; margin: 2.5cm; color: #000; }
+      h1 { font-size: 16pt; text-align: center; margin-bottom: 8pt; }
+      h2 { font-size: 13pt; font-weight: bold; margin-top: 20pt; margin-bottom: 8pt; border-bottom: 1px solid #ccc; padding-bottom: 4pt; text-transform: uppercase; letter-spacing: 0.05em; }
+      .cover { text-align: center; margin-bottom: 40pt; border-bottom: 2px solid #000; padding-bottom: 20pt; }
+      .cover-meta { font-size: 11pt; margin-top: 4pt; }
+      p { margin-bottom: 10pt; white-space: pre-wrap; }
+      ${includePages ? '@page { margin: 2.5cm; } @bottom-center { content: counter(page); }' : ''}
+    </style></head><body>`;
+
+    if (includeCover) {
+      html += `<div class="cover">
+        <div class="cover-meta">${p.university || ''}</div>
+        <h1>${title}</h1>
+        <div class="cover-meta">PhD Research Proposal</div>
+        <br>
+        <div class="cover-meta"><b>Researcher:</b> ${p.fullName || '—'}</div>
+        <div class="cover-meta"><b>Field:</b> ${p.field || '—'} · <b>Degree:</b> ${p.degree || 'PhD'}</div>
+        <div class="cover-meta">${new Date().toLocaleDateString('en-GB', {year:'numeric',month:'long'})}</div>
+      </div>`;
+    }
+
+    let num = 1;
+    keys.forEach(k => {
+      if (proposal[k]) {
+        html += `<h2>${num}. ${SECTION_LABELS[k]}</h2><p>${proposal[k].replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>`;
+        num++;
+      }
+    });
+
+    html += '</body></html>';
+    printWin.document.write(html);
+    printWin.document.close();
+    setTimeout(() => { printWin.print(); }, 500);
+  }
+
+  function exportDOCX(text, title, safeName) {
+    // RTF format — opens in Word
+    const p = profile;
+    const keys = Object.keys(SECTION_LABELS);
+    const includeCover = document.getElementById('toggle-cover').classList.contains('on');
+
+    let rtf = '{\\rtf1\\ansi\\deff0\\deflang1033';
+    rtf += '{\\fonttbl{\\f0\\froman\\fcharset0 Times New Roman;}{\\f1\\fswiss\\fcharset0 Arial;}}';
+    rtf += '{\\colortbl;\\red27\\green42\\blue74;}';
+    rtf += '\\paperw12240\\paperh15840\\margl1800\\margr1800\\margt1440\\margb1440';
+    rtf += '\\widowctrl\\hyphauto\\f0\\fs24\\sl360\\slmult1 ';
+
+    if (includeCover) {
+      rtf += `\\pard\\qc\\f1\\fs32\\b ${escRTF(title)}\\b0\\par`;
+      rtf += `\\pard\\qc\\fs22 PhD Research Proposal\\par`;
+      rtf += `\\pard\\qc\\fs20 ${escRTF(p.fullName || '')}\\par`;
+      rtf += `\\pard\\qc ${escRTF(p.university || '')}\\par`;
+      rtf += `\\pard\\qc ${escRTF(p.field || '')} \\bullet ${escRTF(p.degree || 'PhD')}\\par`;
+      rtf += `\\pard\\qc ${new Date().toLocaleDateString('en-GB', {year:'numeric',month:'long'})}\\par`;
+      rtf += '\\page ';
+    }
+
+    let num = 1;
+    keys.forEach(k => {
+      if (proposal[k]) {
+        rtf += `\\pard\\f1\\fs26\\b\\cf1 ${num}. ${escRTF(SECTION_LABELS[k].toUpperCase())}\\b0\\cf0\\par`;
+        rtf += `\\pard\\f0\\fs24 ${escRTF(proposal[k])}\\par\\par`;
+        num++;
+      }
+    });
+
+    rtf += '}';
+    downloadFile(rtf, safeName + '.rtf', 'application/rtf');
+  }
+
+  function escRTF(str) {
+    if (!str) return '';
+    return str
+      .replace(/\\/g, '\\\\')
+      .replace(/\{/g, '\\{')
+      .replace(/\}/g, '\\}')
+      .replace(/\n/g, '\\par ')
+      .replace(/[^\x00-\x7F]/g, c => `\\'${c.charCodeAt(0).toString(16).padStart(2,'0')}`);
+  }
+
+  function copyToClipboard() {
+    const text = buildFullText();
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.textContent = 'Copy all text'; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
