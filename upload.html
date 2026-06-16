@@ -92,6 +92,9 @@
   .analyze-btn { width: 100%; padding: 12px; background: var(--blue); color: #fff; border: none; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
   .analyze-btn:hover { background: #1d4ed8; }
   .analyze-btn:disabled { background: #93b4f0; cursor: not-allowed; }
+  .build-proposal-btn { width: 100%; padding: 11px; background: var(--navy-dark); color: #fff; border: none; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; margin-top: 8px; }
+  .build-proposal-btn:hover { background: var(--navy); }
+  .build-proposal-btn:disabled { background: #93b4f0; cursor: not-allowed; }
   .results-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
   .steps-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
   .steps-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); }
@@ -239,6 +242,10 @@
                 <svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                 Analyze document
               </button>
+              <button class="build-proposal-btn" id="buildProposalBtn" onclick="buildProposalFromDoc()" disabled>
+                <svg style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Build proposal from this document →
+              </button>
             </div>
           </div>
         </div>
@@ -355,6 +362,7 @@
       fileText = ext === 'pdf' ? await extractPDF(file) : await extractDOCX(file);
       const words = fileText.trim().split(/\s+/).length;
       document.getElementById('fileMetaEl').textContent = sizeMB + ' MB · ' + ext.toUpperCase() + ' · ' + words.toLocaleString() + ' words extracted';
+      document.getElementById('buildProposalBtn').disabled = false;
     } catch(err) { document.getElementById('fileMetaEl').textContent = 'Error: ' + err.message; }
   }
 
@@ -382,6 +390,15 @@
     document.getElementById('dropZone').style.display = 'block';
     document.getElementById('fileLoaded').style.display = 'none';
     document.getElementById('fileInput').value = '';
+    document.getElementById('buildProposalBtn').disabled = true;
+  }
+
+  function buildProposalFromDoc() {
+    if (!fileText) { alert('Please upload a document first.'); return; }
+    localStorage.setItem('nira_upload_text', fileText.slice(0, 8000));
+    localStorage.setItem('nira_upload_filename', fileNameStr);
+    localStorage.setItem('nira_build_from_upload', '1');
+    window.location.href = 'proposal.html';
   }
 
   function setStep(id, state) {
