@@ -325,6 +325,20 @@
     const sg = localStorage.getItem('nira_proposal');
     if (sg) generated = JSON.parse(sg);
 
+    // Check if coming from upload
+    if (localStorage.getItem('nira_build_from_upload') === '1') {
+      const uploadText = localStorage.getItem('nira_upload_text') || '';
+      const uploadFile = localStorage.getItem('nira_upload_filename') || 'document';
+      if (uploadText) {
+        localStorage.setItem('nira_upload_context', uploadText);
+        localStorage.removeItem('nira_build_from_upload');
+        const chip = document.getElementById('chipTitle');
+        const meta = document.getElementById('chipMeta');
+        if (chip) chip.textContent = 'Based on: ' + uploadFile;
+        if (meta) meta.textContent = 'Dr. NIRA will use your uploaded document to generate each section';
+      }
+    }
+
     renderSectionsNav();
     renderSectionCards();
     updateProgress();
@@ -423,10 +437,13 @@ Research gap: ${gap}
 Keywords: ${keywords}
     `.trim();
 
+    const uploadContext = localStorage.getItem('nira_upload_context');
+    const uploadSection = uploadContext ? `\n\nReference document (use this as context and basis):\n${uploadContext.slice(0, 3000)}` : '';
+
     const prompts = {
       title: `Write the Title section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Full English title\n2. Persian translation of the title\n3. Short title (max 6 words)\n\nWrite in formal academic English. Be precise and scholarly.`,
 
-      problem: `Write the Problem Statement section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Introduction to the topic\n2. Importance of the research area\n3. The main problem being addressed\n4. The research gap in existing literature\n5. Necessity of this research\n\nWrite 400-600 words in formal academic English with strong scholarly tone.`,
+      problem: `Write the Problem Statement section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Introduction to the topic\n2. Importance of the research area\n3. The main problem being addressed\n4. The research gap in existing literature\n5. Necessity of this research\n\nWrite 400-600 words in formal academic English with strong scholarly tone.${uploadSection}`,
 
       objectives: `Write the Objectives section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. General objective (1 clear statement)\n2. Specific objectives (3-4 numbered items)\n3. Applied objectives (2-3 practical goals)\n\nWrite in formal academic English.`,
 
