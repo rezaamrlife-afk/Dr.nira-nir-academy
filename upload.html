@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Upload & Analyze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1B2A4A; --navy-dark: #0F1B33; --blue: #2563EB;
+    --blue-light: #60A5FA; --blue-pale: #EEF4FF;
+    --muted: #a0b0cc; --text-dark: #1B2A4A; --text-mid: #6B7FA3;
+    --border: #dde6f5; --sidebar-w: 240px;
+    --green: #16a34a; --green-pale: #f0fdf4;
+    --amber: #d97706; --amber-pale: #fffbeb;
+    --red: #dc2626; --red-pale: #fef2f2;
+  }
+  html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff; color: var(--text-dark); }
+  .app-shell { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: var(--sidebar-w); background: var(--navy-dark); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
+  .sidebar-logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .sidebar-logo-icon svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sidebar-logo-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #fff; }
+  .sidebar-section { padding: 20px 12px 8px; }
+  .sidebar-section-label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; text-decoration: none; }
+  .nav-item:hover { background: rgba(255,255,255,0.06); }
+  .nav-item.active { background: var(--blue); }
+  .nav-item svg { width: 17px; height: 17px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .nav-item.active svg, .nav-item:hover svg { stroke: #fff; }
+  .nav-item span { font-size: 13px; color: var(--muted); }
+  .nav-item.active span, .nav-item:hover span { color: #fff; }
+  .nav-item .nav-badge { margin-left: auto; background: var(--blue-light); color: var(--navy-dark); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .sidebar-bottom { margin-top: auto; padding: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
+  .user-name { font-size: 12px; font-weight: 500; color: #fff; }
+  .user-role { font-size: 11px; color: var(--muted); }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text-dark); }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-sm { background: var(--blue); color: #fff; border: none; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+  .btn-sm:hover { background: #1d4ed8; }
+  .btn-sm-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-sm-outline:hover { background: var(--blue-pale); }
+  .content { flex: 1; overflow-y: auto; padding: 28px; }
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--navy-dark); margin-bottom: 6px; }
+  .page-header p { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+  .upload-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .upload-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .card-header-icon { width: 30px; height: 30px; background: var(--blue-pale); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .card-header-icon svg { width: 15px; height: 15px; fill: none; stroke: var(--blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .card-body { padding: 20px; }
+  .drop-zone { border: 2px dashed #b8cef0; border-radius: 12px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f8faff; margin-bottom: 16px; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--blue); background: var(--blue-pale); }
+  .drop-zone-icon { width: 52px; height: 52px; background: var(--blue-pale); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .drop-zone-icon svg { width: 26px; height: 26px; fill: none; stroke: var(--blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .drop-zone h4 { font-size: 14px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
+  .drop-zone p { font-size: 12px; color: var(--text-mid); margin-bottom: 14px; }
+  .file-types { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .file-type-badge { background: #fff; border: 1px solid var(--border); color: var(--navy); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 6px; }
+  .browse-btn { background: var(--blue); color: #fff; border: none; padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .browse-btn:hover { background: #1d4ed8; }
+  #fileInput { display: none; }
+  .file-loaded { background: var(--green-pale); border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .file-loaded-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .file-loaded-icon.pdf { background: #fee2e2; }
+  .file-loaded-icon.docx { background: #dbeafe; }
+  .file-loaded-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .file-loaded-icon.pdf svg { stroke: var(--red); }
+  .file-loaded-icon.docx svg { stroke: var(--blue); }
+  .file-loaded-info { flex: 1; min-width: 0; }
+  .file-loaded-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-loaded-meta { font-size: 11px; color: var(--text-mid); margin-top: 2px; }
+  .file-remove { background: none; border: none; cursor: pointer; color: var(--text-mid); font-size: 20px; line-height: 1; padding: 0 4px; }
+  .file-remove:hover { color: var(--red); }
+  .analysis-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .analysis-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 9px; cursor: pointer; transition: all 0.15s; }
+  .analysis-option:hover { border-color: var(--blue-light); background: #f8faff; }
+  .analysis-option.selected { border-color: var(--blue); background: var(--blue-pale); }
+  .analysis-option input { margin-top: 2px; accent-color: var(--blue); flex-shrink: 0; }
+  .analysis-option-text h4 { font-size: 13px; font-weight: 500; color: var(--text-dark); margin-bottom: 2px; }
+  .analysis-option-text p { font-size: 11px; color: var(--text-mid); line-height: 1.5; }
+  .analyze-btn { width: 100%; padding: 12px; background: var(--blue); color: #fff; border: none; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+  .analyze-btn:hover { background: #1d4ed8; }
+  .analyze-btn:disabled { background: #93b4f0; cursor: not-allowed; }
+  .results-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .steps-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .steps-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .steps-overall { font-size: 12px; color: var(--text-mid); }
+  .steps-list { padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border); }
+  .step-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); background: #fafcff; transition: all 0.3s; }
+  .step-row.step-done { background: var(--green-pale); border-color: #bbf7d0; }
+  .step-row.step-active { background: var(--blue-pale); border-color: #c7d9f8; }
+  .step-row.step-error { background: var(--red-pale); border-color: #fecaca; }
+  .step-indicator { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: 600; }
+  .step-indicator.pending { background: var(--border); color: var(--text-mid); }
+  .step-indicator.active { background: var(--blue); color: #fff; animation: pulse 1s infinite; }
+  .step-indicator.done { background: var(--green); color: #fff; }
+  .step-indicator.error { background: var(--red); color: #fff; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .step-info { flex: 1; }
+  .step-label { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+  .step-row.step-active .step-label { color: var(--blue); }
+  .step-row.step-done .step-label { color: var(--green); }
+  .step-sublabel { font-size: 11px; color: var(--text-mid); margin-top: 2px; }
+  .step-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+  .step-badge.pending { background: var(--border); color: var(--text-mid); }
+  .step-badge.active { background: var(--blue-pale); color: var(--blue); }
+  .step-badge.done { background: #dcfce7; color: var(--green); }
+  .step-badge.error { background: var(--red-pale); color: var(--red); }
+  .analysis-results { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .result-block { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .result-block-header { padding: 12px 16px; background: #f8faff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .result-block-header h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .result-score { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 6px; }
+  .score-high { background: #dcfce7; color: var(--green); }
+  .score-mid { background: var(--amber-pale); color: var(--amber); }
+  .score-low { background: var(--red-pale); color: var(--red); }
+  .result-block-body { padding: 14px 16px; font-size: 13px; color: var(--text-dark); line-height: 1.75; white-space: pre-wrap; }
+  .toggle-icon { font-size: 12px; color: var(--text-mid); }
+  .empty-results { padding: 52px 24px; text-align: center; }
+  .empty-results-icon { width: 56px; height: 56px; background: var(--blue-pale); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .empty-results-icon svg { width: 28px; height: 28px; fill: none; stroke: var(--blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .empty-results h3 { font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
+  .empty-results p { font-size: 13px; color: var(--text-mid); line-height: 1.6; max-width: 300px; margin: 0 auto; }
+  @media (max-width: 900px) { .sidebar { display: none; } .upload-layout { grid-template-columns: 1fr; } .content { padding: 16px; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span><span class="nav-badge">New</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item active" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">DR</div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Upload & analyze</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="window.location.href='app.html'">← Dashboard</button>
+        <button class="btn-sm" onclick="window.location.href='proposal.html'">Proposal builder →</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-header">
+        <h1>Deep document analysis</h1>
+        <p>Upload your PDF or Word document. Dr. NIRA analyzes it step by step — structure, problem statement, methodology, literature review, and more.</p>
+      </div>
+
+      <div class="upload-layout">
+        <div>
+          <div class="upload-card">
+            <div class="card-header">
+              <div class="card-header-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></div>
+              <h3>Upload document</h3>
+            </div>
+            <div class="card-body">
+              <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <div class="drop-zone-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></div>
+                <h4>Drop your file here</h4>
+                <p>or click to browse from your device</p>
+                <div class="file-types">
+                  <span class="file-type-badge">PDF</span>
+                  <span class="file-type-badge">DOCX</span>
+                  <span class="file-type-badge">DOC</span>
+                </div>
+                <button class="browse-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Browse file</button>
+              </div>
+              <input type="file" id="fileInput" accept=".pdf,.doc,.docx" onchange="handleFileSelect(event)">
+
+              <div class="file-loaded" id="fileLoaded" style="display:none">
+                <div class="file-loaded-icon" id="fileIcon"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+                <div class="file-loaded-info">
+                  <div class="file-loaded-name" id="fileNameEl">document.pdf</div>
+                  <div class="file-loaded-meta" id="fileMetaEl">Ready to analyze</div>
+                </div>
+                <button class="file-remove" onclick="removeFile()">×</button>
+              </div>
+
+              <p style="font-size:12px;font-weight:600;color:var(--text-dark);margin-bottom:10px">Analysis type</p>
+              <div class="analysis-options">
+                <label class="analysis-option selected" onclick="selectOption(this)">
+                  <input type="radio" name="analysisType" value="full" checked>
+                  <div class="analysis-option-text"><h4>Full proposal analysis</h4><p>Complete step-by-step review — structure, objectives, methodology, literature, quality scoring.</p></div>
+                </label>
+                <label class="analysis-option" onclick="selectOption(this)">
+                  <input type="radio" name="analysisType" value="gap">
+                  <div class="analysis-option-text"><h4>Research gap detection</h4><p>Identify missing elements, weak arguments, and unexplored research areas.</p></div>
+                </label>
+                <label class="analysis-option" onclick="selectOption(this)">
+                  <input type="radio" name="analysisType" value="methodology">
+                  <div class="analysis-option-text"><h4>Methodology review</h4><p>Deep audit of research design, sampling, data collection, and analysis methods.</p></div>
+                </label>
+                <label class="analysis-option" onclick="selectOption(this)">
+                  <input type="radio" name="analysisType" value="quality">
+                  <div class="analysis-option-text"><h4>Academic quality scoring</h4><p>Score clarity, coherence, argumentation, citations, and overall academic level.</p></div>
+                </label>
+              </div>
+
+              <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
+                <svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Analyze document
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="results-card">
+            <div class="steps-header">
+              <h3>Analysis progress</h3>
+              <span class="steps-overall" id="stepsOverall">Waiting for document</span>
+            </div>
+            <div class="steps-list" id="stepsList"></div>
+            <div id="analysisResults">
+              <div class="empty-results">
+                <div class="empty-results-icon"><svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                <h3>No analysis yet</h3>
+                <p>Upload a document and click "Analyze document" to begin the step-by-step academic analysis.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+  let fileText = '', fileNameStr = '', fileTypeStr = '', analysisType = 'full';
+
+  const STEPS = {
+    full: [
+      { id: 'structure',   label: 'Structure detection',      sub: 'Identifying sections and layout' },
+      { id: 'problem',     label: 'Problem statement review', sub: 'Evaluating clarity and depth' },
+      { id: 'objectives',  label: 'Objectives analysis',      sub: 'Checking specificity and alignment' },
+      { id: 'literature',  label: 'Literature review audit',  sub: 'Assessing sources and coverage' },
+      { id: 'methodology', label: 'Methodology evaluation',   sub: 'Reviewing research design' },
+      { id: 'gap',         label: 'Research gap analysis',    sub: 'Identifying missing elements' },
+      { id: 'quality',     label: 'Academic quality scoring', sub: 'Scoring overall academic level' },
+      { id: 'suggestions', label: 'Improvement suggestions',  sub: 'Generating actionable feedback' }
+    ],
+    gap: [
+      { id: 'scan',        label: 'Document scan',            sub: 'Reading content and structure' },
+      { id: 'gap',         label: 'Research gap detection',   sub: 'Finding unexplored areas' },
+      { id: 'missing',     label: 'Missing elements',         sub: 'What is absent from the proposal' },
+      { id: 'suggestions', label: 'Gap-filling suggestions',  sub: 'How to address each gap' }
+    ],
+    methodology: [
+      { id: 'scan',        label: 'Document scan',            sub: 'Reading methodology section' },
+      { id: 'design',      label: 'Research design review',   sub: 'Type, approach, and rationale' },
+      { id: 'sampling',    label: 'Sampling evaluation',      sub: 'Population, size, and method' },
+      { id: 'tools',       label: 'Data collection tools',    sub: 'Validity and reliability' },
+      { id: 'analysis',    label: 'Analysis method check',    sub: 'Statistical approach' },
+      { id: 'suggestions', label: 'Methodology suggestions',  sub: 'Specific improvements' }
+    ],
+    quality: [
+      { id: 'scan',        label: 'Document scan',            sub: 'Reading full content' },
+      { id: 'clarity',     label: 'Clarity & coherence',      sub: 'Language and argument flow' },
+      { id: 'citations',   label: 'Citation adequacy',        sub: 'Reference quality and quantity' },
+      { id: 'logic',       label: 'Logical consistency',      sub: 'Argument structure and evidence' },
+      { id: 'quality',     label: 'Overall quality score',    sub: 'Academic level assessment' }
+    ]
+  };
+
+  window.addEventListener('load', function() {
+    const sp = localStorage.getItem('nira_profile');
+    if (sp) {
+      const p = JSON.parse(sp);
+      document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
+      document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
+      if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    }
+    renderSteps();
+  });
+
+  function renderSteps() {
+    const steps = STEPS[analysisType];
+    document.getElementById('stepsList').innerHTML = steps.map((s, i) => `
+      <div class="step-row" id="step-${s.id}">
+        <div class="step-indicator pending" id="ind-${s.id}">${i+1}</div>
+        <div class="step-info">
+          <div class="step-label">${s.label}</div>
+          <div class="step-sublabel">${s.sub}</div>
+        </div>
+        <span class="step-badge pending" id="badge-${s.id}">Pending</span>
+      </div>
+    `).join('');
+    document.getElementById('stepsOverall').textContent = 'Waiting for document';
+  }
+
+  function selectOption(el) {
+    document.querySelectorAll('.analysis-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    analysisType = el.querySelector('input').value;
+    renderSteps();
+  }
+
+  function handleDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
+  function handleDragLeave() { document.getElementById('dropZone').classList.remove('drag-over'); }
+  function handleDrop(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('drag-over'); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); }
+  function handleFileSelect(e) { if (e.target.files[0]) processFile(e.target.files[0]); }
+
+  async function processFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['pdf','doc','docx'].includes(ext)) { alert('Please upload a PDF or Word document.'); return; }
+    fileNameStr = file.name; fileTypeStr = ext;
+    const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+    document.getElementById('dropZone').style.display = 'none';
+    document.getElementById('fileLoaded').style.display = 'flex';
+    document.getElementById('fileNameEl').textContent = fileNameStr;
+    document.getElementById('fileMetaEl').textContent = sizeMB + ' MB · ' + ext.toUpperCase() + ' · Reading...';
+    document.getElementById('fileIcon').className = 'file-loaded-icon ' + (ext === 'pdf' ? 'pdf' : 'docx');
+    try {
+      fileText = ext === 'pdf' ? await extractPDF(file) : await extractDOCX(file);
+      const words = fileText.trim().split(/\s+/).length;
+      document.getElementById('fileMetaEl').textContent = sizeMB + ' MB · ' + ext.toUpperCase() + ' · ' + words.toLocaleString() + ' words extracted';
+    } catch(err) { document.getElementById('fileMetaEl').textContent = 'Error: ' + err.message; }
+  }
+
+  async function extractPDF(file) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const ab = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+    let text = '';
+    for (let i = 1; i <= Math.min(pdf.numPages, 30); i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(' ') + '\n';
+    }
+    return text;
+  }
+
+  async function extractDOCX(file) {
+    const ab = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer: ab });
+    return result.value;
+  }
+
+  function removeFile() {
+    fileText = ''; fileNameStr = ''; fileTypeStr = '';
+    document.getElementById('dropZone').style.display = 'block';
+    document.getElementById('fileLoaded').style.display = 'none';
+    document.getElementById('fileInput').value = '';
+  }
+
+  function setStep(id, state) {
+    const row = document.getElementById('step-' + id);
+    const ind = document.getElementById('ind-' + id);
+    const badge = document.getElementById('badge-' + id);
+    if (!row) return;
+    row.className = 'step-row step-' + state;
+    ind.className = 'step-indicator ' + state;
+    if (state === 'done') ind.textContent = '✓';
+    badge.className = 'step-badge ' + state;
+    const labels = { done: 'Done', active: 'Analyzing...', error: 'Error', pending: 'Pending' };
+    badge.textContent = labels[state] || state;
+  }
+
+  async function callAPI(systemPrompt, userPrompt) {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ systemPrompt, userPrompt })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'API error');
+    return data.result;
+  }
+
+  function addBlock(id, title, content, score) {
+    let inner = document.getElementById('resultsInner');
+    if (!inner) {
+      document.getElementById('analysisResults').innerHTML = '<div class="analysis-results" id="resultsInner"></div>';
+      inner = document.getElementById('resultsInner');
+    }
+    const sc = score ? getScoreClass(score) : '';
+    const scoreHtml = score ? `<span class="result-score ${sc}">${score}</span>` : '';
+    const block = document.createElement('div');
+    block.className = 'result-block';
+    block.innerHTML = `
+      <div class="result-block-header" onclick="toggleBlock('rb-${id}')">
+        <h4>${title}</h4>
+        <div style="display:flex;align-items:center;gap:8px">${scoreHtml}<span class="toggle-icon" id="ti-${id}">▼</span></div>
+      </div>
+      <div class="result-block-body" id="rb-${id}">${content}</div>
+    `;
+    inner.appendChild(block);
+  }
+
+  function toggleBlock(id) {
+    const body = document.getElementById(id);
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function getScoreClass(text) {
+    const m = text.match(/(\d+)\s*\/\s*10/);
+    if (!m) return 'mid';
+    const n = parseInt(m[1]);
+    return n >= 7 ? 'high' : n >= 4 ? 'mid' : 'low';
+  }
+
+  function extractScore(text) {
+    const m = text.match(/\d+\/10/);
+    return m ? m[0] : null;
+  }
+
+  const SYS = 'You are Dr. NIRA, an expert PhD research proposal analyst. Analyze academic documents with precision and scholarly rigor. Provide specific, actionable feedback referencing actual content from the document.';
+
+  async function startAnalysis() {
+    if (!fileText) { alert('Please upload a document first.'); return; }
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true; btn.textContent = 'Analyzing...';
+    document.getElementById('analysisResults').innerHTML = '<div class="analysis-results" id="resultsInner"></div>';
+    const text = fileText.slice(0, 6000);
+    const profile = JSON.parse(localStorage.getItem('nira_profile') || '{}');
+    const citation = profile.citation || 'APA 7';
+    document.getElementById('stepsOverall').textContent = 'Analyzing ' + STEPS[analysisType].length + ' aspects...';
+
+    try {
+      if (analysisType === 'full') await runFull(text, citation);
+      else if (analysisType === 'gap') await runGap(text);
+      else if (analysisType === 'methodology') await runMethodology(text);
+      else await runQuality(text);
+      document.getElementById('stepsOverall').textContent = 'Analysis complete ✓';
+    } catch(err) {
+      document.getElementById('stepsOverall').textContent = 'Error: ' + err.message;
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Analyze again';
+  }
+
+  async function runFull(text, citation) {
+    setStep('structure','active');
+    const s1 = await callAPI(SYS, `Analyze the STRUCTURE of this document. List all sections present, their order, and what important sections are missing.\n\nDocument:\n${text}`);
+    setStep('structure','done'); addBlock('structure','1. Structure detection', s1);
+
+    setStep('problem','active');
+    const s2 = await callAPI(SYS, `Evaluate the PROBLEM STATEMENT: clarity, importance, research gap, necessity. Give a score X/10 and specific feedback.\n\nDocument:\n${text}`);
+    setStep('problem','done'); addBlock('problem','2. Problem statement review', s2, extractScore(s2));
+
+    setStep('objectives','active');
+    const s3 = await callAPI(SYS, `Evaluate the OBJECTIVES: are they SMART? properly structured (general/specific/applied)? aligned with the gap? Score X/10.\n\nDocument:\n${text}`);
+    setStep('objectives','done'); addBlock('objectives','3. Objectives analysis', s3, extractScore(s3));
+
+    setStep('literature','active');
+    const s4 = await callAPI(SYS, `Audit the LITERATURE REVIEW: number/quality of sources, recency, domestic vs international balance, ${citation} format usage. Score X/10.\n\nDocument:\n${text}`);
+    setStep('literature','done'); addBlock('literature','4. Literature review audit', s4, extractScore(s4));
+
+    setStep('methodology','active');
+    const s5 = await callAPI(SYS, `Evaluate the METHODOLOGY: research type, population, sampling, instruments, validity/reliability, analysis plan. Score X/10.\n\nDocument:\n${text}`);
+    setStep('methodology','done'); addBlock('methodology','5. Methodology evaluation', s5, extractScore(s5));
+
+    setStep('gap','active');
+    const s6 = await callAPI(SYS, `Identify all RESEARCH GAPS: what is unexplored, what questions are unanswered, what methodological/theoretical gaps exist.\n\nDocument:\n${text}`);
+    setStep('gap','done'); addBlock('gap','6. Research gap analysis', s6);
+
+    setStep('quality','active');
+    const s7 = await callAPI(SYS, `Score ACADEMIC QUALITY — each dimension X/10:\n- Clarity of writing\n- Coherence and flow\n- Academic language\n- Argumentation strength\n- Citation quality\n- Overall score\n\nDocument:\n${text}`);
+    setStep('quality','done'); addBlock('quality','7. Academic quality scoring', s7, extractScore(s7));
+
+    setStep('suggestions','active');
+    const s8 = await callAPI(SYS, `Provide SPECIFIC ACTIONABLE IMPROVEMENTS for each weak section. Be concrete with exact rewrite suggestions.\n\nDocument:\n${text}`);
+    setStep('suggestions','done'); addBlock('suggestions','8. Improvement suggestions', s8);
+  }
+
+  async function runGap(text) {
+    setStep('scan','active');
+    const s1 = await callAPI(SYS, `Provide a brief content overview of this document.\n\nDocument:\n${text}`);
+    setStep('scan','done'); addBlock('scan','1. Document overview', s1);
+
+    setStep('gap','active');
+    const s2 = await callAPI(SYS, `Identify all RESEARCH GAPS very specifically.\n\nDocument:\n${text}`);
+    setStep('gap','done'); addBlock('gap','2. Research gaps identified', s2);
+
+    setStep('missing','active');
+    const s3 = await callAPI(SYS, `What KEY ELEMENTS are MISSING from this proposal that a strong PhD proposal must have?\n\nDocument:\n${text}`);
+    setStep('missing','done'); addBlock('missing','3. Missing elements', s3);
+
+    setStep('suggestions','active');
+    const s4 = await callAPI(SYS, `For each gap and missing element, give SPECIFIC SUGGESTIONS on how to address them.\n\nDocument:\n${text}`);
+    setStep('suggestions','done'); addBlock('suggestions','4. Gap-filling suggestions', s4);
+  }
+
+  async function runMethodology(text) {
+    setStep('scan','active');
+    const s1 = await callAPI(SYS, `Extract and summarize the METHODOLOGY section.\n\nDocument:\n${text}`);
+    setStep('scan','done'); addBlock('scan','1. Methodology overview', s1);
+
+    setStep('design','active');
+    const s2 = await callAPI(SYS, `Evaluate RESEARCH DESIGN: type, philosophical approach, justification. Score X/10.\n\nDocument:\n${text}`);
+    setStep('design','done'); addBlock('design','2. Research design', s2, extractScore(s2));
+
+    setStep('sampling','active');
+    const s3 = await callAPI(SYS, `Evaluate SAMPLING: population, size, method and appropriateness. Score X/10.\n\nDocument:\n${text}`);
+    setStep('sampling','done'); addBlock('sampling','3. Sampling evaluation', s3, extractScore(s3));
+
+    setStep('tools','active');
+    const s4 = await callAPI(SYS, `Evaluate DATA COLLECTION TOOLS: instruments, validity, reliability. Score X/10.\n\nDocument:\n${text}`);
+    setStep('tools','done'); addBlock('tools','4. Data collection tools', s4, extractScore(s4));
+
+    setStep('analysis','active');
+    const s5 = await callAPI(SYS, `Evaluate DATA ANALYSIS METHOD: statistical/qualitative methods, software, appropriateness. Score X/10.\n\nDocument:\n${text}`);
+    setStep('analysis','done'); addBlock('analysis','5. Analysis method', s5, extractScore(s5));
+
+    setStep('suggestions','active');
+    const s6 = await callAPI(SYS, `Provide specific METHODOLOGY IMPROVEMENTS — precise and actionable.\n\nDocument:\n${text}`);
+    setStep('suggestions','done'); addBlock('suggestions','6. Methodology suggestions', s6);
+  }
+
+  async function runQuality(text) {
+    setStep('scan','active');
+    const s1 = await callAPI(SYS, `Brief content summary of this document.\n\nDocument:\n${text}`);
+    setStep('scan','done'); addBlock('scan','1. Document summary', s1);
+
+    setStep('clarity','active');
+    const s2 = await callAPI(SYS, `Evaluate CLARITY AND COHERENCE: writing quality, sentence structure, academic language, readability. Score X/10.\n\nDocument:\n${text}`);
+    setStep('clarity','done'); addBlock('clarity','2. Clarity & coherence', s2, extractScore(s2));
+
+    setStep('citations','active');
+    const s3 = await callAPI(SYS, `Evaluate CITATION ADEQUACY: number, recency, diversity, format quality. Score X/10.\n\nDocument:\n${text}`);
+    setStep('citations','done'); addBlock('citations','3. Citation adequacy', s3, extractScore(s3));
+
+    setStep('logic','active');
+    const s4 = await callAPI(SYS, `Evaluate LOGICAL CONSISTENCY: argument flow, evidence, connection between all sections. Score X/10.\n\nDocument:\n${text}`);
+    setStep('logic','done'); addBlock('logic','4. Logical consistency', s4, extractScore(s4));
+
+    setStep('quality','active');
+    const s5 = await callAPI(SYS, `OVERALL ACADEMIC QUALITY ASSESSMENT with final score X/10. Summarize strengths, weaknesses, and top priorities.\n\nDocument:\n${text}`);
+    setStep('quality','done'); addBlock('quality','5. Overall quality score', s5, extractScore(s5));
+  }
+</script>
+</body>
+</html>
