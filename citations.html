@@ -151,11 +151,26 @@
     z-index: 100;
   }
   .mobile-nav-items { display: flex; justify-content: space-around; align-items: center; }
-  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; padding: 4px 8px; border-radius: 8px; min-width: 56px; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; padding: 4px 8px; border-radius: 8px; min-width: 52px; background: none; border: none; cursor: pointer; font-family: inherit; }
   .mobile-nav-item svg { width: 20px; height: 20px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .mobile-nav-item span { font-size: 9px; color: var(--muted); font-weight: 500; }
   .mobile-nav-item.active svg { stroke: var(--blue-light); }
   .mobile-nav-item.active span { color: var(--blue-light); }
+  /* MORE DRAWER */
+  .more-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; backdrop-filter: blur(2px); }
+  .more-overlay.open { display: block; }
+  .more-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 200; padding: 12px 0 max(20px, env(safe-area-inset-bottom)); transition: bottom 0.3s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -4px 32px rgba(0,0,0,0.15); }
+  .more-drawer.open { bottom: 0; }
+  .more-drawer-handle { width: 36px; height: 4px; background: #dde6f5; border-radius: 2px; margin: 0 auto 16px; }
+  .more-drawer-title { font-size: 11px; font-weight: 600; color: var(--text-mid); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 20px; margin-bottom: 8px; }
+  .more-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; text-decoration: none; transition: background 0.15s; }
+  .more-item:hover, .more-item:active { background: var(--blue-pale); }
+  .more-item-icon { width: 40px; height: 40px; background: var(--blue-pale); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .more-item-icon svg { width: 20px; height: 20px; fill: none; stroke: var(--blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .more-item-text { flex: 1; }
+  .more-item-label { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+  .more-item-sub { font-size: 12px; color: var(--text-mid); margin-top: 1px; }
+  .more-item-arrow { width: 16px; height: 16px; fill: none; stroke: var(--text-mid); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
   @media (max-width: 768px) {
     .sidebar { display: none; }
     .mobile-nav { display: block; }
@@ -595,29 +610,63 @@
 </script>
 
 <!-- MOBILE BOTTOM NAV -->
-<nav class="mobile-nav">
+<nav class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-items">
-    <a class="mobile-nav-item" href="app.html">
+    <a class="mobile-nav-item" href="app.html" id="mnHome">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       <span>Home</span>
     </a>
-    <a class="mobile-nav-item" href="topic.html">
+    <a class="mobile-nav-item" href="topic.html" id="mnTopic">
       <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
       <span>Topic</span>
     </a>
-    <a class="mobile-nav-item" href="proposal.html">
+    <a class="mobile-nav-item" href="proposal.html" id="mnProposal">
       <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
       <span>Proposal</span>
     </a>
-    <a class="mobile-nav-item" href="upload.html">
+    <a class="mobile-nav-item" href="upload.html" id="mnUpload">
       <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
       <span>Upload</span>
     </a>
-    <a class="mobile-nav-item" href="writer.html">
-      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      <span>Writer</span>
-    </a>
+    <button class="mobile-nav-item" onclick="toggleMoreDrawer()" id="mnMore">
+      <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+      <span>More</span>
+    </button>
   </div>
 </nav>
+
+<!-- MORE DRAWER -->
+<div class="more-overlay" id="moreOverlay" onclick="closeMoreDrawer()"></div>
+<div class="more-drawer" id="moreDrawer">
+  <div class="more-drawer-handle"></div>
+  <div class="more-drawer-title">More</div>
+  <div class="more-drawer-items">
+    <a class="more-item" href="writer.html">
+      <div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+      <div class="more-item-text"><div class="more-item-label">Academic Writer</div><div class="more-item-sub">Write essays, articles & papers</div></div>
+      <svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a class="more-item" href="citations.html">
+      <div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
+      <div class="more-item-text"><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE & more</div></div>
+      <svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a class="more-item" href="proposals.html">
+      <div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+      <div class="more-item-text"><div class="more-item-label">My Proposals</div><div class="more-item-sub">Saved proposals</div></div>
+      <svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a class="more-item" href="export.html">
+      <div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
+      <div class="more-item-text"><div class="more-item-label">Export</div><div class="more-item-sub">Download DOCX or PDF</div></div>
+      <svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a class="more-item" href="profile.html">
+      <div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="more-item-text"><div class="more-item-label">My Profile</div><div class="more-item-sub">Research settings</div></div>
+      <svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+  </div>
+</div>
 </body>
 </html>
