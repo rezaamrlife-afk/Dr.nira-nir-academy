@@ -206,6 +206,28 @@
     .docs-sidebar { display: none; }
     .ql-editor { padding: 28px 20px !important; }
   }
+  /* MOBILE BOTTOM NAV */
+  .mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--navy-dark);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .mobile-nav-items { display: flex; justify-content: space-around; align-items: center; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; padding: 4px 8px; border-radius: 8px; min-width: 56px; }
+  .mobile-nav-item svg { width: 20px; height: 20px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-nav-item span { font-size: 9px; color: var(--muted); font-weight: 500; }
+  .mobile-nav-item.active svg { stroke: var(--blue-light); }
+  .mobile-nav-item.active span { color: var(--blue-light); }
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .mobile-nav { display: block; }
+    .content { padding: 16px; padding-bottom: 80px; }
+    .topbar { padding: 0 16px; }
+  }
 </style>
 </head>
 <body>
@@ -534,7 +556,33 @@
       h3 { font-size: 14pt; font-weight: 600; }
       blockquote { border-left: 3px solid #60A5FA; padding-left: 14px; color: #6B7FA3; font-style: italic; }
       a { color: #2563EB; }
-    </style></head><body><h1 style="text-align:center;margin-bottom:32px">${title}</h1>${content}</body></html>`);
+    </style></head><body><h1 style="text-align:center;margin-bottom:32px">${title}</h1>${content}
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-items">
+    <a class="mobile-nav-item" href="app.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Home</span>
+    </a>
+    <a class="mobile-nav-item" href="topic.html">
+      <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      <span>Topic</span>
+    </a>
+    <a class="mobile-nav-item" href="proposal.html">
+      <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <span>Proposal</span>
+    </a>
+    <a class="mobile-nav-item" href="upload.html">
+      <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      <span>Upload</span>
+    </a>
+    <a class="mobile-nav-item" href="writer.html">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <span>Writer</span>
+    </a>
+  </div>
+</nav>
+</body></html>`);
     win.document.close();
     setTimeout(() => win.print(), 500);
   }
