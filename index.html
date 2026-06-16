@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — AI Research Advisor for PhD Proposals</title>
+<meta name="description" content="From research topic to fully structured PhD proposal. Dr. NIRA guides every step with academic precision and intelligent AI support.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1B2A4A;
+    --navy-dark: #0F1B33;
+    --blue: #2563EB;
+    --blue-light: #60A5FA;
+    --blue-pale: #EEF4FF;
+    --white: #F8FAFF;
+    --muted: #a0b0cc;
+    --text-dark: #1B2A4A;
+    --text-mid: #6B7FA3;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+    color: var(--text-dark);
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  .logo-badge {
+    background: var(--blue-light);
+    color: var(--navy-dark);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  nav a:hover { color: #fff; }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--blue-light);
+    border: 1.5px solid var(--blue-light);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover {
+    background: rgba(96,165,250,0.1);
+  }
+
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+  }
+
+  .btn-primary:hover { background: #1d4ed8; }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy-dark);
+    padding: 80px 40px 72px;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(96,165,250,0.12);
+    border: 1px solid rgba(96,165,250,0.25);
+    color: var(--blue-light);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+  }
+
+  .hero-eyebrow span {
+    width: 6px;
+    height: 6px;
+    background: var(--blue-light);
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    max-width: 640px;
+    margin: 0 auto 20px;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--blue-light);
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto 36px;
+    line-height: 1.75;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .btn-hero {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-hero:hover { background: #1d4ed8; }
+
+  .btn-hero-outline {
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-hero-outline:hover {
+    border-color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.05);
+  }
+
+  .hero-note {
+    color: var(--text-mid);
+    font-size: 12px;
+  }
+
+  /* ── STATS ── */
+  .stats {
+    background: var(--navy);
+    padding: 28px 40px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 8px 0;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .stat:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--blue-light);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* ── FEATURES ── */
+  .features {
+    padding: 72px 40px;
+    background: #f0f4ff;
+  }
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--navy-dark);
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .feature-card {
+    background: #fff;
+    border: 1px solid #dde6f5;
+    border-radius: 14px;
+    padding: 28px 24px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: var(--blue-light);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--blue-pale);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .feature-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--blue);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .feature-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy-dark);
+    margin-bottom: 8px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.65;
+  }
+
+  /* ── UPLOAD SECTION ── */
+  .upload-section {
+    padding: 72px 40px;
+    background: #fff;
+  }
+
+  .upload-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .upload-text h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--navy-dark);
+    line-height: 1.3;
+    margin-bottom: 14px;
+  }
+
+  .upload-text p {
+    color: var(--text-mid);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .upload-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .upload-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .upload-step-num {
+    width: 26px;
+    height: 26px;
+    background: var(--blue-pale);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .upload-step-text {
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .upload-step-text strong {
+    color: var(--navy-dark);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .upload-demo {
+    background: #f8faff;
+    border: 1.5px dashed #b8cef0;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  .upload-demo-icon {
+    width: 56px;
+    height: 56px;
+    background: var(--blue-pale);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .upload-demo-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--blue);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .upload-demo h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy-dark);
+    margin-bottom: 6px;
+  }
+
+  .upload-demo p {
+    font-size: 12px;
+    color: var(--text-mid);
+    margin-bottom: 20px;
+  }
+
+  .file-badges {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .file-badge {
+    background: #fff;
+    border: 1px solid #dde6f5;
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .analysis-preview {
+    background: #fff;
+    border: 1px solid #dde6f5;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  .analysis-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f4ff;
+    font-size: 12px;
+  }
+
+  .analysis-row:last-child { border-bottom: none; }
+
+  .analysis-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-done { background: #22c55e; }
+  .dot-active { background: var(--blue); }
+  .dot-pending { background: #dde6f5; }
+
+  .analysis-row-label { color: var(--navy-dark); flex: 1; }
+  .analysis-row-status { color: var(--text-mid); font-size: 11px; }
+
+  /* ── HOW IT WORKS ── */
+  .how {
+    padding: 72px 40px;
+    background: var(--navy-dark);
+  }
+
+  .how .section-title { color: #fff; }
+  .how .section-eyebrow { color: var(--blue-light); }
+
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .how-step {
+    text-align: center;
+    padding: 28px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+  }
+
+  .how-step-num {
+    width: 40px;
+    height: 40px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 auto 16px;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .how-step h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .how-step p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* ── CTA ── */
+  .cta {
+    padding: 80px 40px;
+    background: var(--navy);
+    text-align: center;
+  }
+
+  .cta h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+
+  .cta p {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy-dark);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .footer-copy {
+    color: var(--text-mid);
+    font-size: 12px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    color: var(--text-mid);
+    text-decoration: none;
+    font-size: 12px;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: #fff; }
+
+  @media (max-width: 768px) {
+    header { padding: 0 20px; }
+    nav { display: none; }
+    .hero { padding: 52px 20px; }
+    .hero h1 { font-size: 32px; }
+    .stats { grid-template-columns: repeat(2, 1fr); padding: 20px; }
+    .features { padding: 48px 20px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .upload-inner { grid-template-columns: 1fr; }
+    .upload-section { padding: 48px 20px; }
+    .how-steps { grid-template-columns: repeat(2, 1fr); }
+    .how { padding: 48px 20px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a href="#" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="logo-name">Dr. NIRA</span>
+    <span class="logo-badge">BETA</span>
+  </a>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#upload">Upload & Analyze</a>
+    <a href="#how">How it works</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn-ghost" onclick="window.location.href='app.html'">Sign in</button>
+    <button class="btn-primary" onclick="window.location.href='app.html'">Get started</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span></span>
+    AI-Powered · Built for PhD Researchers
+  </div>
+  <h1>Your AI research advisor for <em>PhD proposals</em></h1>
+  <p>From research topic to fully structured proposal — Dr. NIRA guides every step with academic precision and intelligent support.</p>
+  <div class="hero-actions">
+    <button class="btn-hero" onclick="window.location.href='app.html'">
+      Start your proposal
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <button class="btn-hero-outline" onclick="document.getElementById('how').scrollIntoView()">See how it works</button>
+  </div>
+  <p class="hero-note">No credit card required · Free to start</p>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">12K+</div>
+    <div class="stat-label">Proposals generated</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">94%</div>
+    <div class="stat-label">Approval rate</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">40+</div>
+    <div class="stat-label">Universities supported</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">7</div>
+    <div class="stat-label">Citation formats</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <p class="section-eyebrow">Core features</p>
+  <h2 class="section-title">Everything you need for a winning proposal</h2>
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <h3>Research profile</h3>
+      <p>Set your field, degree level, university, and citation format. Dr. NIRA personalizes everything to your academic context.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      </div>
+      <h3>Topic generator</h3>
+      <p>Discover novel research topics with research gap analysis, innovation scoring, and keyword suggestions.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      </div>
+      <h3>Proposal builder</h3>
+      <p>Auto-generate every section — objectives, methodology, literature review, research questions — section by section.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      </div>
+      <h3>Upload & analyze</h3>
+      <p>Upload PDF or Word files. Dr. NIRA analyzes your documents step by step — structure, gaps, quality, and suggestions.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      </div>
+      <h3>Smart citations</h3>
+      <p>APA 7, MLA, IEEE, Chicago, Harvard, Vancouver — auto-formatted, sorted, and converted between styles.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      </div>
+      <h3>Export ready</h3>
+      <p>Download as DOCX or PDF, formatted to your university's standards — ready to submit to your supervisor.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- UPLOAD & ANALYZE -->
+<section class="upload-section" id="upload">
+  <div class="upload-inner">
+    <div class="upload-text">
+      <p class="section-eyebrow" style="text-align:left;margin-bottom:10px">Upload & analyze</p>
+      <h2>Deep document analysis, step by step</h2>
+      <p>Upload your PDF or Word file and Dr. NIRA breaks it down section by section — not a single generic summary, but a precise academic audit of every part of your document.</p>
+      <div class="upload-steps">
+        <div class="upload-step">
+          <div class="upload-step-num">1</div>
+          <div class="upload-step-text">
+            <strong>Structure detection</strong>
+            Identifies all sections, headings, and document layout automatically.
+          </div>
+        </div>
+        <div class="upload-step">
+          <div class="upload-step-num">2</div>
+          <div class="upload-step-text">
+            <strong>Section-by-section review</strong>
+            Each part analyzed independently — problem statement, objectives, methodology, and more.
+          </div>
+        </div>
+        <div class="upload-step">
+          <div class="upload-step-num">3</div>
+          <div class="upload-step-text">
+            <strong>Gap & quality scoring</strong>
+            Research gaps identified, academic quality scored, weak areas highlighted.
+          </div>
+        </div>
+        <div class="upload-step">
+          <div class="upload-step-num">4</div>
+          <div class="upload-step-text">
+            <strong>Actionable suggestions</strong>
+            Specific rewrite suggestions for every weak section — not generic advice.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="upload-demo">
+        <div class="upload-demo-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        </div>
+        <h4>Drop your file here</h4>
+        <p>PDF or Word document up to 20MB</p>
+        <div class="file-badges">
+          <span class="file-badge">PDF</span>
+          <span class="file-badge">DOCX</span>
+          <span class="file-badge">DOC</span>
+        </div>
+        <div class="analysis-preview">
+          <div class="analysis-row">
+            <div class="analysis-dot dot-done"></div>
+            <span class="analysis-row-label">Structure detected</span>
+            <span class="analysis-row-status">✓ Done</span>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-dot dot-done"></div>
+            <span class="analysis-row-label">Problem statement</span>
+            <span class="analysis-row-status">✓ Analyzed</span>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-dot dot-active"></div>
+            <span class="analysis-row-label">Methodology review</span>
+            <span class="analysis-row-status" style="color:var(--blue)">Analyzing...</span>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-dot dot-pending"></div>
+            <span class="analysis-row-label">Literature review</span>
+            <span class="analysis-row-status">Pending</span>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-dot dot-pending"></div>
+            <span class="analysis-row-label">Quality scoring</span>
+            <span class="analysis-row-status">Pending</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <p class="section-eyebrow">How it works</p>
+  <h2 class="section-title">From idea to proposal in 4 steps</h2>
+  <div class="how-steps">
+    <div class="how-step">
+      <div class="how-step-num">1</div>
+      <h3>Set up your profile</h3>
+      <p>Enter your field, degree level, university, and citation format preferences.</p>
+    </div>
+    <div class="how-step">
+      <div class="how-step-num">2</div>
+      <h3>Find your topic</h3>
+      <p>Dr. NIRA suggests topics with research gap analysis and novelty scoring.</p>
+    </div>
+    <div class="how-step">
+      <div class="how-step-num">3</div>
+      <h3>Build your proposal</h3>
+      <p>Every section generated intelligently — review, edit, and refine with AI.</p>
+    </div>
+    <div class="how-step">
+      <div class="how-step-num">4</div>
+      <h3>Export and submit</h3>
+      <p>Download a polished DOCX or PDF ready for your supervisor.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>Ready to write your proposal?</h2>
+  <p>Join thousands of PhD researchers who trust Dr. NIRA.</p>
+  <button class="btn-hero" onclick="window.location.href='app.html'">
+    Get started for free
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">Dr. NIRA</span>
+    <span class="footer-copy">© 2025 NIR Academy · All rights reserved</span>
+  </div>
+  <div class="footer-links">
+    <a href="#">Privacy policy</a>
+    <a href="#">Terms of use</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
