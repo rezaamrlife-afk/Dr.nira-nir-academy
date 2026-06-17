@@ -273,6 +273,7 @@ function showToast(message, type = 'success', duration = 3000) {
   setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
 }
 </script>
+<script src="js/project-manager.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -633,7 +634,7 @@ function showToast(message, type = 'success', duration = 3000) {
     if (hasSections) {
       if (!confirm('Changing the topic will clear all generated sections. Continue?')) return;
       generated = {};
-      localStorage.removeItem('nira_proposal');
+      NiraProject.resetModule('proposal');
     }
     window.location.href = 'topic.html';
   }
@@ -817,7 +818,7 @@ function showToast(message, type = 'success', duration = 3000) {
 
     // Clear previous proposal data for new topic
     generated = {};
-    localStorage.removeItem('nira_proposal');
+    NiraProject.resetModule('proposal');
     localStorage.removeItem('nira_upload_context');
 
     // Build synthetic context — independent of profile and topic generator
@@ -860,14 +861,15 @@ function showToast(message, type = 'success', duration = 3000) {
         document.getElementById('sidebarAvatar').textContent = profile.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       }
     }
-    const st = localStorage.getItem('nira_selected_topic');
+    const _tp = NiraProject.loadTopic();
+    if (_tp && _tp.title_en) { const st = JSON.stringify(_tp);
     if (st) {
       topic = JSON.parse(st);
       document.getElementById('chipTitle').textContent = topic.title_en || 'Selected topic';
       document.getElementById('chipMeta').textContent = (topic.research_type || '') + (topic.keywords ? ' · ' + topic.keywords.slice(0,3).join(', ') : '');
     }
-    const sg = localStorage.getItem('nira_proposal');
-    if (sg) generated = JSON.parse(sg);
+    const sg = NiraProject.load('proposal');
+    if (sg && Object.keys(sg).length > 0) generated = sg;
 
     // Check if coming from upload
     if (localStorage.getItem('nira_build_from_upload') === '1') {
@@ -1021,7 +1023,7 @@ function showToast(message, type = 'success', duration = 3000) {
   function clearSection(sectionId) {
     if (!confirm('Clear this section? Your authored content will be removed.')) return;
     delete generated[sectionId];
-    localStorage.setItem('nira_proposal', JSON.stringify(generated));
+    NiraProject.save('proposal', generated);
     renderSectionCards();
     renderSectionsNav();
     updateProgress();
@@ -1033,7 +1035,7 @@ function showToast(message, type = 'success', duration = 3000) {
     const text = el.value.trim();
     if (!text) return;
     generated[sectionId] = text;
-    localStorage.setItem('nira_proposal', JSON.stringify(generated));
+    NiraProject.save('proposal', generated);
     renderSectionCards();
     renderSectionsNav();
     updateProgress();
@@ -1112,7 +1114,7 @@ ${text}`;
     if (!el) return;
     var text = el.tagName === 'TEXTAREA' ? el.value : el.innerText;
     generated[sectionId] = text;
-    localStorage.setItem('nira_proposal', JSON.stringify(generated));
+    NiraProject.save('proposal', generated);
     // Clear unsaved state
     el.classList.remove('unsaved');
     var footer = el.closest('.section-card') && el.closest('.section-card').querySelector('.edit-hint');
@@ -1239,7 +1241,7 @@ Keywords: ${keywords}
 
       const content = data.result || '';
       generated[sectionId] = content;
-      localStorage.setItem('nira_proposal', JSON.stringify(generated));
+      NiraProject.save('proposal', generated);
       showToast('Section generated!', 'success');
 
       // Clean markdown from AI response
