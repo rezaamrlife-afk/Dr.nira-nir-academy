@@ -205,6 +205,7 @@
     .topbar { padding: 0 16px; }
   }
 </style>
+<script src="toast.js"></script>
 </head>
 <body>
 
@@ -651,7 +652,8 @@
     }
 
     localStorage.setItem('nira_profile', JSON.stringify(profile));
-    window.location.href = 'topic.html';
+    showToast('Profile saved!', 'success');
+    setTimeout(() => window.location.href = 'topic.html', 800);
   }
 
   // Load saved profile
