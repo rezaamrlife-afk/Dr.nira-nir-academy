@@ -108,7 +108,18 @@
   .mode-choice-badge.ai { background: var(--blue-pale); color: var(--blue); }
   .mode-choice-badge.manual { background: #dcfce7; color: #16a34a; }
 
-  /* AUTHORING MODE TOGGLE (old - remove) */
+  .mode-choice-icon.guided { background: #d97706; }
+  .mode-choice-badge.guided { background: #fef3c7; color: #92400e; }
+  .mode-choice-card.selected-guided { border-color: #d97706; background: #fffbeb; }
+
+  /* GUIDED FEEDBACK PANEL */
+  .guided-feedback-panel { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin-top: 10px; display: none; }
+  .guided-feedback-panel.open { display: block; }
+  .guided-feedback-title { font-size: 11px; font-weight: 600; color: #92400e; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .guided-feedback-text { font-size: 13px; color: var(--text-dark); line-height: 1.75; white-space: pre-wrap; }
+  .guided-get-btn { background: #d97706; color: #fff; border: none; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 5px; }
+  .guided-get-btn:hover { background: #b45309; }
+  .guided-get-btn:disabled { background: #fbbf24; cursor: not-allowed; }
 
   /* MANUAL MODE TEXTAREA */
   .manual-textarea { width: 100%; padding: 16px; border: none; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.8; resize: vertical; min-height: 160px; background: #fafcff; }
@@ -326,14 +337,16 @@ function showToast(message, type = 'success', duration = 3000) {
     <div class="content">
 
       <!-- MODE SELECTION SCREEN -->
-      <div id="modeSelectionScreen" style="display:none;max-width:640px;margin:0 auto 24px;">
+      <div id="modeSelectionScreen" style="display:none;max-width:860px;margin:0 auto 24px;">
         <div style="text-align:center;margin-bottom:24px;">
           <p style="font-size:11px;font-weight:600;color:var(--blue);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Choose your authoring approach</p>
           <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--navy-dark);margin-bottom:8px">How would you like to work?</h2>
-          <p style="font-size:13px;color:var(--text-mid)">Your selection will be saved and can be changed at any time.</p>
+          <p style="font-size:13px;color:var(--text-mid)">Select an approach for this session. You can change it at any time.</p>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div class="mode-choice-card" id="choiceAI" onclick="selectMode('ai')">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+
+          <!-- MODE 1 -->
+          <div class="mode-choice-card" onclick="selectMode('ai')">
             <div class="mode-choice-icon ai">
               <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             </div>
@@ -347,7 +360,9 @@ function showToast(message, type = 'success', duration = 3000) {
             </ul>
             <div class="mode-choice-badge ai">Recommended for speed</div>
           </div>
-          <div class="mode-choice-card" id="choiceManual" onclick="selectMode('manual')">
+
+          <!-- MODE 2 -->
+          <div class="mode-choice-card" onclick="selectMode('manual')">
             <div class="mode-choice-icon manual">
               <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </div>
@@ -361,6 +376,23 @@ function showToast(message, type = 'success', duration = 3000) {
             </ul>
             <div class="mode-choice-badge manual">Recommended for integrity</div>
           </div>
+
+          <!-- MODE 3 -->
+          <div class="mode-choice-card" onclick="selectMode('guided')">
+            <div class="mode-choice-icon guided">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </div>
+            <h3 class="mode-choice-title">Guided Writing</h3>
+            <p class="mode-choice-desc">You write each section independently. AI provides targeted feedback, critique, and improvement suggestions on your draft.</p>
+            <ul class="mode-choice-list">
+              <li>You write every section</li>
+              <li>AI reviews & critiques</li>
+              <li>Specific improvement notes</li>
+              <li>Academic quality feedback</li>
+            </ul>
+            <div class="mode-choice-badge guided">Recommended for learning</div>
+          </div>
+
         </div>
       </div>
 
@@ -488,11 +520,16 @@ function showToast(message, type = 'success', duration = 3000) {
       svgEl.innerHTML = '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>';
       titleEl.textContent = 'AI-Assisted Drafting';
       descEl.textContent = 'Dr. NIRA generates each section — review and edit as needed';
-    } else {
+    } else if (mode === 'manual') {
       iconEl.style.background = '#16a34a';
       svgEl.innerHTML = '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>';
       titleEl.textContent = 'Independent Authoring';
       descEl.textContent = 'You write each section — full scholarly control, no AI involvement';
+    } else {
+      iconEl.style.background = '#d97706';
+      svgEl.innerHTML = '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>';
+      titleEl.textContent = 'Guided Writing';
+      descEl.textContent = 'You write each section — AI provides feedback and critique on your draft';
     }
 
     document.getElementById('generateAllBar').style.display = mode === 'ai' ? 'flex' : 'none';
@@ -500,6 +537,8 @@ function showToast(message, type = 'success', duration = 3000) {
     var sectionsNavDesc = document.getElementById('sectionsNavDesc');
     if (sectionsNavDesc) sectionsNavDesc.textContent = mode === 'ai'
       ? 'Click any section to generate'
+      : mode === 'guided'
+      ? 'Write each section, then get AI feedback'
       : 'Click any section to write';
 
     document.getElementById('topicChip').style.display = 'flex';
@@ -572,49 +611,91 @@ function showToast(message, type = 'success', duration = 3000) {
 
   function renderSectionCards() {
     const container = document.getElementById('sectionCards');
+    const isAI = authoringMode === 'ai';
     const isManual = authoringMode === 'manual';
+    const isGuided = authoringMode === 'guided';
 
     container.innerHTML = SECTIONS.map((s, i) => {
       const isDone = !!generated[s.id];
       const content = generated[s.id] || '';
       const wordCount = content ? content.trim().split(/\s+/).length : 0;
 
-      // Actions differ by mode
-      const actionsHtml = isManual
-        ? (isDone
-            ? `<span class="mode-badge manual">Self-authored</span>
-               <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
-            : `<span class="mode-badge manual" style="opacity:0.5">Independent Authoring</span>`)
-        : (isDone
-            ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
-            : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')">
-                <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                Generate draft
-               </button>`);
+      // ── ACTIONS ──
+      let actionsHtml;
+      if (isAI) {
+        actionsHtml = isDone
+          ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
+          : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')">
+              <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate draft
+             </button>`;
+      } else if (isManual) {
+        actionsHtml = isDone
+          ? `<span class="mode-badge manual">Self-authored</span>
+             <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
+          : `<span class="mode-badge manual" style="opacity:0.5">Independent Authoring</span>`;
+      } else {
+        actionsHtml = isDone
+          ? `<span class="mode-badge guided">Guided Writing</span>
+             <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
+          : `<span class="mode-badge guided" style="opacity:0.5">Guided Writing</span>`;
+      }
 
-      // Body differs by mode
-      const bodyHtml = isManual
-        ? `<textarea class="manual-textarea" id="content-${s.id}"
-              placeholder="Write the ${s.label} section here. Maintain formal academic register and discipline-appropriate terminology..."
-              oninput="saveEdits('${s.id}')">${content}</textarea>`
-        : (isDone
-            ? `<div class="section-content" contenteditable="true" id="content-${s.id}" oninput="saveEdits('${s.id}')">${content}</div>`
-            : `<div class="section-empty"><p>Click "Generate draft" to create this section with AI assistance.</p></div>`);
+      // ── BODY ──
+      let bodyHtml;
+      if (isAI) {
+        bodyHtml = isDone
+          ? `<div class="section-content" contenteditable="true" id="content-${s.id}" oninput="saveEdits('${s.id}')">${content}</div>`
+          : `<div class="section-empty"><p>Click "Generate draft" to create this section with AI assistance.</p></div>`;
+      } else if (isManual) {
+        bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
+            placeholder="Write the ${s.label} section here. Maintain formal academic register and discipline-appropriate terminology..."
+            oninput="saveEdits('${s.id}')">${content}</textarea>`;
+      } else {
+        // Guided
+        bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
+            placeholder="Write the ${s.label} section here. When ready, click 'Get AI Feedback' to receive critique and improvement suggestions..."
+            oninput="saveEdits('${s.id}')">${content}</textarea>
+          <div class="guided-feedback-panel" id="feedback-${s.id}">
+            <div class="guided-feedback-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              AI Academic Feedback
+            </div>
+            <div class="guided-feedback-text" id="feedbackText-${s.id}"></div>
+          </div>`;
+      }
 
-      // Footer differs by mode
-      const footerHtml = isManual
-        ? `<div class="manual-section-footer">
-            <span class="authored-label" style="font-size:11px;color:#16a34a">
+      // ── FOOTER ──
+      let footerHtml;
+      if (isAI) {
+        footerHtml = isDone
+          ? `<div class="section-footer">
+              <span class="word-count">${wordCount} words · AI-drafted</span>
+              <span class="edit-hint">Click text to edit directly</span>
+             </div>`
+          : '';
+      } else if (isManual) {
+        footerHtml = `<div class="manual-section-footer">
+            <span style="font-size:11px;color:#16a34a">
               ${isDone ? '✓ ' + wordCount + ' words — Self-authored' : 'Begin writing above'}
             </span>
             <button class="manual-save-btn" onclick="manualSave('${s.id}')">Save section</button>
-           </div>`
-        : (isDone
-            ? `<div class="section-footer">
-                <span class="word-count">${wordCount} words · AI-drafted</span>
-                <span class="edit-hint">Click text to edit directly</span>
-               </div>`
-            : '');
+           </div>`;
+      } else {
+        // Guided footer
+        footerHtml = `<div class="manual-section-footer" style="background:#fffbeb;border-top-color:#fde68a;">
+            <span style="font-size:11px;color:#92400e">
+              ${isDone ? '✓ ' + wordCount + ' words — Guided draft' : 'Write above, then get AI feedback'}
+            </span>
+            <div style="display:flex;gap:8px;">
+              <button class="manual-save-btn" style="background:#92400e" onclick="manualSave('${s.id}')">Save section</button>
+              <button class="guided-get-btn" id="feedbackBtn-${s.id}" onclick="getGuidedFeedback('${s.id}')">
+                <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Get AI Feedback
+              </button>
+            </div>
+           </div>`;
+      }
 
       return `
         <div class="section-card" id="card-${s.id}">
@@ -655,6 +736,56 @@ function showToast(message, type = 'success', duration = 3000) {
     renderSectionsNav();
     updateProgress();
     showToast('Section saved', 'success');
+  }
+
+  async function getGuidedFeedback(sectionId) {
+    const el = document.getElementById('content-' + sectionId);
+    if (!el || !el.value.trim()) {
+      showToast('Please write something first', 'warning');
+      return;
+    }
+    const text = el.value.trim();
+    const s = SECTIONS.find(x => x.id === sectionId);
+    const btn = document.getElementById('feedbackBtn-' + sectionId);
+    const panel = document.getElementById('feedback-' + sectionId);
+    const feedbackText = document.getElementById('feedbackText-' + sectionId);
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Analysing...'; }
+    if (panel) panel.classList.add('open');
+    if (feedbackText) feedbackText.textContent = 'Dr. NIRA is reviewing your writing...';
+
+    const prompt = `You are Dr. NIRA, an expert academic writing advisor. A student has written the "${s.label}" section of their PhD proposal.
+
+Review their writing and provide structured academic feedback covering:
+1. **Clarity & precision** — Is the academic language clear and precise?
+2. **Structure & coherence** — Is the section logically organized?
+3. **Academic register** — Is the tone appropriate for a PhD proposal?
+4. **Content completeness** — Are all required elements present?
+5. **Specific improvements** — Give 2-3 concrete, actionable suggestions.
+
+Be constructive, specific, and scholarly. Reference actual phrases from their text.
+
+Student's draft:
+${text}`;
+
+    try {
+      const res = await fetch('/api/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error');
+      if (feedbackText) feedbackText.textContent = data.result || '';
+      showToast('Feedback ready', 'success');
+    } catch(err) {
+      if (feedbackText) feedbackText.textContent = 'Error: ' + err.message;
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Get AI Feedback';
+      }
+    }
   }
 
   function scrollToSection(id) {
