@@ -1,7 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="js/project-manager.js"></script>
+<script src="js/project-manager.js">
+function showToast(message, type, duration) {
+  type = type || 'info'; duration = duration || 3000;
+  if (!document.getElementById('nira-toast-container')) {
+    var c = document.createElement('div');
+    c.id = 'nira-toast-container';
+    c.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(c);
+  }
+  if (!document.getElementById('nira-toast-style')) {
+    var s = document.createElement('style');
+    s.id = 'nira-toast-style';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(s);
+  }
+  var colors = {success:'#16a34a',error:'#dc2626',info:'#2563EB',warning:'#d97706'};
+  var icons = {success:'✓',error:'✕',info:'ℹ',warning:'⚠'};
+  var toast = document.createElement('div');
+  toast.style.cssText = 'background:'+(colors[type]||colors.info)+';color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;white-space:nowrap;animation:toastIn 0.25s ease;';
+  toast.innerHTML = '<span>'+(icons[type]||'ℹ')+'</span>'+message;
+  document.getElementById('nira-toast-container').appendChild(toast);
+  setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(function(){ toast.remove(); },300); }, duration);
+}
+
+</script>
 <!-- auth-guard disabled until auth is activated -->
 
 <meta charset="UTF-8">
@@ -203,6 +227,7 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
       <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
       <a class="nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
       <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
@@ -519,7 +544,7 @@
       if (file.type.includes('pdf')) ext = 'pdf';
       else if (file.type.includes('wordprocessingml')) ext = 'docx';
       else if (file.type.includes('msword')) ext = 'doc';
-      else { alert('Unsupported file type. Please upload PDF, DOCX, or DOC.'); return; }
+      else { showToast('Unsupported file type. Please upload PDF, DOCX, or DOC.', 'warning'); return; }
     }
     fileNameStr = file.name; fileTypeStr = ext;
     var sizeMB = (file.size / 1024 / 1024).toFixed(1);
@@ -567,7 +592,7 @@
   }
 
   function buildProposalFromDoc() {
-    if (!getDocumentText()) { alert('Please upload a document first.'); return; }
+    if (!getDocumentText()) { showToast('Please upload a document first.', 'warning'); return; }
     localStorage.setItem('nira_upload_text', getDocumentText().slice(0, 8000));
     localStorage.setItem('nira_upload_filename', fileNameStr);
     localStorage.setItem('nira_build_from_upload', '1');
@@ -638,7 +663,7 @@
   const SYS = 'You are Dr. NIRA, an expert PhD research proposal analyst. Analyze academic documents with precision and scholarly rigor. Provide specific, actionable feedback referencing actual content from the document.';
 
   async function startAnalysis() {
-    if (!fileText) { alert('Please upload a document first.'); return; }
+    if (!fileText) { showToast('Please upload a document first.', 'warning'); return; }
     const btn = document.getElementById('analyzeBtn');
     btn.disabled = true; btn.textContent = 'Analyzing...';
     document.getElementById('analysisResults').innerHTML = '<div class="analysis-results" id="resultsInner"></div>';
