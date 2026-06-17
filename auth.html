@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1B2A4A; --navy-dark: #0F1B33; --blue: #2563EB;
+    --blue-light: #60A5FA; --blue-pale: #EEF4FF;
+    --text-dark: #1B2A4A; --text-mid: #6B7FA3;
+    --border: #dde6f5; --green: #16a34a;
+  }
+  html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff; color: var(--text-dark); }
+
+  .auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .auth-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    text-decoration: none;
+  }
+
+  .auth-logo-icon {
+    width: 40px; height: 40px;
+    background: var(--blue);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .auth-logo-icon svg {
+    width: 22px; height: 22px;
+    fill: none; stroke: #fff;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .auth-logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--navy-dark);
+  }
+
+  .auth-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 4px 24px rgba(27,42,74,0.08);
+  }
+
+  .auth-tabs {
+    display: flex;
+    background: #f0f4ff;
+    border-radius: 9px;
+    padding: 3px;
+    margin-bottom: 28px;
+  }
+
+  .auth-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .auth-tab.active {
+    background: #fff;
+    color: var(--text-dark);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .auth-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--navy-dark);
+    margin-bottom: 6px;
+  }
+
+  .auth-sub {
+    font-size: 13px;
+    color: var(--text-mid);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    font-size: 12px; font-weight: 500;
+    color: var(--text-dark);
+    display: block; margin-bottom: 5px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  .auth-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+    margin-top: 4px;
+  }
+
+  .auth-btn:hover { background: #1d4ed8; }
+  .auth-btn:disabled { background: #93b4f0; cursor: not-allowed; }
+
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--text-mid);
+    font-size: 12px;
+  }
+
+  .auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .auth-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #dc2626;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .auth-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--green);
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+
+  .auth-footer a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .back-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+
+  .back-link a { color: var(--blue); text-decoration: none; }
+
+  .password-wrap { position: relative; }
+  .password-wrap .form-input { padding-right: 40px; }
+  .password-toggle {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: var(--text-mid);
+    padding: 0; display: flex; align-items: center;
+  }
+  .password-toggle:hover { color: var(--blue); }
+  .password-toggle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+
+<div class="auth-page">
+
+  <a href="index.html" class="auth-logo">
+    <div class="auth-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="auth-logo-name">Dr. NIRA</span>
+  </a>
+
+  <div class="auth-card">
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabSignin" onclick="switchTab('signin')">Sign in</button>
+      <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Create account</button>
+    </div>
+
+    <!-- ERROR / SUCCESS -->
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-success" id="authSuccess"></div>
+
+    <!-- SIGN IN -->
+    <div id="signinForm">
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-sub">Sign in to continue to Dr. NIRA</p>
+
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input class="form-input" type="email" id="signinEmail" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="signinPassword" placeholder="Your password" autocomplete="current-password">
+          <button class="password-toggle" type="button" onclick="togglePassword('signinPassword', this)" tabindex="-1">
+            <svg id="eyeSignin" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="auth-btn" id="signinBtn" onclick="signIn()">Sign in</button>
+    </div>
+
+    <!-- SIGN UP -->
+    <div id="signupForm" style="display:none">
+      <h2 class="auth-title">Create your account</h2>
+      <p class="auth-sub">Join Dr. NIRA — your AI research advisor</p>
+
+      <div class="form-group">
+        <label class="form-label">Full name</label>
+        <input class="form-input" type="text" id="signupName" placeholder="Dr. Jane Smith">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input class="form-input" type="email" id="signupEmail" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+          <button class="password-toggle" type="button" onclick="togglePassword('signupPassword', this)" tabindex="-1">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="auth-btn" id="signupBtn" onclick="signUp()">Create account</button>
+    </div>
+
+  </div>
+
+  <div class="back-link">
+    <a href="index.html">← Back to home</a>
+  </div>
+
+</div>
+
+<script>
+var SUPABASE_URL = 'https://eufqdxwfhqkdhmbjhvjv.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZnFkeHdmaHFrZGhtYmpodmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NTQ0ODksImV4cCI6MjA5NzIzMDQ4OX0.DUC4iJPLBea8XS_Rk769d0kM2z-PVNKoKFMEyegB8qA';
+
+function togglePassword(inputId, btn) {
+  var input = document.getElementById(inputId);
+  var isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  btn.querySelector('svg').innerHTML = isPassword
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
+function switchTab(tab) {
+  var isSignin = tab === 'signin';
+  document.getElementById('tabSignin').classList.toggle('active', isSignin);
+  document.getElementById('tabSignup').classList.toggle('active', !isSignin);
+  document.getElementById('signinForm').style.display = isSignin ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = isSignin ? 'none' : 'block';
+  hideMessages();
+}
+
+function showError(msg) {
+  var el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+function showSuccess(msg) {
+  var el = document.getElementById('authSuccess');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('authError').style.display = 'none';
+}
+
+function hideMessages() {
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+async function signIn() {
+  var email = document.getElementById('signinEmail').value.trim();
+  var password = document.getElementById('signinPassword').value;
+  if (!email || !password) { showError('Please fill in all fields.'); return; }
+
+  var btn = document.getElementById('signinBtn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  hideMessages();
+
+  try {
+    var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ email: email, password: password })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign in failed');
+    localStorage.setItem('nira_session', JSON.stringify(data));
+    localStorage.setItem('nira_user_email', email);
+    window.location.href = 'app.html';
+  } catch(err) {
+    showError(err.message);
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+  }
+}
+
+async function signUp() {
+  var name = document.getElementById('signupName').value.trim();
+  var email = document.getElementById('signupEmail').value.trim();
+  var password = document.getElementById('signupPassword').value;
+  if (!name || !email || !password) { showError('Please fill in all fields.'); return; }
+  if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+
+  var btn = document.getElementById('signupBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+  hideMessages();
+
+  try {
+    var res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ email: email, password: password, data: { full_name: name } })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign up failed');
+    showSuccess('Account created! Please check your email to confirm, then sign in.');
+    btn.disabled = false;
+    btn.textContent = 'Create account';
+    setTimeout(function(){ switchTab('signin'); }, 3000);
+  } catch(err) {
+    showError(err.message);
+    btn.disabled = false;
+    btn.textContent = 'Create account';
+  }
+}
+
+// Enter key support
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    var signinVisible = document.getElementById('signinForm').style.display !== 'none';
+    if (signinVisible) { signIn(); }
+    else { signUp(); }
+  }
+});
+
+// Check if already logged in
+var session = localStorage.getItem('nira_session');
+if (session) {
+  try {
+    var s = JSON.parse(session);
+    if (s.access_token) { window.location.href = 'app.html'; }
+  } catch(e) {}
+}
+</script>
+</body>
+</html>
