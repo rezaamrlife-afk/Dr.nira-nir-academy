@@ -77,7 +77,19 @@
   .form-textarea { resize: vertical; min-height: 70px; line-height: 1.6; }
 
   /* SOURCE TYPE TABS */
-  .type-tabs { display: flex; gap: 4px; margin-bottom: 14px; background: #f0f4ff; border-radius: 8px; padding: 3px; }
+  /* DOI/ISBN LOOKUP */
+  .lookup-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .lookup-input { flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-dark); outline: none; transition: border-color 0.2s; }
+  .lookup-input:focus { border-color: var(--blue); }
+  .lookup-btn { background: var(--blue); color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+  .lookup-btn:hover { background: #1d4ed8; }
+  .lookup-btn:disabled { background: #93b4f0; cursor: not-allowed; }
+  .lookup-result { background: #f8faff; border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-top: 10px; display: none; }
+  .lookup-result-title { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; line-height: 1.5; }
+  .lookup-result-meta { font-size: 12px; color: var(--text-mid); margin-bottom: 10px; line-height: 1.6; }
+  .lookup-result-citation { font-size: 12px; color: var(--text-dark); line-height: 1.7; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+  .lookup-result-actions { display: flex; gap: 8px; }
+  .lookup-error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #dc2626; margin-top: 8px; display: none; }
   .type-tab { flex: 1; text-align: center; padding: 6px 4px; border-radius: 6px; font-size: 11px; font-weight: 500; color: var(--text-mid); cursor: pointer; transition: all 0.15s; }
   .type-tab.active { background: #fff; color: var(--blue); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
@@ -304,6 +316,57 @@ function showToast(message, type = 'success', duration = 3000) {
             </div>
           </div>
 
+          <!-- DOI / ISBN LOOKUP -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-header-icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></div>
+              <h3>Lookup by DOI or ISBN</h3>
+            </div>
+            <div class="panel-body">
+              <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px;line-height:1.6;">
+                Enter a DOI (e.g. <code style="background:#f0f4ff;padding:1px 5px;border-radius:3px;font-size:11px">10.1016/j.paid.2020.01.001</code>) or ISBN to fetch real metadata from CrossRef and Open Library.
+              </p>
+
+              <div class="lookup-input-row">
+                <input type="text" class="lookup-input" id="lookupInput"
+                  placeholder="DOI or ISBN..."
+                  onkeydown="if(event.key==='Enter') lookupReference()">
+                <button class="lookup-btn" id="lookupBtn" onclick="lookupReference()">
+                  <svg style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  Lookup
+                </button>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-bottom:4px;">
+                <select class="form-select" id="lookupFormat" style="flex:1;font-size:12px;padding:6px 10px;">
+                  <option>APA 7</option><option>APA 6</option><option>MLA</option>
+                  <option>IEEE</option><option>Chicago</option><option>Vancouver</option><option>Harvard</option>
+                </select>
+                <div style="display:flex;gap:6px;align-items:center;font-size:11px;color:var(--text-mid);">
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="radio" name="lookupType" value="doi" checked id="rdDOI"> DOI
+                  </label>
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="radio" name="lookupType" value="isbn" id="rdISBN"> ISBN
+                  </label>
+                </div>
+              </div>
+
+              <div class="lookup-error" id="lookupError"></div>
+
+              <div class="lookup-result" id="lookupResult">
+                <div class="lookup-result-title" id="lookupTitle"></div>
+                <div class="lookup-result-meta" id="lookupMeta"></div>
+                <div class="lookup-result-citation" id="lookupCitation"></div>
+                <div class="lookup-result-actions">
+                  <button class="save-btn" onclick="saveLookupToLibrary()" style="font-size:12px;padding:6px 12px;">Save to library</button>
+                  <button class="copy-btn" onclick="copyLookupCitation()" style="font-size:12px;padding:6px 12px;">Copy</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
           <!-- QUICK ADD -->
           <div class="panel">
             <div class="panel-header">
@@ -362,7 +425,194 @@ function showToast(message, type = 'success', duration = 3000) {
 <script>
   let sourceType = 'journal';
   let citationFormat = 'APA 7';
+  // ── DOI / ISBN LOOKUP ──
+  var lookupData = null;
   let library = JSON.parse(localStorage.getItem('nira_citations') || '[]');
+
+  async function lookupReference() {
+    var input = document.getElementById('lookupInput').value.trim();
+    if (!input) { showLookupError('Please enter a DOI or ISBN.'); return; }
+
+    var type = document.querySelector('input[name="lookupType"]:checked').value;
+    var btn = document.getElementById('lookupBtn');
+    btn.disabled = true; btn.textContent = 'Looking up...';
+    hideLookupResult(); hideLookupError();
+
+    try {
+      if (type === 'doi') {
+        await lookupDOI(input);
+      } else {
+        await lookupISBN(input);
+      }
+    } catch(err) {
+      showLookupError(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Lookup';
+    }
+  }
+
+  async function lookupDOI(doi) {
+    // Clean DOI — remove URL prefix if pasted
+    doi = doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, '').trim();
+    var url = 'https://api.crossref.org/works/' + encodeURIComponent(doi);
+    var res = await fetch(url, { headers: { 'User-Agent': 'DrNIRA/1.0 (mailto:nira@niracademy.com)' } });
+    if (!res.ok) throw new Error('DOI not found. Please check the DOI and try again.');
+    var data = await res.json();
+    var work = data.message;
+
+    var authors = (work.author || []).map(function(a) {
+      return (a.family || '') + (a.given ? ', ' + a.given : '');
+    }).filter(Boolean);
+
+    lookupData = {
+      type: 'journal',
+      title: (work.title || [''])[0],
+      authors: authors,
+      year: work.published && work.published['date-parts'] ? work.published['date-parts'][0][0] : '',
+      journal: work['container-title'] ? work['container-title'][0] : '',
+      volume: work.volume || '',
+      issue: work.issue || '',
+      pages: work.page || '',
+      doi: doi,
+      url: 'https://doi.org/' + doi
+    };
+
+    renderLookupResult();
+  }
+
+  async function lookupISBN(isbn) {
+    // Clean ISBN
+    isbn = isbn.replace(/[-\s]/g, '');
+    var url = 'https://openlibrary.org/api/books?bibkeys=ISBN:' + isbn + '&format=json&jscmd=data';
+    var res = await fetch(url);
+    if (!res.ok) throw new Error('Could not connect to Open Library. Please try again.');
+    var data = await res.json();
+    var key = 'ISBN:' + isbn;
+    if (!data[key]) throw new Error('ISBN not found. Please check the ISBN and try again.');
+    var book = data[key];
+
+    var authors = (book.authors || []).map(function(a){ return a.name || ''; }).filter(Boolean);
+
+    lookupData = {
+      type: 'book',
+      title: book.title || '',
+      authors: authors,
+      year: book.publish_date ? book.publish_date.replace(/.*(\d{4}).*/, '$1') : '',
+      publisher: book.publishers ? book.publishers.map(function(p){ return p.name; }).join(', ') : '',
+      place: book.publish_places ? book.publish_places.map(function(p){ return p.name; }).join(', ') : '',
+      isbn: isbn,
+      pages: book.number_of_pages || ''
+    };
+
+    renderLookupResult();
+  }
+
+  function renderLookupResult() {
+    if (!lookupData) return;
+    var fmt = document.getElementById('lookupFormat').value;
+    var citation = formatLookupCitation(lookupData, fmt);
+
+    document.getElementById('lookupTitle').textContent = lookupData.title;
+    document.getElementById('lookupMeta').innerHTML =
+      (lookupData.authors.length ? '<strong>Authors:</strong> ' + lookupData.authors.join('; ') + '<br>' : '') +
+      (lookupData.year ? '<strong>Year:</strong> ' + lookupData.year + '&nbsp;&nbsp;' : '') +
+      (lookupData.journal ? '<strong>Journal:</strong> ' + lookupData.journal + '&nbsp;&nbsp;' : '') +
+      (lookupData.publisher ? '<strong>Publisher:</strong> ' + lookupData.publisher : '') +
+      (lookupData.doi ? '<br><strong>DOI:</strong> ' + lookupData.doi : '') +
+      (lookupData.isbn ? '<br><strong>ISBN:</strong> ' + lookupData.isbn : '');
+    document.getElementById('lookupCitation').textContent = citation;
+    document.getElementById('lookupResult').style.display = 'block';
+  }
+
+  function formatLookupCitation(d, fmt) {
+    var authors = d.authors || [];
+    var year = d.year || 'n.d.';
+    var title = d.title || '';
+    var authorStr = '';
+    if (authors.length === 0) authorStr = 'Unknown Author';
+    else if (authors.length === 1) authorStr = authors[0];
+    else if (authors.length === 2) authorStr = authors.join(' & ');
+    else authorStr = authors[0] + ' et al.';
+
+    if (fmt === 'APA 7' || fmt === 'APA 6') {
+      if (d.type === 'book') {
+        return authorStr + ' (' + year + '). ' + title + '. ' + (d.publisher || '') + (d.doi ? '. https://doi.org/' + d.doi : '');
+      }
+      return authorStr + ' (' + year + '). ' + title + '. ' + (d.journal || '') +
+        (d.volume ? ', ' + d.volume : '') + (d.issue ? '(' + d.issue + ')' : '') +
+        (d.pages ? ', ' + d.pages : '') + (d.doi ? '. https://doi.org/' + d.doi : '');
+    }
+    if (fmt === 'MLA') {
+      var mlaAuth = authors.length ? authors[0].split(', ').reverse().join(' ') : 'Unknown';
+      if (d.type === 'book') return mlaAuth + '. ' + title + '. ' + (d.publisher || '') + ', ' + year + '.';
+      return mlaAuth + '. "' + title + '." ' + (d.journal || '') + ', vol. ' + (d.volume || '') + ', no. ' + (d.issue || '') + ', ' + year + ', pp. ' + (d.pages || '') + '.';
+    }
+    if (fmt === 'IEEE') {
+      var ieeeAuth = authors.map(function(a){ var p=a.split(', '); return (p[1]?p[1][0]+'. ':'')+p[0]; }).join(', ');
+      if (d.type === 'book') return ieeeAuth + ', ' + title + '. ' + (d.place||'') + ': ' + (d.publisher||'') + ', ' + year + '.';
+      return ieeeAuth + ', "' + title + '," ' + (d.journal||'') + ', vol. ' + (d.volume||'') + ', no. ' + (d.issue||'') + ', pp. ' + (d.pages||'') + ', ' + year + (d.doi ? ', doi: ' + d.doi : '') + '.';
+    }
+    if (fmt === 'Vancouver') {
+      var vanAuth = authors.slice(0,6).map(function(a){ var p=a.split(', '); return p[0]+(p[1]?' '+p[1].replace(/[a-z]/g,''):''); }).join(', ');
+      if (authors.length > 6) vanAuth += ' et al';
+      return vanAuth + '. ' + title + '. ' + (d.journal||'') + ' ' + year + (d.volume?';'+d.volume:'') + (d.issue?'('+d.issue+')':'') + (d.pages?':'+d.pages:'') + (d.doi?'. doi:'+d.doi:'') + '.';
+    }
+    if (fmt === 'Chicago') {
+      var chiAuth = authors.length ? authors[0].split(', ').reverse().join(' ') : 'Unknown';
+      if (d.type === 'book') return chiAuth + '. ' + title + '. ' + (d.place||'') + ': ' + (d.publisher||'') + ', ' + year + '.';
+      return chiAuth + '. "' + title + '." ' + (d.journal||'') + ' ' + (d.volume||'') + ', no. ' + (d.issue||'') + ' (' + year + '): ' + (d.pages||'') + (d.doi ? '. https://doi.org/' + d.doi : '') + '.';
+    }
+    if (fmt === 'Harvard') {
+      var harvAuth = authors.length ? authors[0].split(', ')[0] : 'Unknown';
+      if (d.type === 'book') return harvAuth + ' (' + year + ') ' + title + '. ' + (d.place||'') + ': ' + (d.publisher||'') + '.';
+      return harvAuth + ' (' + year + ') "' + title + '", ' + (d.journal||'') + ', ' + (d.volume||'') + '(' + (d.issue||'') + '), pp. ' + (d.pages||'') + (d.doi ? '. doi: ' + d.doi : '') + '.';
+    }
+    // Fallback APA
+    return authorStr + ' (' + year + '). ' + title + '.';
+  }
+
+  function saveLookupToLibrary() {
+    if (!lookupData) return;
+    var fmt = document.getElementById('lookupFormat').value;
+    var citation = formatLookupCitation(lookupData, fmt);
+    var item = {
+      id: Date.now(),
+      type: lookupData.type,
+      format: fmt,
+      citation: citation,
+      title: lookupData.title,
+      authors: lookupData.authors,
+      year: lookupData.year,
+      doi: lookupData.doi || '',
+      isbn: lookupData.isbn || '',
+      source: 'doi_isbn_lookup'
+    };
+    library.unshift(item);
+    localStorage.setItem('nira_citations', JSON.stringify(library));
+    renderLibrary();
+    showToast('Saved to library!', 'success');
+    hideLookupResult();
+    document.getElementById('lookupInput').value = '';
+    lookupData = null;
+  }
+
+  function copyLookupCitation() {
+    var text = document.getElementById('lookupCitation').textContent;
+    navigator.clipboard.writeText(text).then(function(){ showToast('Copied!', 'success'); });
+  }
+
+  function showLookupError(msg) {
+    var el = document.getElementById('lookupError');
+    el.textContent = msg; el.style.display = 'block';
+  }
+  function hideLookupError() { document.getElementById('lookupError').style.display = 'none'; }
+  function hideLookupResult() { document.getElementById('lookupResult').style.display = 'none'; }
+
+  // Re-render citation when format changes
+  document.getElementById('lookupFormat') && document.getElementById('lookupFormat').addEventListener('change', function() {
+    if (lookupData) renderLookupResult();
+  });
   let lastGenerated = '';
 
   const FIELDS = {
