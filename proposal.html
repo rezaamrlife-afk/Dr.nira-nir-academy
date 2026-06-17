@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="js/project-manager.js"></script>
 <script src="js/auth-guard.js"></script>
 
 <meta charset="UTF-8">
@@ -273,7 +274,6 @@ function showToast(message, type = 'success', duration = 3000) {
   setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
 }
 </script>
-<script src="js/project-manager.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -861,13 +861,20 @@ function showToast(message, type = 'success', duration = 3000) {
         document.getElementById('sidebarAvatar').textContent = profile.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       }
     }
-    const _tp = NiraProject.loadTopic();
-    if (_tp && _tp.title_en) { const st = JSON.stringify(_tp);
-    if (st) {
-      topic = JSON.parse(st);
+    // Load topic
+    var _tp = NiraProject.loadTopic();
+    if (!_tp || !_tp.title_en) {
+      // Fallback to legacy localStorage
+      var _legacyTopic = localStorage.getItem('nira_selected_topic');
+      if (_legacyTopic) { try { _tp = JSON.parse(_legacyTopic); } catch(e) {} }
+    }
+    if (_tp && _tp.title_en) {
+      topic = _tp;
       document.getElementById('chipTitle').textContent = topic.title_en || 'Selected topic';
       document.getElementById('chipMeta').textContent = (topic.research_type || '') + (topic.keywords ? ' · ' + topic.keywords.slice(0,3).join(', ') : '');
     }
+
+    // Load proposal
     const sg = NiraProject.load('proposal');
     if (sg && Object.keys(sg).length > 0) generated = sg;
 
