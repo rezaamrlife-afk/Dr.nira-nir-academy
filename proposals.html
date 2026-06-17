@@ -155,6 +155,7 @@
     .topbar { padding: 0 16px; }
   }
 </style>
+<script src="toast.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -309,6 +310,7 @@
     localStorage.setItem('nira_proposals', JSON.stringify(proposals));
     document.getElementById('saveBar').style.display = 'none';
     renderProposals();
+    showToast('Proposal saved!', 'success');
 
     const btn = event.target;
     btn.textContent = '✓ Saved!';
