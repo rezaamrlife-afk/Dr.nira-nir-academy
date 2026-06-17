@@ -599,8 +599,8 @@ function showToast(message, type = 'success', duration = 3000) {
     const count = document.getElementById('countInput').value;
     const researchType = document.getElementById('researchTypeInput').value;
 
-    if (!field) { alert('Please enter your field of study.'); return; }
-    if (!degree) { alert('Please select your degree level.'); return; }
+    if (!field) { showToast('Please enter your field of study.', 'warning'); return; }
+    if (!degree) { showToast('Please select your degree level.', 'warning'); return; }
 
     const btn = document.getElementById('generateBtn');
     btn.disabled = true;
