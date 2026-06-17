@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Questionnaire Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B2A4A;--navy-dark:#0F1B33;--blue:#2563EB;
+  --blue-light:#60A5FA;--blue-pale:#EEF4FF;
+  --muted:#a0b0cc;--text-dark:#1B2A4A;--text-mid:#6B7FA3;
+  --border:#dde6f5;--sidebar-w:240px;
+  --green:#16a34a;--green-pale:#f0fdf4;
+  --purple:#7c3aed;--purple-pale:#faf5ff;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:var(--text-dark);}
+.app-shell{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:var(--sidebar-w);background:var(--navy-dark);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.sidebar-logo-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sidebar-logo-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;}
+.sidebar-section{padding:20px 12px 8px;}
+.sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding:0 8px;margin-bottom:6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.06);}
+.nav-item.active{background:var(--blue);}
+.nav-item svg{width:17px;height:17px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.nav-item.active svg,.nav-item:hover svg{stroke:#fff;}
+.nav-item span{font-size:13px;color:var(--muted);}
+.nav-item.active span,.nav-item:hover span{color:#fff;}
+.nav-item .nav-badge{margin-left:auto;background:var(--blue-light);color:var(--navy-dark);font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06);}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;color:#fff;}
+.user-role{font-size:11px;color:var(--muted);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text-dark);}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.btn-sm{background:var(--blue);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:background 0.2s;}
+.btn-sm:hover{background:#1d4ed8;}
+.btn-sm:disabled{background:#93b4f0;cursor:not-allowed;}
+.btn-sm-outline{background:transparent;color:var(--text-dark);border:1px solid var(--border);padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.2s;}
+.btn-sm-outline:hover{background:var(--blue-pale);}
+.content{flex:1;overflow-y:auto;padding:28px;}
+
+/* LAYOUT */
+.q-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
+
+/* SETUP PANEL */
+.setup-panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;position:sticky;top:0;}
+.setup-header{padding:16px 18px;border-bottom:1px solid var(--border);}
+.setup-header h3{font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:2px;}
+.setup-header p{font-size:11px;color:var(--text-mid);}
+.setup-body{padding:16px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em;}
+.form-input,.form-select,.form-textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;background:#fff;transition:border-color 0.2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);}
+.form-textarea{resize:vertical;min-height:72px;line-height:1.6;}
+.scale-options{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.scale-opt{border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;cursor:pointer;text-align:center;transition:all 0.15s;}
+.scale-opt:hover{border-color:var(--blue-light);}
+.scale-opt.selected{border-color:var(--purple);background:var(--purple-pale);}
+.scale-opt-label{font-size:12px;font-weight:600;color:var(--text-dark);}
+.scale-opt.selected .scale-opt-label{color:var(--purple);}
+.scale-opt-sub{font-size:10px;color:var(--text-mid);}
+.generate-btn{width:100%;padding:11px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;transition:background 0.2s;margin-top:16px;}
+.generate-btn:hover{background:#6d28d9;}
+.generate-btn:disabled{background:#a78bfa;cursor:not-allowed;}
+
+/* CONTEXT CHIP */
+.context-chip{background:var(--navy-dark);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.context-chip h4{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;}
+.context-chip p{font-size:11px;color:var(--muted);}
+
+/* QUESTIONNAIRE PREVIEW */
+.q-preview{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.q-preview-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.q-preview-header h3{font-size:14px;font-weight:600;color:var(--text-dark);}
+.q-stats{display:flex;gap:16px;}
+.q-stat{font-size:11px;color:var(--text-mid);}
+.q-stat strong{color:var(--text-dark);font-weight:600;}
+
+/* GENERATING */
+.generating-state{padding:48px 24px;text-align:center;}
+.gen-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.gen-steps{display:flex;flex-direction:column;gap:8px;max-width:280px;margin:16px auto 0;}
+.gen-step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-mid);}
+.gen-step-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.gen-step.active{color:var(--purple);}
+.gen-step.active .gen-step-dot{background:var(--purple);animation:pulse 1s infinite;}
+.gen-step.done{color:var(--green);}
+.gen-step.done .gen-step-dot{background:var(--green);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* EMPTY STATE */
+.q-empty{padding:48px 24px;text-align:center;}
+.q-empty-icon{width:56px;height:56px;background:var(--purple-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.q-empty-icon svg{width:28px;height:28px;fill:none;stroke:var(--purple);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.q-empty h4{font-size:14px;font-weight:600;color:var(--text-dark);margin-bottom:6px;}
+.q-empty p{font-size:13px;color:var(--text-mid);max-width:300px;margin:0 auto;line-height:1.6;}
+
+/* SECTIONS */
+.q-section{border-bottom:1px solid var(--border);}
+.q-section:last-child{border-bottom:none;}
+.q-section-header{padding:14px 24px;background:#fafcff;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.q-section-header:hover{background:#f0f4ff;}
+.q-section-title{font-size:13px;font-weight:600;color:var(--text-dark);display:flex;align-items:center;gap:8px;}
+.q-section-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.badge-demo{background:#dcfce7;color:#16a34a;}
+.badge-likert{background:var(--blue-pale);color:var(--blue);}
+.badge-open{background:#fef3c7;color:#d97706;}
+.q-section-meta{font-size:11px;color:var(--text-mid);}
+.q-section-body{padding:0 24px 16px;}
+
+/* QUESTION ITEM */
+.q-item{padding:14px 0;border-bottom:1px solid #f0f4ff;}
+.q-item:last-child{border-bottom:none;}
+.q-item-num{font-size:11px;font-weight:600;color:var(--text-mid);margin-bottom:6px;}
+.q-item-text{font-size:13px;color:var(--text-dark);line-height:1.6;outline:none;width:100%;border:1px dashed transparent;border-radius:5px;padding:4px 6px;transition:border-color 0.2s;font-family:'Inter',sans-serif;background:transparent;}
+.q-item-text:focus{border-color:var(--border);background:#fafcff;}
+.q-item-scale{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.scale-label{font-size:10px;padding:3px 9px;border:1px solid var(--border);border-radius:20px;color:var(--text-mid);white-space:nowrap;}
+.q-item-actions{display:flex;gap:6px;margin-top:8px;opacity:0;transition:opacity 0.15s;}
+.q-item:hover .q-item-actions{opacity:1;}
+.q-action-btn{font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;}
+.q-action-btn:hover{color:var(--blue);border-color:var(--blue-light);}
+.q-action-btn.danger:hover{color:#dc2626;border-color:#fecaca;}
+
+/* VARIABLE TAG */
+.var-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;background:#ede9fe;color:var(--purple);margin-top:4px;}
+
+/* MOBILE */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy-dark);border-top:1px solid rgba(255,255,255,0.08);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;}
+.mobile-nav-items{display:flex;justify-content:space-around;align-items:center;}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:4px 8px;min-width:52px;background:none;border:none;cursor:pointer;font-family:inherit;}
+.mobile-nav-item svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.mobile-nav-item span{font-size:9px;color:var(--muted);font-weight:500;}
+.mobile-nav-item.active svg{stroke:var(--blue-light);}
+.mobile-nav-item.active span{color:var(--blue-light);}
+.more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;}
+.more-overlay.open{display:block;}
+.more-drawer{position:fixed;bottom:-100%;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:200;padding:12px 0 max(20px,env(safe-area-inset-bottom));transition:bottom 0.3s cubic-bezier(0.32,0.72,0,1);}
+.more-drawer.open{bottom:0;}
+.more-drawer-handle{width:36px;height:4px;background:#dde6f5;border-radius:2px;margin:0 auto 16px;}
+.more-drawer-title{font-size:11px;font-weight:600;color:var(--text-mid);letter-spacing:0.08em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;}
+.more-item{display:flex;align-items:center;gap:14px;padding:14px 20px;text-decoration:none;}
+.more-item-icon{width:40px;height:40px;background:var(--blue-pale);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.more-item-icon svg{width:20px;height:20px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.more-item-label{font-size:14px;font-weight:500;color:var(--text-dark);}
+.more-item-sub{font-size:12px;color:var(--text-mid);}
+.more-item-arrow{width:16px;height:16px;fill:none;stroke:var(--text-mid);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-left:auto;}
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .mobile-nav{display:block;}
+  .q-layout{grid-template-columns:1fr;}
+  .setup-panel{position:static;}
+  .content{padding:16px;padding-bottom:80px;}
+  .topbar{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+      <a class="nav-item" href="proposals.html"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg><span>My proposals</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span><span class="nav-badge">New</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis builder</span></a>
+      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item active" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
+      <a class="nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
+      <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">DR</div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Questionnaire generator</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="exportCSV()">Export CSV</button>
+        <button class="btn-sm-outline" onclick="exportTXT()">Export TXT</button>
+        <button class="btn-sm" onclick="exportPDF()">Export PDF</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="context-chip">
+        <div>
+          <h4 id="chipTitle">Research context</h4>
+          <p id="chipMeta">Loading from proposal data...</p>
+        </div>
+        <button class="btn-sm-outline" style="color:#a0b0cc;border-color:rgba(255,255,255,0.2);font-size:12px" onclick="window.location.href='proposal.html'">View proposal</button>
+      </div>
+
+      <div class="q-layout">
+
+        <!-- SETUP PANEL -->
+        <div class="setup-panel">
+          <div class="setup-header">
+            <h3>Questionnaire settings</h3>
+            <p>Configure then generate</p>
+          </div>
+          <div class="setup-body">
+
+            <div class="form-group">
+              <label class="form-label">Questionnaire title</label>
+              <input type="text" class="form-input" id="qTitle" placeholder="e.g. Research Survey on...">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Research field</label>
+              <input type="text" class="form-input" id="qField" placeholder="e.g. Applied Linguistics">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Research type</label>
+              <select class="form-select" id="qResearchType">
+                <option value="Mixed methods">Mixed Methods</option>
+                <option value="Quantitative">Quantitative</option>
+                <option value="Qualitative">Qualitative</option>
+                <option value="Survey research">Survey Research</option>
+                <option value="Quasi-experimental">Quasi-Experimental</option>
+                <option value="Correlational">Correlational</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Variables / constructs</label>
+              <textarea class="form-textarea" id="qVariables" placeholder="e.g. learner autonomy, AI integration, academic achievement&#10;(one per line)"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Measurement scale</label>
+              <div class="scale-options">
+                <div class="scale-opt selected" onclick="selectScale(this,'Likert-5')" data-scale="Likert-5">
+                  <div class="scale-opt-label">Likert 5</div>
+                  <div class="scale-opt-sub">Strongly disagree → agree</div>
+                </div>
+                <div class="scale-opt" onclick="selectScale(this,'Likert-7')" data-scale="Likert-7">
+                  <div class="scale-opt-label">Likert 7</div>
+                  <div class="scale-opt-sub">Extended scale</div>
+                </div>
+                <div class="scale-opt" onclick="selectScale(this,'Frequency-5')" data-scale="Frequency-5">
+                  <div class="scale-opt-label">Frequency</div>
+                  <div class="scale-opt-sub">Never → Always</div>
+                </div>
+                <div class="scale-opt" onclick="selectScale(this,'Agreement-4')" data-scale="Agreement-4">
+                  <div class="scale-opt-label">Agreement 4</div>
+                  <div class="scale-opt-sub">No neutral option</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Include sections</label>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" id="inclDemographics" checked> Demographics
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" id="inclLikert" checked> Likert-scale items
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" id="inclOpen"> Open-ended questions
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Items per variable</label>
+              <select class="form-select" id="qItemsPerVar">
+                <option value="3">3 items</option>
+                <option value="5" selected>5 items</option>
+                <option value="7">7 items</option>
+              </select>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" onclick="generateQuestionnaire()">
+              <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate questionnaire
+            </button>
+
+          </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <div>
+          <div class="q-preview" id="qPreview">
+            <div class="q-empty">
+              <div class="q-empty-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              </div>
+              <h4>No questionnaire yet</h4>
+              <p>Configure the settings on the left, then click Generate questionnaire to create your academic survey instrument.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-items">
+    <a class="mobile-nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Home</span></a>
+    <a class="mobile-nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal</span></a>
+    <a class="mobile-nav-item active" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Survey</span></a>
+    <a class="mobile-nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Enhance</span></a>
+    <button class="mobile-nav-item" onclick="toggleMoreDrawer()"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>More</span></button>
+  </div>
+</nav>
+<div class="more-overlay" id="moreOverlay" onclick="closeMoreDrawer()"></div>
+<div class="more-drawer" id="moreDrawer">
+  <div class="more-drawer-handle"></div>
+  <div class="more-drawer-title">More</div>
+  <a class="more-item" href="thesis.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div><div class="more-item-label">Thesis builder</div><div class="more-item-sub">5-chapter generation</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="more-item-label">Academic Writer</div><div class="more-item-sub">Write essays & papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE & more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div><div class="more-item-label">Export</div><div class="more-item-sub">Download your work</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// QUESTIONNAIRE DATA OBJECT
+// Designed for future: reliability analysis, SPSS, thesis integration
+// ════════════════════════════════════════
+var questionnaireData = {
+  title: '',
+  field: '',
+  researchType: '',
+  scale: 'Likert-5',
+  variables: [],
+  demographics: [],
+  sections: [],
+  metadata: {
+    generatedAt: null,
+    itemsPerVariable: 5,
+    totalItems: 0
+  }
+};
+
+var selectedScale = 'Likert-5';
+var SCALE_LABELS = {
+  'Likert-5':     ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
+  'Likert-7':     ['Strongly Disagree', 'Disagree', 'Somewhat Disagree', 'Neutral', 'Somewhat Agree', 'Agree', 'Strongly Agree'],
+  'Frequency-5':  ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+  'Agreement-4':  ['Strongly Disagree', 'Disagree', 'Agree', 'Strongly Agree']
+};
+
+// ── INIT: auto-load from proposal/thesis/profile ──
+window.addEventListener('load', function() {
+  var sp = localStorage.getItem('nira_profile');
+  if (sp) {
+    var p = JSON.parse(sp);
+    document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
+    document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
+    if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    if (p.field) document.getElementById('qField').value = p.field;
+    if (p.researchType) document.getElementById('qResearchType').value = p.researchType;
+  }
+
+  // Auto-load from proposal
+  var proposal = JSON.parse(localStorage.getItem('nira_proposal') || '{}');
+  var topic = JSON.parse(localStorage.getItem('nira_selected_topic') || '{}');
+
+  if (topic.title_en) {
+    document.getElementById('qTitle').value = 'Research Survey: ' + topic.title_en.slice(0, 60);
+    document.getElementById('chipTitle').textContent = topic.title_en;
+    document.getElementById('chipMeta').textContent = (topic.research_type || '') + (topic.keywords ? ' · ' + topic.keywords.slice(0,3).join(', ') : '');
+    if (topic.keywords && topic.keywords.length > 0) {
+      document.getElementById('qVariables').value = topic.keywords.join('\n');
+    }
+    if (topic.research_type) {
+      var sel = document.getElementById('qResearchType');
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value.toLowerCase().includes(topic.research_type.toLowerCase().split(' ')[0])) {
+          sel.selectedIndex = i; break;
+        }
+      }
+    }
+  } else {
+    document.getElementById('chipTitle').textContent = 'No topic selected';
+    document.getElementById('chipMeta').textContent = 'Complete Topic generator first for better results';
+  }
+
+  // Load saved questionnaire
+  var saved = localStorage.getItem('nira_questionnaire');
+  if (saved) {
+    try {
+      questionnaireData = JSON.parse(saved);
+      if (questionnaireData.sections && questionnaireData.sections.length > 0) renderQuestionnaire();
+    } catch(e) {}
+  }
+});
+
+function selectScale(el, scale) {
+  document.querySelectorAll('.scale-opt').forEach(function(o){ o.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedScale = scale;
+}
+
+// ── GENERATE ──
+async function generateQuestionnaire() {
+  var title    = document.getElementById('qTitle').value.trim();
+  var field    = document.getElementById('qField').value.trim();
+  var resType  = document.getElementById('qResearchType').value;
+  var varsRaw  = document.getElementById('qVariables').value.trim();
+  var itemsN   = parseInt(document.getElementById('qItemsPerVar').value);
+  var inclDemo = document.getElementById('inclDemographics').checked;
+  var inclLikert = document.getElementById('inclLikert').checked;
+  var inclOpen = document.getElementById('inclOpen').checked;
+
+  if (!field) { alert('Please enter a research field.'); return; }
+  if (!varsRaw) { alert('Please enter at least one variable or construct.'); return; }
+
+  var variables = varsRaw.split('\n').map(function(v){ return v.trim(); }).filter(function(v){ return v.length > 0; });
+  var btn = document.getElementById('generateBtn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+
+  showGeneratingState();
+
+  var scaleLabels = SCALE_LABELS[selectedScale];
+  var prompt = buildPrompt(title, field, resType, variables, itemsN, selectedScale, scaleLabels, inclDemo, inclLikert, inclOpen);
+
+  try {
+    var res = await fetch('/api/proposal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'API error');
+
+    var parsed = parseAIResponse(data.result, variables, inclDemo, inclLikert, inclOpen);
+
+    // Build questionnaireData object
+    questionnaireData = {
+      title: title || ('Research Survey: ' + field),
+      field: field,
+      researchType: resType,
+      scale: selectedScale,
+      variables: variables,
+      demographics: parsed.demographics,
+      sections: parsed.sections,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        itemsPerVariable: itemsN,
+        totalItems: parsed.totalItems,
+        scaleLabels: scaleLabels
+      }
+    };
+
+    localStorage.setItem('nira_questionnaire', JSON.stringify(questionnaireData));
+    renderQuestionnaire();
+
+  } catch(err) {
+    document.getElementById('qPreview').innerHTML = '<div class="q-empty"><div class="q-empty-icon"><svg viewBox="0 0 24 24" style="stroke:#dc2626"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div><h4>Generation failed</h4><p>' + err.message + '</p></div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Regenerate';
+  }
+}
+
+function buildPrompt(title, field, resType, variables, itemsN, scale, scaleLabels, inclDemo, inclLikert, inclOpen) {
+  var parts = [];
+  parts.push('You are Dr. NIRA, an expert academic research instrument designer.');
+  parts.push('Design a structured research questionnaire for the following study:');
+  parts.push('');
+  parts.push('Title: ' + (title || 'Research Survey'));
+  parts.push('Field: ' + field);
+  parts.push('Research type: ' + resType);
+  parts.push('Measurement scale: ' + scale + ' (' + scaleLabels.join(' / ') + ')');
+  parts.push('Variables / constructs: ' + variables.join(', '));
+  parts.push('Items per variable: ' + itemsN);
+  parts.push('');
+  parts.push('Generate the questionnaire in this EXACT JSON format (no markdown, no extra text):');
+  parts.push('{');
+  parts.push('  "demographics": [');
+  parts.push('    {"id": "d1", "text": "What is your age?", "type": "demographic", "options": ["18-24","25-34","35-44","45-54","55+"]}');
+  parts.push('  ],');
+  parts.push('  "sections": [');
+  parts.push('    {');
+  parts.push('      "id": "s1",');
+  parts.push('      "title": "Variable Name",');
+  parts.push('      "type": "likert",');
+  parts.push('      "variable": "variable_name",');
+  parts.push('      "items": [');
+  parts.push('        {"id": "s1q1", "text": "Statement here", "reverse": false}');
+  parts.push('      ]');
+  parts.push('    }');
+  parts.push('  ]');
+  parts.push('}');
+  parts.push('');
+  parts.push('Rules:');
+  parts.push('- Demographics section: ' + (inclDemo ? 'INCLUDE 5-6 demographic items (age, gender, education, experience, etc.) relevant to ' + field : 'OMIT'));
+  parts.push('- Likert sections: ' + (inclLikert ? 'INCLUDE ' + itemsN + ' items per variable. Each item must be domain-specific to ' + field + '. Use clear, unambiguous academic statements. Include 1-2 reverse-coded items per section (mark reverse:true).' : 'OMIT'));
+  parts.push('- Open-ended: ' + (inclOpen ? 'ADD one section with type "open" containing 2-3 open-ended questions' : 'OMIT'));
+  parts.push('- All items must be specific to the research domain: ' + field);
+  parts.push('- Do NOT use generic or template-based statements');
+  parts.push('- Variable names in section titles must match: ' + variables.join(', '));
+  parts.push('- Output ONLY valid JSON. No explanation, no markdown code blocks.');
+  return parts.join('\n');
+}
+
+function parseAIResponse(raw, variables, inclDemo, inclLikert, inclOpen) {
+  var text = raw.trim().replace(/```json|```/g, '').trim();
+  var parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch(e) {
+    // Fallback: extract JSON from response
+    var match = text.match(/\{[\s\S]*\}/);
+    if (match) { try { parsed = JSON.parse(match[0]); } catch(e2) { throw new Error('Could not parse AI response as JSON. Please try again.'); } }
+    else throw new Error('AI response was not in expected format. Please try again.');
+  }
+  var demographics = parsed.demographics || [];
+  var sections = parsed.sections || [];
+  var total = demographics.length + sections.reduce(function(acc, s){ return acc + (s.items ? s.items.length : 0); }, 0);
+  return { demographics: demographics, sections: sections, totalItems: total };
+}
+
+function showGeneratingState() {
+  document.getElementById('qPreview').innerHTML =
+    '<div class="generating-state">' +
+    '<div class="gen-spinner"></div>' +
+    '<p style="font-size:13px;color:var(--text-mid);margin-bottom:4px">Dr. NIRA is designing your questionnaire...</p>' +
+    '<p style="font-size:12px;color:var(--text-mid)">Generating domain-specific items</p>' +
+    '<div class="gen-steps">' +
+    '<div class="gen-step active" id="gs1"><div class="gen-step-dot"></div>Analysing variables & constructs</div>' +
+    '<div class="gen-step" id="gs2"><div class="gen-step-dot"></div>Generating demographic items</div>' +
+    '<div class="gen-step" id="gs3"><div class="gen-step-dot"></div>Writing Likert-scale statements</div>' +
+    '<div class="gen-step" id="gs4"><div class="gen-step-dot"></div>Adding reverse-coded items</div>' +
+    '</div></div>';
+  var idx = 0;
+  var steps = ['gs1','gs2','gs3','gs4'];
+  var iv = setInterval(function() {
+    if (idx > 0 && document.getElementById(steps[idx-1])) document.getElementById(steps[idx-1]).className = 'gen-step done';
+    if (idx < steps.length && document.getElementById(steps[idx])) document.getElementById(steps[idx]).className = 'gen-step active';
+    idx++;
+    if (idx >= steps.length) clearInterval(iv);
+  }, 900);
+}
+
+// ── RENDER ──
+function renderQuestionnaire() {
+  var qd = questionnaireData;
+  var scaleLabels = SCALE_LABELS[qd.scale] || SCALE_LABELS['Likert-5'];
+  var totalQ = qd.demographics.length + qd.sections.reduce(function(a,s){ return a+(s.items?s.items.length:0); },0);
+
+  var html = '<div class="q-preview-header">' +
+    '<h3>' + (qd.title || 'Research Questionnaire') + '</h3>' +
+    '<div class="q-stats">' +
+    '<div class="q-stat">Items: <strong>' + totalQ + '</strong></div>' +
+    '<div class="q-stat">Sections: <strong>' + (qd.sections.length + (qd.demographics.length?1:0)) + '</strong></div>' +
+    '<div class="q-stat">Scale: <strong>' + qd.scale + '</strong></div>' +
+    '</div></div>';
+
+  // Demographics
+  if (qd.demographics && qd.demographics.length > 0) {
+    html += '<div class="q-section">' +
+      '<div class="q-section-header" onclick="toggleSection(this)">' +
+        '<div class="q-section-title"><span class="q-section-badge badge-demo">Demographics</span>Section I: Demographic Information</div>' +
+        '<div class="q-section-meta">' + qd.demographics.length + ' items ▾</div>' +
+      '</div><div class="q-section-body">';
+    qd.demographics.forEach(function(item, i) {
+      html += renderItem(item, i+1, 'demographic', scaleLabels);
+    });
+    html += '</div></div>';
+  }
+
+  // Likert sections
+  qd.sections.forEach(function(section, si) {
+    var badge = section.type === 'open' ? 'badge-open' : 'badge-likert';
+    var badgeLabel = section.type === 'open' ? 'Open-ended' : 'Likert';
+    var itemCount = section.items ? section.items.length : 0;
+    var sectionNum = qd.demographics.length > 0 ? si+2 : si+1;
+    var roman = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
+    html += '<div class="q-section">' +
+      '<div class="q-section-header" onclick="toggleSection(this)">' +
+        '<div class="q-section-title"><span class="q-section-badge ' + badge + '">' + badgeLabel + '</span>Section ' + roman[sectionNum-1] + ': ' + section.title + '</div>' +
+        '<div class="q-section-meta">' + itemCount + ' items ▾</div>' +
+      '</div><div class="q-section-body">';
+
+    if (section.variable) {
+      html += '<div style="margin:8px 0 12px"><span class="var-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10M7 12h10M7 17h4"/></svg>' + section.variable + '</span></div>';
+    }
+
+    if (section.items) {
+      var qNum = 1;
+      if (qd.demographics.length > 0) qNum = qd.demographics.length + si * (section.items.length) + 1;
+      section.items.forEach(function(item, ii) {
+        html += renderItem(item, qNum + ii, section.type, scaleLabels, section.id);
+      });
+    }
+    html += '</div></div>';
+  });
+
+  document.getElementById('qPreview').innerHTML = html;
+
+  // Open first section
+  var firstBody = document.querySelector('.q-section-body');
+  if (firstBody) firstBody.style.display = 'block';
+}
+
+function renderItem(item, num, type, scaleLabels, sectionId) {
+  var isReverse = item.reverse ? ' <span style="font-size:10px;color:#d97706;font-weight:600;">(R)</span>' : '';
+  var html = '<div class="q-item" id="item-' + item.id + '">' +
+    '<div class="q-item-num">Q' + num + (item.reverse ? ' · Reverse-coded' : '') + '</div>' +
+    '<div contenteditable="true" class="q-item-text" onblur="saveItemEdit(\'' + item.id + '\', this.innerText)">' + item.text + isReverse + '</div>';
+
+  if (type === 'likert' || type === 'open' === false) {
+    if (scaleLabels && type !== 'demographic' && type !== 'open') {
+      html += '<div class="q-item-scale">';
+      scaleLabels.forEach(function(l, i) {
+        html += '<span class="scale-label">' + (i+1) + '. ' + l + '</span>';
+      });
+      html += '</div>';
+    }
+  }
+
+  if (type === 'demographic' && item.options) {
+    html += '<div class="q-item-scale">';
+    item.options.forEach(function(o) { html += '<span class="scale-label">○ ' + o + '</span>'; });
+    html += '</div>';
+  }
+
+  html += '<div class="q-item-actions">' +
+    '<button class="q-action-btn danger" onclick="deleteItem(\'' + item.id + '\')">Remove</button>' +
+    '</div></div>';
+  return html;
+}
+
+function toggleSection(header) {
+  var body = header.nextElementSibling;
+  body.style.display = body.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveItemEdit(itemId, newText) {
+  // Update questionnaireData
+  questionnaireData.demographics.forEach(function(item) {
+    if (item.id === itemId) item.text = newText.replace(/\s*\(R\)$/, '').trim();
+  });
+  questionnaireData.sections.forEach(function(section) {
+    if (section.items) section.items.forEach(function(item) {
+      if (item.id === itemId) item.text = newText.replace(/\s*\(R\)$/, '').trim();
+    });
+  });
+  localStorage.setItem('nira_questionnaire', JSON.stringify(questionnaireData));
+}
+
+function deleteItem(itemId) {
+  questionnaireData.demographics = questionnaireData.demographics.filter(function(i){ return i.id !== itemId; });
+  questionnaireData.sections.forEach(function(s) {
+    if (s.items) s.items = s.items.filter(function(i){ return i.id !== itemId; });
+  });
+  localStorage.setItem('nira_questionnaire', JSON.stringify(questionnaireData));
+  var el = document.getElementById('item-' + itemId);
+  if (el) el.remove();
+}
+
+// ── EXPORT ──
+function getQuestionnaireText() {
+  var qd = questionnaireData;
+  if (!qd.sections || qd.sections.length === 0) return null;
+  var scaleLabels = SCALE_LABELS[qd.scale] || SCALE_LABELS['Likert-5'];
+  var lines = [];
+  lines.push(qd.title || 'Research Questionnaire');
+  lines.push('='.repeat(60));
+  lines.push('Field: ' + qd.field);
+  lines.push('Research type: ' + qd.researchType);
+  lines.push('Scale: ' + qd.scale + ' (' + scaleLabels.join(' / ') + ')');
+  lines.push('Generated: ' + new Date(qd.metadata.generatedAt).toLocaleDateString());
+  lines.push('');
+  lines.push('INSTRUCTIONS');
+  lines.push('─'.repeat(40));
+  lines.push('Please respond to each statement based on your experience.');
+  lines.push('');
+
+  var qNum = 1;
+  if (qd.demographics && qd.demographics.length > 0) {
+    lines.push('SECTION I: DEMOGRAPHIC INFORMATION');
+    lines.push('─'.repeat(40));
+    qd.demographics.forEach(function(item) {
+      lines.push('Q' + qNum + '. ' + item.text);
+      if (item.options) lines.push('   (' + item.options.join(' / ') + ')');
+      qNum++;
+    });
+    lines.push('');
+  }
+
+  var roman = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
+  qd.sections.forEach(function(section, si) {
+    var sn = qd.demographics.length > 0 ? si+2 : si+1;
+    lines.push('SECTION ' + roman[sn-1] + ': ' + section.title.toUpperCase());
+    lines.push('─'.repeat(40));
+    if (section.type !== 'open') {
+      lines.push('Scale: ' + scaleLabels.map(function(l,i){ return (i+1)+'='+l; }).join(', '));
+    }
+    lines.push('');
+    if (section.items) {
+      section.items.forEach(function(item) {
+        var rev = item.reverse ? ' [R]' : '';
+        lines.push('Q' + qNum + '.' + rev + ' ' + item.text);
+        if (section.type !== 'open') {
+          lines.push('   1  2  3  4' + (scaleLabels.length > 4 ? '  5' : '') + (scaleLabels.length > 5 ? '  6  7' : ''));
+        } else {
+          lines.push('   _______________________________________________');
+        }
+        qNum++;
+      });
+    }
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+function exportTXT() {
+  var text = getQuestionnaireText();
+  if (!text) { alert('Please generate a questionnaire first.'); return; }
+  var blob = new Blob([text], {type:'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (questionnaireData.title || 'questionnaire').replace(/[^a-z0-9]/gi,'-').toLowerCase() + '.txt';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function exportCSV() {
+  var qd = questionnaireData;
+  if (!qd.sections || qd.sections.length === 0) { alert('Please generate a questionnaire first.'); return; }
+  var rows = [['Question_ID','Section','Variable','Question_Text','Type','Reverse_Coded','Scale']];
+  var qNum = 1;
+  qd.demographics.forEach(function(item) {
+    rows.push(['Q'+qNum, 'Demographics', '', item.text.replace(/,/g,';'), 'demographic', 'FALSE', '']);
+    qNum++;
+  });
+  qd.sections.forEach(function(section) {
+    if (section.items) section.items.forEach(function(item) {
+      rows.push(['Q'+qNum, section.title.replace(/,/g,';'), section.variable||'', item.text.replace(/,/g,';'), section.type||'likert', item.reverse?'TRUE':'FALSE', qd.scale]);
+      qNum++;
+    });
+  });
+  var csv = rows.map(function(r){ return r.join(','); }).join('\n');
+  var blob = new Blob([csv], {type:'text/csv'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (questionnaireData.title||'questionnaire').replace(/[^a-z0-9]/gi,'-').toLowerCase() + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function exportPDF() {
+  var text = getQuestionnaireText();
+  if (!text) { alert('Please generate a questionnaire first.'); return; }
+  var win = window.open('', '_blank');
+  var qd = questionnaireData;
+  var scaleLabels = SCALE_LABELS[qd.scale] || SCALE_LABELS['Likert-5'];
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + (qd.title||'Questionnaire') + '</title>' +
+    '<style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.7;color:#111;max-width:700px;margin:2cm auto;padding:0 1cm}' +
+    'h1{font-size:18pt;margin-bottom:6px}' +
+    'h2{font-size:13pt;font-weight:bold;margin:20px 0 8px;border-bottom:1px solid #ccc;padding-bottom:4px}' +
+    '.meta{font-size:10pt;color:#555;margin-bottom:20px}' +
+    '.q-item{margin:12px 0}' +
+    '.q-num{font-weight:bold;font-size:11pt}' +
+    '.scale-row{display:flex;gap:12px;margin-top:4px;font-size:10pt;color:#555}' +
+    '.options{font-size:10pt;color:#555;margin-top:3px}' +
+    '.answer-line{border-bottom:1px solid #999;margin-top:8px;height:20px}' +
+    '@media print{body{margin:1cm}}' +
+    '</style></head><body>' +
+    '<h1>' + (qd.title || 'Research Questionnaire') + '</h1>' +
+    '<div class="meta">Field: ' + qd.field + ' | Type: ' + qd.researchType + ' | Scale: ' + qd.scale + '</div>');
+
+  var qNum = 1;
+  if (qd.demographics && qd.demographics.length > 0) {
+    win.document.write('<h2>Section I: Demographic Information</h2>');
+    qd.demographics.forEach(function(item) {
+      win.document.write('<div class="q-item"><div class="q-num">Q' + qNum + '. ' + item.text + '</div>');
+      if (item.options) win.document.write('<div class="options">○ ' + item.options.join(' &nbsp; ○ ') + '</div>');
+      win.document.write('</div>');
+      qNum++;
+    });
+  }
+
+  var roman = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
+  qd.sections.forEach(function(section, si) {
+    var sn = qd.demographics.length > 0 ? si+2 : si+1;
+    win.document.write('<h2>Section ' + roman[sn-1] + ': ' + section.title + '</h2>');
+    if (section.type !== 'open') {
+      win.document.write('<p style="font-size:10pt;color:#555;margin-bottom:8px">Scale: ' + scaleLabels.map(function(l,i){ return (i+1)+'='+l; }).join(' &nbsp; ') + '</p>');
+    }
+    if (section.items) {
+      section.items.forEach(function(item) {
+        win.document.write('<div class="q-item"><div class="q-num">Q' + qNum + (item.reverse?' [R]':'') + '. ' + item.text + '</div>');
+        if (section.type === 'open') {
+          win.document.write('<div class="answer-line"></div><div class="answer-line"></div>');
+        } else {
+          win.document.write('<div class="scale-row">');
+          scaleLabels.forEach(function(l,i){ win.document.write('<span>☐ ' + (i+1) + ' ' + l + '</span>'); });
+          win.document.write('</div>');
+        }
+        win.document.write('</div>');
+        qNum++;
+      });
+    }
+  });
+
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 500);
+}
+
+function toggleMoreDrawer() {
+  document.getElementById('moreDrawer').classList.toggle('open');
+  document.getElementById('moreOverlay').classList.toggle('open');
+}
+function closeMoreDrawer() {
+  document.getElementById('moreDrawer').classList.remove('open');
+  document.getElementById('moreOverlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
