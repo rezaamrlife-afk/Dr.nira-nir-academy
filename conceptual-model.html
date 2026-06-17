@@ -336,6 +336,28 @@ function parseLines(id) {
   return document.getElementById(id).value.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
 }
 
+function showToast(message, type) {
+  if (!document.getElementById('nira-toast-container')) {
+    var c = document.createElement('div');
+    c.id = 'nira-toast-container';
+    c.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(c);
+  }
+  if (!document.getElementById('nira-toast-style')) {
+    var s = document.createElement('style');
+    s.id = 'nira-toast-style';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(s);
+  }
+  var colors = { success:'#16a34a', error:'#dc2626', info:'#2563EB', warning:'#d97706' };
+  var icons  = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+  var toast = document.createElement('div');
+  toast.style.cssText = 'background:' + (colors[type]||colors.info) + ';color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;white-space:nowrap;animation:toastIn 0.25s ease;';
+  toast.innerHTML = '<span>' + (icons[type]||'ℹ') + '</span>' + message;
+  document.getElementById('nira-toast-container').appendChild(toast);
+  setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(function(){ toast.remove(); }, 300); }, 3000);
+}
+
 function generateModel() {
   var title = document.getElementById('cmTitle').value.trim() || 'Conceptual Model';
   var ivs = parseLines('cmIV');
@@ -344,7 +366,7 @@ function generateModel() {
   var mods = parseLines('cmMOD');
 
   if (ivs.length === 0 || dvs.length === 0) {
-    alert('Please enter at least one independent and one dependent variable.');
+    showToast('Please enter at least one independent and one dependent variable.', 'warning');
     return;
   }
 
@@ -547,7 +569,7 @@ function buildSVG(model) {
 
 function exportSVG() {
   var svgEl = document.getElementById('mainSVG');
-  if (!svgEl) { alert('Please generate a model first.'); return; }
+  if (!svgEl) { showToast('Please generate a model first.', 'warning'); return; }
   var blob = new Blob([svgEl.outerHTML], { type: 'image/svg+xml' });
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
@@ -558,7 +580,7 @@ function exportSVG() {
 
 function exportPNG() {
   var svgEl = document.getElementById('mainSVG');
-  if (!svgEl) { alert('Please generate a model first.'); return; }
+  if (!svgEl) { showToast('Please generate a model first.', 'warning'); return; }
   var canvas = document.createElement('canvas');
   canvas.width = 820; canvas.height = 500;
   var ctx = canvas.getContext('2d');
