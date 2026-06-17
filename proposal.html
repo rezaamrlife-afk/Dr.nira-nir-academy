@@ -174,9 +174,18 @@
   .section-empty p { font-size: 13px; color: var(--text-mid); }
 
   /* CONTENT AREA */
-  .section-content { font-size: 14px; color: var(--text-dark); line-height: 1.8; white-space: pre-wrap; }
-  .section-content[contenteditable="true"] { outline: none; border: 1px dashed var(--border); border-radius: 8px; padding: 14px; min-height: 80px; }
-  .section-content[contenteditable="true"]:focus { border-color: var(--blue); }
+  .section-content { font-size: 14px; color: var(--text-dark); line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+  .section-content[contenteditable="true"] {
+    outline: none; border: 1px dashed var(--border); border-radius: 8px;
+    padding: 14px; min-height: 80px; cursor: text;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .section-content[contenteditable="true"]:hover { border-color: var(--blue-light); }
+  .section-content[contenteditable="true"]:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); border-style: solid; }
+  .section-content.unsaved { border-color: #d97706 !important; border-style: solid !important; }
+  .edit-hint { font-size: 11px; color: var(--text-mid); cursor: pointer; }
+  .edit-hint.unsaved-hint { color: #d97706; font-weight: 500; }
 
   /* GENERATING */
   .generating-placeholder { display: flex; align-items: center; gap: 10px; padding: 20px; color: var(--text-mid); font-size: 13px; }
@@ -878,7 +887,8 @@ function showToast(message, type = 'success', duration = 3000) {
 
     container.innerHTML = SECTIONS.map((s, i) => {
       const isDone = !!generated[s.id];
-      const content = generated[s.id] || '';
+      const rawContent = generated[s.id] || '';
+      const content = rawContent.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^#{1,3}\s+/gm,'').replace(/^[-*]\s+/gm,'• ').trim();
       const wordCount = content ? content.trim().split(/\s+/).length : 0;
 
       // ── ACTIONS ──
@@ -906,7 +916,11 @@ function showToast(message, type = 'success', duration = 3000) {
       let bodyHtml;
       if (isAI) {
         bodyHtml = isDone
-          ? `<div class="section-content" contenteditable="true" id="content-${s.id}" oninput="saveEdits('${s.id}')">${content}</div>`
+          ? `<div class="section-content" contenteditable="true" id="content-${s.id}"
+               oninput="onContentInput('${s.id}')"
+               onblur="onContentBlur('${s.id}')"
+               onpaste="onContentPaste(event)"
+               title="Click to edit">${content}</div>`
           : `<div class="section-empty"><p>Click "Generate draft" to create this section with AI assistance.</p></div>`;
       } else if (isManual) {
         bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
@@ -1063,12 +1077,59 @@ ${text}`;
     if (done === total) document.getElementById('exportBar').style.display = 'flex';
   }
 
+  // ── EDITOR: auto-save timers per section ──
+  var autoSaveTimers = {};
+
   function saveEdits(sectionId) {
-    const el = document.getElementById('content-' + sectionId);
+    var el = document.getElementById('content-' + sectionId);
     if (!el) return;
-    const text = el.tagName === 'TEXTAREA' ? el.value : el.innerText;
+    var text = el.tagName === 'TEXTAREA' ? el.value : el.innerText;
     generated[sectionId] = text;
     localStorage.setItem('nira_proposal', JSON.stringify(generated));
+    // Clear unsaved state
+    el.classList.remove('unsaved');
+    var footer = el.closest('.section-card') && el.closest('.section-card').querySelector('.edit-hint');
+    if (footer) { footer.textContent = 'Saved ✓'; footer.className = 'edit-hint'; setTimeout(function(){ footer.textContent = 'Click text to edit directly'; }, 1500); }
+  }
+
+  function onContentInput(sectionId) {
+    var el = document.getElementById('content-' + sectionId);
+    if (!el) return;
+
+    // Mark unsaved
+    el.classList.add('unsaved');
+    var footer = el.closest('.section-card') && el.closest('.section-card').querySelector('.edit-hint');
+    if (footer) { footer.textContent = 'Unsaved changes...'; footer.className = 'edit-hint unsaved-hint'; }
+
+    // Auto-save after 1.5s inactivity
+    clearTimeout(autoSaveTimers[sectionId]);
+    autoSaveTimers[sectionId] = setTimeout(function(){ saveEdits(sectionId); }, 1500);
+  }
+
+  function onContentBlur(sectionId) {
+    // Save immediately on blur
+    clearTimeout(autoSaveTimers[sectionId]);
+    saveEdits(sectionId);
+  }
+
+  function onContentPaste(e) {
+    // Sanitize paste — plain text only, no HTML injection
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    sel.deleteFromDocument();
+    var range = sel.getRangeAt(0);
+    var textNode = document.createTextNode(text);
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    // Trigger input event
+    var el = e.target;
+    var sectionId = el.id.replace('content-', '');
+    onContentInput(sectionId);
   }
 
   function buildPrompt(sectionId) {
@@ -1154,20 +1215,35 @@ Keywords: ${keywords}
       localStorage.setItem('nira_proposal', JSON.stringify(generated));
       showToast('Section generated!', 'success');
 
-      const wordCount = content.trim().split(/\s+/).length;
+      // Clean markdown from AI response
+      var cleaned = content
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/^#{1,3}\s+/gm, '')
+        .replace(/^[-*]\s+/gm, '• ')
+        .trim();
 
-      // Update card
+      const wordCount = cleaned.trim().split(/\s+/).length;
+
+      // Update card — use separate elements to avoid innerHTML+= breaking contenteditable
       const sectionMeta = SECTIONS.find(s => s.id === sectionId);
       const idx = SECTIONS.findIndex(s => s.id === sectionId);
       card.querySelector('.section-card-num').textContent = '✓';
       card.querySelector('.section-card-num').classList.add('done');
       card.querySelector('.section-card-actions').innerHTML = `<button class="btn-regen" onclick="generateSection('${sectionId}')">Regenerate</button>`;
-      body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}" oninput="saveEdits('${sectionId}')">${content}</div>`;
-      card.innerHTML += `
-        <div class="section-footer">
-          <span class="word-count">${wordCount} words</span>
-          <span class="edit-hint">Click text to edit directly</span>
-        </div>`;
+      body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}"
+        oninput="onContentInput('${sectionId}')"
+        onblur="onContentBlur('${sectionId}')"
+        onpaste="onContentPaste(event)"
+        title="Click to edit">${cleaned}</div>`;
+
+      // Remove old footer if exists, then add new one
+      var oldFooter = card.querySelector('.section-footer');
+      if (oldFooter) oldFooter.remove();
+      var footer = document.createElement('div');
+      footer.className = 'section-footer';
+      footer.innerHTML = '<span class="word-count">' + wordCount + ' words · AI-drafted</span><span class="edit-hint">Click text to edit directly</span>';
+      card.appendChild(footer);
 
       renderSectionsNav();
       updateProgress();
