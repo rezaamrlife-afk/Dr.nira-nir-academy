@@ -444,8 +444,8 @@ async function generateQuestionnaire() {
   var inclLikert = document.getElementById('inclLikert').checked;
   var inclOpen = document.getElementById('inclOpen').checked;
 
-  if (!field) { alert('Please enter a research field.'); return; }
-  if (!varsRaw) { alert('Please enter at least one variable or construct.'); return; }
+  if (!field) { showToast('Please enter a research field.', 'warning'); return; }
+  if (!varsRaw) { showToast('Please enter at least one variable or construct.', 'warning'); return; }
 
   var variables = varsRaw.split('\n').map(function(v){ return v.trim(); }).filter(function(v){ return v.length > 0; });
   var btn = document.getElementById('generateBtn');
@@ -750,7 +750,7 @@ function getQuestionnaireText() {
 
 function exportTXT() {
   var text = getQuestionnaireText();
-  if (!text) { alert('Please generate a questionnaire first.'); return; }
+  if (!text) { showToast('Please generate a questionnaire first.', 'warning'); return; }
   var blob = new Blob([text], {type:'text/plain'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
@@ -761,7 +761,7 @@ function exportTXT() {
 
 function exportCSV() {
   var qd = questionnaireData;
-  if (!qd.sections || qd.sections.length === 0) { alert('Please generate a questionnaire first.'); return; }
+  if (!qd.sections || qd.sections.length === 0) { showToast('Please generate a questionnaire first.', 'warning'); return; }
   var rows = [['Question_ID','Section','Variable','Question_Text','Type','Reverse_Coded','Scale']];
   var qNum = 1;
   qd.demographics.forEach(function(item) {
@@ -785,7 +785,7 @@ function exportCSV() {
 
 function exportPDF() {
   var text = getQuestionnaireText();
-  if (!text) { alert('Please generate a questionnaire first.'); return; }
+  if (!text) { showToast('Please generate a questionnaire first.', 'warning'); return; }
   var win = window.open('', '_blank');
   var qd = questionnaireData;
   var scaleLabels = SCALE_LABELS[qd.scale] || SCALE_LABELS['Likert-5'];
