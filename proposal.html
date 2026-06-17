@@ -551,13 +551,8 @@ function showToast(message, type = 'success', duration = 3000) {
     renderSectionCards();
     updateProgress();
 
-    // Apply saved authoring mode or show selection screen
-    const savedMode = localStorage.getItem('nira_authoring_mode');
-    if (savedMode) {
-      selectMode(savedMode);
-    } else {
-      showModeSelection();
-    }
+    // Always show mode selection on page load
+    showModeSelection();
   });
 
   function renderSectionsNav() {
