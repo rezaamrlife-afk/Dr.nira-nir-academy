@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Conceptual Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="js/project-manager.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B2A4A;--navy-dark:#0F1B33;--blue:#2563EB;
+  --blue-light:#60A5FA;--blue-pale:#EEF4FF;
+  --muted:#a0b0cc;--text-dark:#1B2A4A;--text-mid:#6B7FA3;
+  --border:#dde6f5;--sidebar-w:240px;
+  --green:#16a34a;--purple:#7c3aed;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:var(--text-dark);}
+.app-shell{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:var(--sidebar-w);background:var(--navy-dark);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.sidebar-logo-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sidebar-logo-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;}
+.sidebar-section{padding:20px 12px 8px;}
+.sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding:0 8px;margin-bottom:6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.06);}
+.nav-item.active{background:var(--blue);}
+.nav-item svg{width:17px;height:17px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.nav-item.active svg,.nav-item:hover svg{stroke:#fff;}
+.nav-item span{font-size:13px;color:var(--muted);}
+.nav-item.active span,.nav-item:hover span{color:#fff;}
+.nav-item .nav-badge{margin-left:auto;background:var(--blue-light);color:var(--navy-dark);font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06);}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;color:#fff;}
+.user-role{font-size:11px;color:var(--muted);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text-dark);}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.btn-sm{background:var(--blue);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:background 0.2s;}
+.btn-sm:hover{background:#1d4ed8;}
+.btn-sm:disabled{background:#93b4f0;cursor:not-allowed;}
+.btn-sm-outline{background:transparent;color:var(--text-dark);border:1px solid var(--border);padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.2s;}
+.btn-sm-outline:hover{background:var(--blue-pale);}
+.content{flex:1;overflow-y:auto;padding:28px;}
+
+/* LAYOUT */
+.cm-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
+
+/* SETUP PANEL */
+.setup-panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;position:sticky;top:0;}
+.setup-header{padding:16px 18px;border-bottom:1px solid var(--border);}
+.setup-header h3{font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:2px;}
+.setup-header p{font-size:11px;color:var(--text-mid);}
+.setup-body{padding:16px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em;}
+.form-input,.form-select,.form-textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;background:#fff;transition:border-color 0.2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.6;}
+
+/* VARIABLE TAGS */
+.var-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.var-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;}
+.var-tag.independent{background:#dbeafe;color:#1d4ed8;}
+.var-tag.dependent{background:#dcfce7;color:var(--green);}
+.var-tag.mediator{background:#fef3c7;color:#d97706;}
+.var-tag.moderator{background:#fde8ff;color:var(--purple);}
+.var-tag svg{width:10px;height:10px;}
+
+/* MODEL TYPE SELECTOR */
+.model-types{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;}
+.model-type{border:1.5px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;text-align:center;transition:all 0.15s;}
+.model-type:hover{border-color:var(--blue-light);}
+.model-type.selected{border-color:var(--blue);background:var(--blue-pale);}
+.model-type-icon{font-size:18px;margin-bottom:3px;}
+.model-type-name{font-size:11px;font-weight:600;color:var(--text-dark);}
+.model-type.selected .model-type-name{color:var(--blue);}
+
+.generate-btn{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;transition:background 0.2s;margin-top:16px;}
+.generate-btn:hover{background:#1d4ed8;}
+.generate-btn:disabled{background:#93b4f0;cursor:not-allowed;}
+
+/* CANVAS PANEL */
+.canvas-panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.canvas-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.canvas-header h3{font-size:13px;font-weight:600;color:var(--text-dark);}
+.canvas-actions{display:flex;gap:8px;}
+.canvas-area{background:#fafcff;min-height:500px;display:flex;align-items:center;justify-content:center;position:relative;overflow:auto;}
+.canvas-empty{text-align:center;padding:60px 40px;}
+.canvas-empty-icon{width:60px;height:60px;background:var(--blue-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.canvas-empty-icon svg{width:30px;height:30px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.canvas-empty h4{font-size:14px;font-weight:600;color:var(--text-dark);margin-bottom:6px;}
+.canvas-empty p{font-size:13px;color:var(--text-mid);max-width:280px;margin:0 auto;line-height:1.6;}
+
+/* LEGEND */
+.legend{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-mid);}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* MOBILE */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy-dark);border-top:1px solid rgba(255,255,255,0.08);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;}
+.mobile-nav-items{display:flex;justify-content:space-around;align-items:center;}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:4px 8px;min-width:52px;background:none;border:none;cursor:pointer;font-family:inherit;}
+.mobile-nav-item svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.mobile-nav-item span{font-size:9px;color:var(--muted);font-weight:500;}
+.mobile-nav-item.active svg{stroke:var(--blue-light);}
+.mobile-nav-item.active span{color:var(--blue-light);}
+.more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;}
+.more-overlay.open{display:block;}
+.more-drawer{position:fixed;bottom:-100%;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:200;padding:12px 0 max(20px,env(safe-area-inset-bottom));transition:bottom 0.3s cubic-bezier(0.32,0.72,0,1);}
+.more-drawer.open{bottom:0;}
+.more-drawer-handle{width:36px;height:4px;background:#dde6f5;border-radius:2px;margin:0 auto 16px;}
+.more-drawer-title{font-size:11px;font-weight:600;color:var(--text-mid);letter-spacing:0.08em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;}
+.more-item{display:flex;align-items:center;gap:14px;padding:14px 20px;text-decoration:none;}
+.more-item-icon{width:40px;height:40px;background:var(--blue-pale);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.more-item-icon svg{width:20px;height:20px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.more-item-label{font-size:14px;font-weight:500;color:var(--text-dark);}
+.more-item-sub{font-size:12px;color:var(--text-mid);}
+.more-item-arrow{width:16px;height:16px;fill:none;stroke:var(--text-mid);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-left:auto;}
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .mobile-nav{display:block;}
+  .cm-layout{grid-template-columns:1fr;}
+  .setup-panel{position:static;}
+  .content{padding:16px;padding-bottom:80px;}
+  .topbar{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+      <a class="nav-item" href="proposals.html"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg><span>My proposals</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span><span class="nav-badge">New</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis builder</span></a>
+      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item active" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
+      <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
+      <a class="nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
+      <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">DR</div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Conceptual model</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="exportSVG()">Export SVG</button>
+        <button class="btn-sm" onclick="exportPNG()">Export PNG</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="cm-layout">
+
+        <!-- SETUP -->
+        <div class="setup-panel">
+          <div class="setup-header">
+            <h3>Model settings</h3>
+            <p>Define variables and relationships</p>
+          </div>
+          <div class="setup-body">
+
+            <div class="form-group">
+              <label class="form-label">Research title</label>
+              <input type="text" class="form-input" id="cmTitle" placeholder="e.g. Effect of AI on Learning">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Model type</label>
+              <div class="model-types">
+                <div class="model-type selected" onclick="selectModelType(this,'simple')" data-type="simple">
+                  <div class="model-type-icon">→</div>
+                  <div class="model-type-name">Simple</div>
+                </div>
+                <div class="model-type" onclick="selectModelType(this,'mediation')" data-type="mediation">
+                  <div class="model-type-icon">⤳</div>
+                  <div class="model-type-name">Mediation</div>
+                </div>
+                <div class="model-type" onclick="selectModelType(this,'moderation')" data-type="moderation">
+                  <div class="model-type-icon">⊕</div>
+                  <div class="model-type-name">Moderation</div>
+                </div>
+                <div class="model-type" onclick="selectModelType(this,'full')" data-type="full">
+                  <div class="model-type-icon">⬡</div>
+                  <div class="model-type-name">Full model</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Independent variables</label>
+              <textarea class="form-textarea" id="cmIV" placeholder="One per line&#10;e.g. AI Tool Usage&#10;Digital Literacy" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Dependent variables</label>
+              <textarea class="form-textarea" id="cmDV" placeholder="One per line&#10;e.g. Academic Achievement&#10;Learning Motivation" rows="3"></textarea>
+            </div>
+
+            <div class="form-group" id="mediatorGroup">
+              <label class="form-label">Mediator variables <span style="font-weight:400;color:var(--text-mid)">(optional)</span></label>
+              <textarea class="form-textarea" id="cmMED" placeholder="One per line&#10;e.g. Self-Regulation" rows="2"></textarea>
+            </div>
+
+            <div class="form-group" id="moderatorGroup" style="display:none">
+              <label class="form-label">Moderator variables <span style="font-weight:400;color:var(--text-mid)">(optional)</span></label>
+              <textarea class="form-textarea" id="cmMOD" placeholder="One per line&#10;e.g. Gender, Age Group" rows="2"></textarea>
+            </div>
+
+            <button class="generate-btn" onclick="generateModel()">
+              <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate model
+            </button>
+
+          </div>
+        </div>
+
+        <!-- CANVAS -->
+        <div>
+          <div class="canvas-panel">
+            <div class="canvas-header">
+              <h3 id="canvasTitle">Conceptual model</h3>
+              <div class="canvas-actions">
+                <button class="btn-sm-outline" style="font-size:12px" onclick="generateModel()">Regenerate</button>
+              </div>
+            </div>
+            <div class="canvas-area" id="canvasArea">
+              <div class="canvas-empty">
+                <div class="canvas-empty-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                </div>
+                <h4>No model yet</h4>
+                <p>Define your variables on the left and click Generate model to create your conceptual diagram.</p>
+              </div>
+            </div>
+            <div class="legend" id="modelLegend" style="display:none">
+              <div class="legend-item"><div class="legend-dot" style="background:#2563EB"></div>Independent variable</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div>Dependent variable</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div>Mediator</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Moderator</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#6B7FA3;width:20px;height:2px;border-radius:1px"></div>Hypothesized path</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-items">
+    <a class="mobile-nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Home</span></a>
+    <a class="mobile-nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal</span></a>
+    <a class="mobile-nav-item active" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3"/></svg><span>Model</span></a>
+    <a class="mobile-nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Survey</span></a>
+    <button class="mobile-nav-item" onclick="toggleMoreDrawer()"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>More</span></button>
+  </div>
+</nav>
+<div class="more-overlay" id="moreOverlay" onclick="closeMoreDrawer()"></div>
+<div class="more-drawer" id="moreDrawer">
+  <div class="more-drawer-handle"></div>
+  <div class="more-drawer-title">More</div>
+  <a class="more-item" href="enhance.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="more-item-label">Writing enhancer</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div><div class="more-item-label">Citations</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div><div class="more-item-label">Export</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+</div>
+
+<script>
+var modelType = 'simple';
+
+window.addEventListener('load', function() {
+  var sp = localStorage.getItem('nira_profile');
+  if (sp) {
+    var p = JSON.parse(sp);
+    document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
+    document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
+    if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  }
+  // Auto-load from proposal
+  var topic = NiraProject.loadTopic();
+  if (topic && topic.title_en) {
+    document.getElementById('cmTitle').value = topic.title_en;
+    if (topic.keywords && topic.keywords.length > 0) {
+      var half = Math.ceil(topic.keywords.length / 2);
+      document.getElementById('cmIV').value = topic.keywords.slice(0, half).join('\n');
+      document.getElementById('cmDV').value = topic.keywords.slice(half).join('\n');
+    }
+  }
+  // Load saved model
+  var saved = localStorage.getItem('nira_conceptual_model');
+  if (saved) { try { renderSavedModel(JSON.parse(saved)); } catch(e) {} }
+});
+
+function selectModelType(el, type) {
+  document.querySelectorAll('.model-type').forEach(function(m){ m.classList.remove('selected'); });
+  el.classList.add('selected');
+  modelType = type;
+  document.getElementById('mediatorGroup').style.display = (type === 'mediation' || type === 'full') ? 'block' : 'none';
+  document.getElementById('moderatorGroup').style.display = (type === 'moderation' || type === 'full') ? 'block' : 'none';
+}
+
+function parseLines(id) {
+  return document.getElementById(id).value.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
+}
+
+function generateModel() {
+  var title = document.getElementById('cmTitle').value.trim() || 'Conceptual Model';
+  var ivs = parseLines('cmIV');
+  var dvs = parseLines('cmDV');
+  var meds = parseLines('cmMED');
+  var mods = parseLines('cmMOD');
+
+  if (ivs.length === 0 || dvs.length === 0) {
+    alert('Please enter at least one independent and one dependent variable.');
+    return;
+  }
+
+  var model = { title: title, type: modelType, ivs: ivs, dvs: dvs, meds: meds, mods: mods };
+  localStorage.setItem('nira_conceptual_model', JSON.stringify(model));
+  document.getElementById('canvasTitle').textContent = title;
+  renderModel(model);
+  document.getElementById('modelLegend').style.display = 'flex';
+}
+
+function renderSavedModel(model) {
+  document.getElementById('cmTitle').value = model.title || '';
+  document.getElementById('cmIV').value = (model.ivs || []).join('\n');
+  document.getElementById('cmDV').value = (model.dvs || []).join('\n');
+  document.getElementById('cmMED').value = (model.meds || []).join('\n');
+  document.getElementById('cmMOD').value = (model.mods || []).join('\n');
+  modelType = model.type || 'simple';
+  document.querySelectorAll('.model-type').forEach(function(m){
+    m.classList.toggle('selected', m.dataset.type === modelType);
+  });
+  selectModelType(document.querySelector('[data-type="' + modelType + '"]'), modelType);
+  document.getElementById('canvasTitle').textContent = model.title || 'Conceptual Model';
+  renderModel(model);
+  document.getElementById('modelLegend').style.display = 'flex';
+}
+
+// ── SVG RENDERER ──
+function renderModel(model) {
+  var svg = buildSVG(model);
+  document.getElementById('canvasArea').innerHTML = svg;
+}
+
+function wrap(text, maxChars) {
+  if (text.length <= maxChars) return [text];
+  var words = text.split(' ');
+  var lines = [];
+  var line = '';
+  words.forEach(function(word) {
+    if ((line + ' ' + word).trim().length > maxChars) {
+      if (line) lines.push(line.trim());
+      line = word;
+    } else {
+      line = (line + ' ' + word).trim();
+    }
+  });
+  if (line) lines.push(line.trim());
+  return lines;
+}
+
+function buildSVG(model) {
+  var W = 820, H = 500;
+  var BOX_W = 160, BOX_H = 60, R = 10;
+  var COLORS = { iv: '#2563EB', dv: '#16a34a', med: '#d97706', mod: '#7c3aed' };
+  var LIGHT  = { iv: '#EEF4FF', dv: '#f0fdf4', med: '#fffbeb', mod: '#faf5ff' };
+
+  var ivs = model.ivs || [], dvs = model.dvs || [];
+  var meds = model.meds || [], mods = model.mods || [];
+  var hasMed = meds.length > 0 && (model.type === 'mediation' || model.type === 'full');
+  var hasMod = mods.length > 0 && (model.type === 'moderation' || model.type === 'full');
+
+  var nodes = [];
+  var arrows = [];
+
+  // Layout
+  var ivX = 80, dvX = W - BOX_W - 80;
+  var midX = W / 2 - BOX_W / 2;
+  var medY = 80, modY = H - 110;
+
+  // IV positions
+  var ivSpacing = Math.max(80, (H - 100) / Math.max(ivs.length, 1));
+  ivs.forEach(function(iv, i) {
+    var y = 60 + i * ivSpacing;
+    nodes.push({ id: 'iv'+i, x: ivX, y: y, w: BOX_W, h: BOX_H, label: iv, color: COLORS.iv, bg: LIGHT.iv, type: 'iv' });
+  });
+
+  // DV positions
+  var dvSpacing = Math.max(80, (H - 100) / Math.max(dvs.length, 1));
+  dvs.forEach(function(dv, i) {
+    var y = 60 + i * dvSpacing;
+    nodes.push({ id: 'dv'+i, x: dvX, y: y, w: BOX_W, h: BOX_H, label: dv, color: COLORS.dv, bg: LIGHT.dv, type: 'dv' });
+  });
+
+  // Mediator positions
+  if (hasMed) {
+    meds.forEach(function(med, i) {
+      var medX = midX + i * (BOX_W + 20) - ((meds.length - 1) * (BOX_W + 20)) / 2;
+      nodes.push({ id: 'med'+i, x: medX, y: medY, w: BOX_W, h: BOX_H, label: med, color: COLORS.med, bg: LIGHT.med, type: 'med' });
+    });
+  }
+
+  // Moderator positions
+  if (hasMod) {
+    mods.forEach(function(mod, i) {
+      var modX = midX + i * (BOX_W + 20) - ((mods.length - 1) * (BOX_W + 20)) / 2;
+      nodes.push({ id: 'mod'+i, x: modX, y: modY, w: BOX_W, h: BOX_H, label: mod, color: COLORS.mod, bg: LIGHT.mod, type: 'mod' });
+    });
+  }
+
+  // Arrows: IV → DV (direct)
+  ivs.forEach(function(iv, i) {
+    dvs.forEach(function(dv, j) {
+      var fromNode = nodes.find(function(n){ return n.id === 'iv'+i; });
+      var toNode   = nodes.find(function(n){ return n.id === 'dv'+j; });
+      if (fromNode && toNode) {
+        arrows.push({ from: fromNode, to: toNode, label: 'H'+(arrows.length+1), dashed: hasMed });
+      }
+    });
+  });
+
+  // Mediator arrows: IV → MED → DV
+  if (hasMed) {
+    meds.forEach(function(med, mi) {
+      var medNode = nodes.find(function(n){ return n.id === 'med'+mi; });
+      ivs.forEach(function(iv, ii) {
+        var ivNode = nodes.find(function(n){ return n.id === 'iv'+ii; });
+        if (ivNode && medNode) arrows.push({ from: ivNode, to: medNode, label: '', dashed: false });
+      });
+      dvs.forEach(function(dv, di) {
+        var dvNode = nodes.find(function(n){ return n.id === 'dv'+di; });
+        if (medNode && dvNode) arrows.push({ from: medNode, to: dvNode, label: '', dashed: false });
+      });
+    });
+  }
+
+  // Moderator arrows: MOD → path midpoint
+  // Represented as a vertical arrow to the center of IV→DV path
+
+  // Build SVG
+  var svgParts = [];
+  svgParts.push('<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" id="mainSVG" style="font-family:Inter,sans-serif">');
+  svgParts.push('<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#6B7FA3"/></marker><marker id="arrow-dashed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#a0b0cc"/></marker></defs>');
+  svgParts.push('<rect width="' + W + '" height="' + H + '" fill="#fafcff"/>');
+
+  // Draw arrows
+  arrows.forEach(function(arr) {
+    var fx = arr.from.x + arr.from.w;
+    var fy = arr.from.y + arr.from.h / 2;
+    var tx = arr.to.x;
+    var ty = arr.to.y + arr.to.h / 2;
+    // If mediator, arrow goes up/down
+    if (arr.from.type === 'iv' && arr.to.type === 'med') {
+      fx = arr.from.x + arr.from.w / 2;
+      fy = arr.from.y;
+      tx = arr.to.x + arr.to.w / 2;
+      ty = arr.to.y + arr.to.h;
+    } else if (arr.from.type === 'med' && arr.to.type === 'dv') {
+      fx = arr.from.x + arr.from.w / 2;
+      fy = arr.from.y;
+      tx = arr.to.x + arr.to.w / 2;
+      ty = arr.to.y + arr.to.h;
+    }
+    var mx = (fx + tx) / 2;
+    var my = (fy + ty) / 2;
+    var stroke = arr.dashed ? '#a0b0cc' : '#6B7FA3';
+    var dash = arr.dashed ? 'stroke-dasharray="6,4"' : '';
+    var marker = arr.dashed ? 'arrow-dashed' : 'arrow';
+    svgParts.push('<path d="M' + fx + ',' + fy + ' C' + (fx+60) + ',' + fy + ' ' + (tx-60) + ',' + ty + ' ' + tx + ',' + ty + '" fill="none" stroke="' + stroke + '" stroke-width="1.5" ' + dash + ' marker-end="url(#' + marker + ')"/>');
+    if (arr.label) {
+      svgParts.push('<rect x="' + (mx-14) + '" y="' + (my-9) + '" width="28" height="18" rx="9" fill="#fff" stroke="' + stroke + '" stroke-width="1"/>');
+      svgParts.push('<text x="' + mx + '" y="' + (my+4) + '" text-anchor="middle" font-size="10" fill="' + stroke + '" font-weight="600">' + arr.label + '</text>');
+    }
+  });
+
+  // Moderator arrow (vertical to midpoint)
+  if (hasMod) {
+    mods.forEach(function(mod, mi) {
+      var modNode = nodes.find(function(n){ return n.id === 'mod'+mi; });
+      if (!modNode) return;
+      var midPathX = W / 2;
+      var midPathY = (60 + BOX_H / 2);
+      // Find avg Y of IV→DV arrows
+      var avgY = 0;
+      var ivNode = nodes.find(function(n){ return n.type === 'iv'; });
+      var dvNode = nodes.find(function(n){ return n.type === 'dv'; });
+      if (ivNode && dvNode) avgY = (ivNode.y + dvNode.y) / 2 + BOX_H / 2;
+      else avgY = H / 2;
+      svgParts.push('<line x1="' + (modNode.x + modNode.w/2) + '" y1="' + modNode.y + '" x2="' + midPathX + '" y2="' + avgY + '" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow)"/>');
+      svgParts.push('<circle cx="' + midPathX + '" cy="' + avgY + '" r="4" fill="#7c3aed"/>');
+    });
+  }
+
+  // Draw nodes
+  nodes.forEach(function(node) {
+    var lines = wrap(node.label, 18);
+    var lineH = 16;
+    var textH = lines.length * lineH;
+    var textY = node.y + (node.h - textH) / 2 + lineH - 2;
+    svgParts.push('<rect x="' + node.x + '" y="' + node.y + '" width="' + node.w + '" height="' + node.h + '" rx="' + R + '" fill="' + node.bg + '" stroke="' + node.color + '" stroke-width="2"/>');
+    lines.forEach(function(line, li) {
+      svgParts.push('<text x="' + (node.x + node.w/2) + '" y="' + (textY + li * lineH) + '" text-anchor="middle" font-size="12" font-weight="600" fill="' + node.color + '">' + line + '</text>');
+    });
+    // Type label
+    var typeLabel = { iv:'Independent', dv:'Dependent', med:'Mediator', mod:'Moderator' }[node.type] || '';
+    svgParts.push('<text x="' + (node.x + node.w/2) + '" y="' + (node.y + node.h + 13) + '" text-anchor="middle" font-size="9" fill="#9baec8">' + typeLabel + '</text>');
+  });
+
+  svgParts.push('</svg>');
+  return svgParts.join('');
+}
+
+function exportSVG() {
+  var svgEl = document.getElementById('mainSVG');
+  if (!svgEl) { alert('Please generate a model first.'); return; }
+  var blob = new Blob([svgEl.outerHTML], { type: 'image/svg+xml' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'conceptual-model.svg';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function exportPNG() {
+  var svgEl = document.getElementById('mainSVG');
+  if (!svgEl) { alert('Please generate a model first.'); return; }
+  var canvas = document.createElement('canvas');
+  canvas.width = 820; canvas.height = 500;
+  var ctx = canvas.getContext('2d');
+  var img = new Image();
+  var blob = new Blob([svgEl.outerHTML], { type: 'image/svg+xml' });
+  var url = URL.createObjectURL(blob);
+  img.onload = function() {
+    ctx.fillStyle = '#fafcff'; ctx.fillRect(0,0,820,500);
+    ctx.drawImage(img, 0, 0);
+    canvas.toBlob(function(b) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = 'conceptual-model.png';
+      a.click();
+    });
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+function toggleMoreDrawer() {
+  document.getElementById('moreDrawer').classList.toggle('open');
+  document.getElementById('moreOverlay').classList.toggle('open');
+}
+function closeMoreDrawer() {
+  document.getElementById('moreDrawer').classList.remove('open');
+  document.getElementById('moreOverlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
