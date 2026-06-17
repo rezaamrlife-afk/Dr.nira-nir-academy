@@ -140,7 +140,31 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
   .mode-grid{grid-template-columns:repeat(2,1fr);}
 }
 </style>
-<script src="js/project-manager.js"></script>
+<script src="js/project-manager.js">
+function showToast(message, type, duration) {
+  type = type || 'info'; duration = duration || 3000;
+  if (!document.getElementById('nira-toast-container')) {
+    var c = document.createElement('div');
+    c.id = 'nira-toast-container';
+    c.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(c);
+  }
+  if (!document.getElementById('nira-toast-style')) {
+    var s = document.createElement('style');
+    s.id = 'nira-toast-style';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(s);
+  }
+  var colors = {success:'#16a34a',error:'#dc2626',info:'#2563EB',warning:'#d97706'};
+  var icons = {success:'✓',error:'✕',info:'ℹ',warning:'⚠'};
+  var toast = document.createElement('div');
+  toast.style.cssText = 'background:'+(colors[type]||colors.info)+';color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;white-space:nowrap;animation:toastIn 0.25s ease;';
+  toast.innerHTML = '<span>'+(icons[type]||'ℹ')+'</span>'+message;
+  document.getElementById('nira-toast-container').appendChild(toast);
+  setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(function(){ toast.remove(); },300); }, duration);
+}
+
+</script>
 </head>
 <body>
 <div class="app-shell">
@@ -164,6 +188,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
       <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
       <a class="nav-item active" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
       <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
@@ -356,8 +381,8 @@ function updateInputMeta() {
 
 async function enhance() {
   var input = document.getElementById('inputText').value.trim();
-  if (!input) { alert('Please paste some text first.'); return; }
-  if (input.split(/\s+/).length < 10) { alert('Please enter at least 10 words.'); return; }
+  if (!input) { showToast('Please paste some text first.', 'warning'); return; }
+  if (input.split(/\s+/).length < 10) { showToast('Please enter at least 10 words.', 'warning'); return; }
 
   var btn = document.getElementById('enhanceBtn');
   btn.disabled = true;
@@ -438,7 +463,7 @@ async function enhance() {
 function copyOutput() {
   var el = document.getElementById('outputContent');
   var text = el ? el.innerText : outputText;
-  if (!text) { alert('No enhanced text to copy.'); return; }
+  if (!text) { showToast('No enhanced text to copy.', 'warning'); return; }
   navigator.clipboard.writeText(text).then(function() {
     var btn = event.target;
     var orig = btn.textContent;
