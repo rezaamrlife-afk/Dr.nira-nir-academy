@@ -787,7 +787,7 @@ function showToast(message, type = 'success', duration = 3000) {
 
   function ftGoToConfirm() {
     var title = (document.getElementById('fastTrackTitle').value || '').trim();
-    if (title.length < 10) { alert('Please enter a research title (at least 10 characters).'); return; }
+    if (title.length < 10) { showToast('Please enter a research title (at least 10 characters).', 'warning'); return; }
     var ctx = inferContext(title);
     var confLabel = function(c) { return c === 'high' ? '(high confidence)' : c === 'medium' ? '(medium confidence — please verify)' : '(low confidence — please edit)'; };
 
@@ -812,7 +812,7 @@ function showToast(message, type = 'success', duration = 3000) {
     var methodology = (document.getElementById('ftEditMethod').value || '').trim();
     var level = document.getElementById('ftEditLevel').value;
     var citation = document.getElementById('ftEditCitation').value;
-    if (!title || !domain || !methodology) { alert('Please complete all fields.'); return; }
+    if (!title || !domain || !methodology) { showToast('Please complete all fields.', 'warning'); return; }
 
     var btn = document.getElementById('fastTrackBtn');
     btn.disabled = true; btn.textContent = 'Preparing...';
