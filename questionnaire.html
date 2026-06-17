@@ -167,6 +167,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
   .topbar{padding:0 16px;}
 }
 </style>
+<script src="js/project-manager.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -417,10 +418,10 @@ window.addEventListener('load', function() {
   }
 
   // Load saved questionnaire
-  var saved = localStorage.getItem('nira_questionnaire');
+  var saved = NiraProject.load('questionnaire');
   if (saved) {
     try {
-      questionnaireData = JSON.parse(saved);
+      questionnaireData = saved;
       if (questionnaireData.sections && questionnaireData.sections.length > 0) renderQuestionnaire();
     } catch(e) {}
   }
@@ -483,7 +484,7 @@ async function generateQuestionnaire() {
       }
     };
 
-    localStorage.setItem('nira_questionnaire', JSON.stringify(questionnaireData));
+    NiraProject.save('questionnaire', questionnaireData);
     renderQuestionnaire();
 
   } catch(err) {
@@ -678,7 +679,7 @@ function saveItemEdit(itemId, newText) {
       if (item.id === itemId) item.text = newText.replace(/\s*\(R\)$/, '').trim();
     });
   });
-  localStorage.setItem('nira_questionnaire', JSON.stringify(questionnaireData));
+  NiraProject.save('questionnaire', questionnaireData);
 }
 
 function deleteItem(itemId) {
@@ -686,7 +687,7 @@ function deleteItem(itemId) {
   questionnaireData.sections.forEach(function(s) {
     if (s.items) s.items = s.items.filter(function(i){ return i.id !== itemId; });
   });
-  localStorage.setItem('nira_questionnaire', JSON.stringify(questionnaireData));
+  NiraProject.save('questionnaire', questionnaireData);
   var el = document.getElementById('item-' + itemId);
   if (el) el.remove();
 }
