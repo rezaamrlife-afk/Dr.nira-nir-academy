@@ -452,6 +452,11 @@ function showToast(message, type = 'success', duration = 3000) {
             <p>Enter your research title. Dr. NIRA will suggest the academic domain and methodology — you confirm before generation begins.</p>
           </div>
           <textarea class="title-textarea" id="fastTrackTitle" placeholder="e.g. The Impact of Artificial Intelligence on EFL Learner Autonomy in Higher Education" rows="3" oninput="ftPreview()"></textarea>
+
+          <!-- Warning for existing proposal data -->
+          <div id="ftPrevWarn" style="display:none;margin-top:10px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#dc2626;">
+            ⚠ You have an existing proposal saved. Generating a new one will <strong>replace</strong> all previous sections.
+          </div>
           <div id="ftPreviewBox" style="display:none;margin-top:12px;padding:12px 14px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;font-size:12px;color:#4c1d95;line-height:1.8;"></div>
           <button class="title-generate-btn" onclick="ftGoToConfirm()">
             <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
@@ -550,7 +555,7 @@ function showToast(message, type = 'success', duration = 3000) {
           <h4 id="chipTitle">No topic selected</h4>
           <p id="chipMeta">Go to Topic generator to select a topic first</p>
         </div>
-        <span class="topic-chip-change" onclick="window.location.href='topic.html'">Change topic</span>
+        <span class="topic-chip-change" onclick="changeTopic()">Change topic</span>
       </div>
 
       <div class="proposal-layout" id="proposalLayout">
@@ -623,6 +628,16 @@ function showToast(message, type = 'success', duration = 3000) {
   let generating = false;
   let authoringMode = localStorage.getItem('nira_authoring_mode') || 'ai';
 
+  function changeTopic() {
+    var hasSections = Object.keys(generated).length > 0;
+    if (hasSections) {
+      if (!confirm('Changing the topic will clear all generated sections. Continue?')) return;
+      generated = {};
+      localStorage.removeItem('nira_proposal');
+    }
+    window.location.href = 'topic.html';
+  }
+
   function showModeSelection() {
     document.getElementById('modeSelectionScreen').style.display = 'block';
     document.getElementById('titleInputScreen').style.display = 'none';
@@ -649,6 +664,13 @@ function showToast(message, type = 'success', duration = 3000) {
       if (pl2) pl2.style.display = 'none';
       document.getElementById('sectionCards').style.display = 'none';
       document.getElementById('generateAllBar').style.display = 'none';
+
+      // Warn if previous proposal data exists
+      var hasPrev = Object.keys(generated).length > 0;
+      if (hasPrev) {
+        var warn = document.getElementById('ftPrevWarn');
+        if (warn) warn.style.display = 'block';
+      }
       setTimeout(function(){ document.getElementById('fastTrackTitle').focus(); }, 100);
       return;
     }
@@ -792,6 +814,11 @@ function showToast(message, type = 'success', duration = 3000) {
 
     var btn = document.getElementById('fastTrackBtn');
     btn.disabled = true; btn.textContent = 'Preparing...';
+
+    // Clear previous proposal data for new topic
+    generated = {};
+    localStorage.removeItem('nira_proposal');
+    localStorage.removeItem('nira_upload_context');
 
     // Build synthetic context — independent of profile and topic generator
     topic = {
