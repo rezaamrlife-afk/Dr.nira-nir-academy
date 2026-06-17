@@ -202,8 +202,9 @@ var NiraProject = (function() {
   }
 
   // ── AUTO-INIT ──
-  // Run migration on first load
-  migrateFromLegacy();
+  // Do NOT auto-migrate legacy data — start fresh with project system
+  // Legacy keys (nira_proposal, nira_thesis_v2 etc.) are ignored
+  // Users start a new clean project on first load
 
   return {
     create:       createProject,
