@@ -6,7 +6,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dr. NIRA — Proposal Builder</title>
+<title>Dr. NIRA — My Proposals</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -18,11 +18,10 @@
     --muted: #a0b0cc; --text-dark: #1B2A4A; --text-mid: #6B7FA3;
     --border: #dde6f5; --sidebar-w: 240px;
     --green: #16a34a; --green-pale: #f0fdf4;
+    --red: #dc2626; --red-pale: #fef2f2;
   }
   html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff; color: var(--text-dark); }
   .app-shell { display: flex; height: 100vh; overflow: hidden; }
-
-  /* SIDEBAR */
   .sidebar { width: var(--sidebar-w); background: var(--navy-dark); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
   .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
   .sidebar-logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
@@ -43,173 +42,83 @@
   .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
   .user-name { font-size: 12px; font-weight: 500; color: #fff; }
   .user-role { font-size: 11px; color: var(--muted); }
-
-  /* MAIN */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .topbar-title { font-size: 15px; font-weight: 600; color: var(--text-dark); }
   .topbar-actions { display: flex; align-items: center; gap: 10px; }
   .btn-sm { background: var(--blue); color: #fff; border: none; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
   .btn-sm:hover { background: #1d4ed8; }
-  .btn-sm:disabled { background: #93b4f0; cursor: not-allowed; }
-  .btn-sm-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; }
+  .btn-sm-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
   .btn-sm-outline:hover { background: var(--blue-pale); }
   .content { flex: 1; overflow-y: auto; padding: 28px; }
+  .page-header { margin-bottom: 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .page-header-text h1 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--navy-dark); margin-bottom: 6px; }
+  .page-header-text p { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
 
-  /* LAYOUT */
-  .proposal-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
+  /* SAVE CURRENT */
+  .save-bar { background: var(--navy-dark); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .save-bar-text h4 { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+  .save-bar-text p { font-size: 12px; color: var(--muted); }
+  .save-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .save-input { padding: 8px 12px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #fff; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; width: 220px; }
+  .save-input::placeholder { color: var(--muted); }
+  .save-input:focus { border-color: var(--blue-light); }
+  .btn-save { background: var(--blue); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+  .btn-save:hover { background: #1d4ed8; }
 
-  /* LEFT NAV */
-  .sections-nav { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; position: sticky; top: 0; }
-  .sections-nav-header { padding: 16px 18px; border-bottom: 1px solid var(--border); }
-  .sections-nav-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
-  .sections-nav-header p { font-size: 11px; color: var(--text-mid); }
-  .sections-list { padding: 10px 10px; }
-  .section-nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; }
-  .section-nav-item:hover { background: #f8faff; }
-  .section-nav-item.active { background: var(--blue-pale); }
-  .section-status { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .section-status.done { background: var(--green); border-color: var(--green); }
-  .section-status.active { background: var(--blue); border-color: var(--blue); }
-  .section-status.generating { background: var(--blue-pale); border-color: var(--blue); animation: pulse 1s infinite; }
-  .section-status svg { width: 10px; height: 10px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-  .section-nav-label { font-size: 12px; color: var(--text-mid); flex: 1; }
-  .section-nav-item.active .section-nav-label { color: var(--blue); font-weight: 500; }
-  .section-nav-item.done-item .section-nav-label { color: var(--text-dark); }
+  /* PROPOSALS GRID */
+  .proposals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  /* PROPOSAL CARD */
+  .proposal-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; cursor: pointer; }
+  .proposal-card:hover { border-color: var(--blue-light); transform: translateY(-2px); }
+  .proposal-card-top { background: var(--navy-dark); padding: 18px 18px 14px; }
+  .proposal-card-num { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .proposal-card-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: #fff; line-height: 1.4; margin-bottom: 8px; }
+  .proposal-card-meta { font-size: 11px; color: var(--muted); }
+  .proposal-card-body { padding: 14px 18px; }
+  .proposal-progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+  .proposal-progress-fill { height: 100%; background: var(--blue); border-radius: 2px; }
+  .proposal-stats { display: flex; gap: 12px; margin-bottom: 14px; }
+  .proposal-stat { font-size: 11px; color: var(--text-mid); }
+  .proposal-stat strong { color: var(--text-dark); font-weight: 600; }
+  .proposal-sections { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; }
+  .section-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .section-dot.done { background: var(--blue); }
+  .section-dot.empty { background: var(--border); }
+  .proposal-card-actions { display: flex; gap: 6px; }
+  .btn-card { flex: 1; padding: 7px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; text-align: center; transition: all 0.15s; border: 1px solid var(--border); background: #fff; color: var(--text-dark); }
+  .btn-card:hover { background: var(--blue-pale); border-color: var(--blue-light); color: var(--blue); }
+  .btn-card.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn-card.primary:hover { background: #1d4ed8; }
+  .btn-card.danger:hover { background: var(--red-pale); border-color: #fecaca; color: var(--red); }
 
-  .nav-progress { padding: 14px 18px; border-top: 1px solid var(--border); }
-  .nav-progress-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
-  .nav-progress-fill { height: 100%; background: var(--blue); border-radius: 3px; transition: width 0.4s ease; }
-  .nav-progress-label { font-size: 11px; color: var(--text-mid); }
+  /* EMPTY STATE */
+  .empty-state { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 60px 24px; text-align: center; }
+  .empty-icon { width: 60px; height: 60px; background: var(--blue-pale); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .empty-icon svg { width: 30px; height: 30px; fill: none; stroke: var(--blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; color: var(--text-mid); line-height: 1.6; max-width: 300px; margin: 0 auto 20px; }
 
-  /* TOPIC CHIP */
-  .topic-chip { background: var(--navy-dark); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .topic-chip-text h4 { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 3px; }
-  .topic-chip-text p { font-size: 11px; color: var(--muted); }
-  .topic-chip-change { font-size: 11px; color: var(--blue-light); cursor: pointer; white-space: nowrap; flex-shrink: 0; text-decoration: underline; }
-
-  /* MODE CHOICE CARDS */
-  .mode-choice-card { background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 24px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 12px; }
-  .mode-choice-card:hover { border-color: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
-  .mode-choice-card.selected-ai { border-color: var(--blue); background: var(--blue-pale); }
-  .mode-choice-card.selected-manual { border-color: #16a34a; background: #f0fdf4; }
-  .mode-choice-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-  .mode-choice-icon.ai { background: var(--blue); }
-  .mode-choice-icon.manual { background: #16a34a; }
-  .mode-choice-icon svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .mode-choice-title { font-size: 15px; font-weight: 600; color: var(--navy-dark); }
-  .mode-choice-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
-  .mode-choice-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
-  .mode-choice-list li { font-size: 12px; color: var(--text-mid); display: flex; align-items: center; gap: 6px; }
-  .mode-choice-list li::before { content: '✓'; color: var(--blue); font-weight: 600; font-size: 11px; }
-  .mode-choice-card.selected-manual .mode-choice-list li::before { color: #16a34a; }
-  .mode-choice-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-align: center; margin-top: 4px; }
-  .mode-choice-badge.ai { background: var(--blue-pale); color: var(--blue); }
-  .mode-choice-badge.manual { background: #dcfce7; color: #16a34a; }
-
-  .mode-choice-icon.guided { background: #d97706; }
-  .mode-choice-badge.guided { background: #fef3c7; color: #92400e; }
-  .mode-choice-card.selected-guided { border-color: #d97706; background: #fffbeb; }
-
-  /* FAST TRACK MODE */
-  .mode-choice-icon.fast { background: #7c3aed; }
-  .mode-choice-badge.fast { background: #ede9fe; color: #7c3aed; }
-  .title-input-screen { display:none; max-width:580px; margin:0 auto 24px; background:#fff; border:1px solid var(--border); border-radius:16px; padding:32px; }
-  .title-input-header { text-align:center; margin-bottom:24px; }
-  .title-input-icon { width:52px; height:52px; background:#7c3aed; border-radius:12px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
-  .title-input-icon svg { width:26px; height:26px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .title-input-header h3 { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--navy-dark); margin-bottom:6px; }
-  .title-input-header p { font-size:13px; color:var(--text-mid); line-height:1.6; }
-  .title-textarea { width:100%; padding:14px 16px; border:2px solid var(--border); border-radius:10px; font-size:15px; font-family:'Playfair Display',serif; color:var(--text-dark); outline:none; resize:none; line-height:1.6; transition:border-color 0.2s; min-height:100px; }
-  .title-textarea:focus { border-color:#7c3aed; }
-  .title-generate-btn { width:100%; padding:13px; background:#7c3aed; color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:500; cursor:pointer; font-family:'Inter',sans-serif; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:16px; transition:background 0.2s; }
-  .title-generate-btn:hover { background:#6d28d9; }
-  .title-generate-btn:disabled { background:#a78bfa; cursor:not-allowed; }
-  .title-back-btn { width:100%; padding:10px; background:transparent; color:var(--text-mid); border:1px solid var(--border); border-radius:9px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; margin-top:8px; }
-  .title-back-btn:hover { background:var(--blue-pale); }
-
-  /* GUIDED FEEDBACK PANEL */
-  .guided-feedback-panel { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin-top: 10px; display: none; }
-  .guided-feedback-panel.open { display: block; }
-  .guided-feedback-title { font-size: 11px; font-weight: 600; color: #92400e; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-  .guided-feedback-text { font-size: 13px; color: var(--text-dark); line-height: 1.75; white-space: pre-wrap; }
-  .guided-get-btn { background: #d97706; color: #fff; border: none; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 5px; }
-  .guided-get-btn:hover { background: #b45309; }
-  .guided-get-btn:disabled { background: #fbbf24; cursor: not-allowed; }
-
-  /* MANUAL MODE TEXTAREA */
-  .manual-textarea { width: 100%; padding: 16px; border: none; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.8; resize: vertical; min-height: 160px; background: #fafcff; }
-  .manual-textarea::placeholder { color: #b0bec5; font-style: italic; }
-  .manual-section-footer { padding: 10px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; }
-  .manual-save-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
-  .manual-save-btn:hover { background: #15803d; }
-  .authored-badge { font-size: 11px; color: #16a34a; font-weight: 500; }
-  .generate-all-text h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
-  .generate-all-text p { font-size: 12px; color: var(--text-mid); }
-  .generate-all-btn { background: var(--navy-dark); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; transition: background 0.2s; }
-  .generate-all-btn:hover { background: var(--navy); }
-  .generate-all-btn:disabled { background: #93b4f0; cursor: not-allowed; }
-
-  /* SECTION CARDS */
-  .section-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
-  .section-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .section-card-title { display: flex; align-items: center; gap: 10px; }
-  .section-card-num { width: 28px; height: 28px; border-radius: 50%; background: var(--blue-pale); color: var(--blue); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .section-card-num.done { background: var(--green); color: #fff; }
-  .section-card-label { font-size: 14px; font-weight: 600; color: var(--text-dark); }
-  .section-card-desc { font-size: 12px; color: var(--text-mid); margin-top: 1px; }
-  .section-card-actions { display: flex; align-items: center; gap: 8px; }
-
-  .btn-gen { background: var(--blue); color: #fff; border: none; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 5px; }
-  .btn-gen:hover { background: #1d4ed8; }
-  .btn-gen:disabled { background: #93b4f0; cursor: not-allowed; }
-  .btn-regen { background: transparent; color: var(--text-mid); border: 1px solid var(--border); padding: 7px 12px; border-radius: 7px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; }
-  .btn-regen:hover { background: var(--blue-pale); color: var(--blue); }
-
-  .section-card-body { padding: 20px; }
-
-  /* EMPTY SECTION */
-  .section-empty { text-align: center; padding: 28px; }
-  .section-empty p { font-size: 13px; color: var(--text-mid); }
-
-  /* CONTENT AREA */
-  .section-content { font-size: 14px; color: var(--text-dark); line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
-  .section-content[contenteditable="true"] {
-    outline: none; border: 1px dashed var(--border); border-radius: 8px;
-    padding: 14px; min-height: 80px; cursor: text;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    position: relative;
-  }
-  .section-content[contenteditable="true"]:hover { border-color: var(--blue-light); }
-  .section-content[contenteditable="true"]:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); border-style: solid; }
-  .section-content.unsaved { border-color: #d97706 !important; border-style: solid !important; }
-  .edit-hint { font-size: 11px; color: var(--text-mid); cursor: pointer; }
-  .edit-hint.unsaved-hint { color: #d97706; font-weight: 500; }
-
-  /* GENERATING */
-  .generating-placeholder { display: flex; align-items: center; gap: 10px; padding: 20px; color: var(--text-mid); font-size: 13px; }
-  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* WORD COUNT */
-  .section-footer { padding: 10px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #fafcff; }
-  .word-count { font-size: 11px; color: var(--text-mid); }
-  .edit-hint { font-size: 11px; color: var(--text-mid); }
-
-  /* EXPORT BAR */
-  .export-bar { background: var(--navy-dark); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .export-bar-text h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 3px; }
-  .export-bar-text p { font-size: 12px; color: var(--muted); }
-  .export-bar-actions { display: flex; gap: 8px; }
-  .btn-export { background: var(--blue); color: #fff; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
-  .btn-export:hover { background: #1d4ed8; }
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; overflow: hidden; }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h3 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--navy-dark); }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--text-mid); cursor: pointer; line-height: 1; }
+  .modal-body { padding: 24px; max-height: 60vh; overflow-y: auto; }
+  .modal-section { margin-bottom: 20px; }
+  .modal-section-title { font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .modal-section-text { font-size: 13px; color: var(--text-dark); line-height: 1.75; white-space: pre-wrap; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 
   @media (max-width: 900px) {
     .sidebar { display: none; }
-    .proposal-layout { grid-template-columns: 1fr; }
+    .proposals-grid { grid-template-columns: 1fr; }
     .content { padding: 16px; }
+    .save-bar { flex-direction: column; align-items: flex-start; }
+    .save-bar-right { width: 100%; }
+    .save-input { width: 100%; }
   }
   /* MOBILE BOTTOM NAV */
   .mobile-nav {
@@ -247,8 +156,6 @@
     .mobile-nav { display: block; }
     .content { padding: 16px; padding-bottom: 80px; }
     .topbar { padding: 0 16px; }
-    .sections-nav { display: none; }
-    .proposal-layout { grid-template-columns: 1fr; }
   }
 </style>
 <script>
@@ -277,1030 +184,284 @@ function showToast(message, type = 'success', duration = 3000) {
 </head>
 <body>
 <div class="app-shell">
-
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      </div>
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
       <span class="sidebar-logo-name">Dr. NIRA</span>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Main</div>
-      <a class="nav-item" href="app.html">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        <span>Dashboard</span>
-      </a>
-      <a class="nav-item" href="profile.html">
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>My profile</span>
-      </a>
-      <a class="nav-item" href="proposals.html">
-        <svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-        <span>My proposals</span>
-      </a>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+      <a class="nav-item active" href="proposals.html"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg><span>My proposals</span></a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Research</div>
-      <a class="nav-item" href="topic.html">
-        <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-        <span>Topic generator</span>
-        <span class="nav-badge">New</span>
-      </a>
-      <a class="nav-item active" href="proposal.html">
-        <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <span>Proposal builder</span>
-      </a>
-      <a class="nav-item" href="thesis.html">
-        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-        <span>Thesis builder</span>
-      </a>
-            <a class="nav-item" href="upload.html">
-        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-        <span>Upload & analyze</span>
-      </a>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span><span class="nav-badge">New</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis builder</span></a>
+      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Tools</div>
       <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
-      <a class="nav-item" href="enhance.html">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        <span>Writing enhancer</span>
-      </a>
-            <a class="nav-item" href="writer.html">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        <span>Academic writer</span>
-      </a>
-      <a class="nav-item" href="citations.html">
-        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-        <span>Citations</span>
-      </a>
-      <a class="nav-item" href="export.html">
-        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        <span>Export</span>
-      </a>
+      <a class="nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
+      <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
     </div>
     <div class="sidebar-bottom">
       <div class="user-card">
         <div class="user-avatar" id="sidebarAvatar">DR</div>
-        <div>
-          <div class="user-name" id="sidebarName">Dr. Researcher</div>
-          <div class="user-role" id="sidebarRole">PhD Candidate</div>
-        </div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
       </div>
     </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <span class="topbar-title">Proposal builder</span>
+      <span class="topbar-title">My proposals</span>
       <div class="topbar-actions">
-        <button class="btn-sm-outline" onclick="window.location.href='topic.html'">← Topics</button>
-        <button class="btn-sm" onclick="window.location.href='export.html'">Export proposal →</button>
+        <button class="btn-sm-outline" onclick="window.location.href='app.html'">← Dashboard</button>
+        <button class="btn-sm" onclick="window.location.href='proposal.html'">
+          <svg style="width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          New proposal
+        </button>
       </div>
     </div>
 
     <div class="content">
-
-      <!-- MODE SELECTION SCREEN -->
-      <div id="modeSelectionScreen" style="display:none;max-width:860px;margin:0 auto 24px;">
-        <div style="text-align:center;margin-bottom:24px;">
-          <p style="font-size:11px;font-weight:600;color:var(--blue);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Choose your authoring approach</p>
-          <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--navy-dark);margin-bottom:8px">How would you like to work?</h2>
-          <p style="font-size:13px;color:var(--text-mid)">Select an approach for this session. You can change it at any time.</p>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-
-          <!-- MODE 1 -->
-          <div class="mode-choice-card" onclick="selectMode('ai')">
-            <div class="mode-choice-icon ai">
-              <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            </div>
-            <h3 class="mode-choice-title">AI-Assisted Drafting</h3>
-            <p class="mode-choice-desc">Dr. NIRA generates each section based on your research profile and topic. Review, edit, and refine the output.</p>
-            <ul class="mode-choice-list">
-              <li>AI generates all 10 sections</li>
-              <li>Instant academic drafts</li>
-              <li>Fully editable output</li>
-              <li>Regenerate any section</li>
-            </ul>
-            <div class="mode-choice-badge ai">Recommended for speed</div>
-          </div>
-
-          <!-- MODE 2 -->
-          <div class="mode-choice-card" onclick="selectMode('manual')">
-            <div class="mode-choice-icon manual">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </div>
-            <h3 class="mode-choice-title">Independent Authoring</h3>
-            <p class="mode-choice-desc">Write each section yourself with full scholarly control. No AI generation — pure independent academic work.</p>
-            <ul class="mode-choice-list">
-              <li>You write every section</li>
-              <li>No AI involvement</li>
-              <li>Full academic ownership</li>
-              <li>Save & edit anytime</li>
-            </ul>
-            <div class="mode-choice-badge manual">Recommended for integrity</div>
-          </div>
-
-          <!-- MODE 3 -->
-          <div class="mode-choice-card" onclick="selectMode('guided')">
-            <div class="mode-choice-icon guided">
-              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            </div>
-            <h3 class="mode-choice-title">Guided Writing</h3>
-            <p class="mode-choice-desc">You write each section independently. AI provides targeted feedback, critique, and improvement suggestions on your draft.</p>
-            <ul class="mode-choice-list">
-              <li>You write every section</li>
-              <li>AI reviews & critiques</li>
-              <li>Specific improvement notes</li>
-              <li>Academic quality feedback</li>
-            </ul>
-            <div class="mode-choice-badge guided">Recommended for learning</div>
-          </div>
-
-          <!-- MODE 4 -->
-          <div class="mode-choice-card" onclick="selectMode('fast')" style="border-color:#7c3aed">
-            <div class="mode-choice-icon fast">
-              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            </div>
-            <h3 class="mode-choice-title">Title-to-Proposal <span style="font-size:10px;background:#ede9fe;color:#7c3aed;padding:2px 7px;border-radius:10px;font-weight:600;vertical-align:middle;margin-left:4px">Fast Track</span></h3>
-            <p class="mode-choice-desc">Enter only your research title. Dr. NIRA infers the domain, methodology, and academic context — then generates the full proposal instantly.</p>
-            <ul class="mode-choice-list">
-              <li>Only a title required</li>
-              <li>AI infers all context</li>
-              <li>Full proposal in minutes</li>
-              <li>No profile setup needed</li>
-            </ul>
-            <div class="mode-choice-badge fast">Recommended for exploration</div>
-          </div>
-
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>My proposals</h1>
+          <p>Save, manage, and revisit all your PhD proposals in one place.</p>
         </div>
       </div>
 
-      <!-- TITLE INPUT SCREEN (Fast Track) -->
-      <div class="title-input-screen" id="titleInputScreen">
-
-        <!-- STEP 1: Title Entry -->
-        <div id="ftStep1">
-          <div class="title-input-header">
-            <div class="title-input-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            </div>
-            <h3>Title-to-Proposal Fast Track</h3>
-            <p>Enter your research title. Dr. NIRA will suggest the academic domain and methodology — you confirm before generation begins.</p>
-          </div>
-          <textarea class="title-textarea" id="fastTrackTitle" placeholder="e.g. The Impact of Artificial Intelligence on EFL Learner Autonomy in Higher Education" rows="3" oninput="ftPreview()"></textarea>
-
-          <!-- Warning for existing proposal data -->
-          <div id="ftPrevWarn" style="display:none;margin-top:10px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#dc2626;">
-            ⚠ You have an existing proposal saved. Generating a new one will <strong>replace</strong> all previous sections.
-          </div>
-          <div id="ftPreviewBox" style="display:none;margin-top:12px;padding:12px 14px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;font-size:12px;color:#4c1d95;line-height:1.8;"></div>
-          <button class="title-generate-btn" onclick="ftGoToConfirm()">
-            <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-            Review research direction →
-          </button>
-          <button class="title-back-btn" onclick="showModeSelection()">← Back to mode selection</button>
+      <!-- SAVE CURRENT -->
+      <div class="save-bar" id="saveBar" style="display:none">
+        <div class="save-bar-text">
+          <h4>You have an active proposal</h4>
+          <p id="activeProposalMeta">Save it before starting a new one</p>
         </div>
-
-        <!-- STEP 2: Confirmation -->
-        <div id="ftStep2" style="display:none;">
-          <div class="title-input-header">
-            <h3 style="margin-bottom:4px">Confirm research direction</h3>
-            <p>Review the inferred context below. Edit any field if needed, then generate your proposal.</p>
-          </div>
-
-          <div style="background:#f8faff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
-            <div style="font-size:11px;font-weight:600;color:#7c3aed;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;">Research Direction Summary</div>
-
-            <div style="margin-bottom:12px;">
-              <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">Research title</label>
-              <div id="ftConfirmTitle" style="font-size:14px;font-weight:500;color:var(--navy-dark);font-family:'Playfair Display',serif;line-height:1.5;padding:8px 10px;background:#fff;border:1px solid var(--border);border-radius:7px;"></div>
-            </div>
-
-            <div style="margin-bottom:12px;">
-              <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">
-                Academic domain
-                <span style="font-size:10px;font-weight:400;color:var(--text-mid);margin-left:6px;" id="domainConfidence"></span>
-              </label>
-              <input type="text" id="ftEditDomain" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='var(--border)'">
-            </div>
-
-            <div style="margin-bottom:12px;">
-              <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">
-                Suggested methodology
-                <span style="font-size:10px;font-weight:400;color:var(--text-mid);margin-left:6px;" id="methodConfidence"></span>
-              </label>
-              <input type="text" id="ftEditMethod" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='var(--border)'">
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div>
-                <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">Academic level</label>
-                <select id="ftEditLevel" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;background:#fff;">
-                  <option value="PhD">PhD</option>
-                  <option value="Master's">Master's</option>
-                  <option value="Bachelor's">Bachelor's</option>
-                  <option value="Postdoctoral">Postdoctoral</option>
-                </select>
-              </div>
-              <div>
-                <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">Citation format</label>
-                <select id="ftEditCitation" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;background:#fff;">
-                  <option value="APA 7">APA 7th</option>
-                  <option value="APA 6">APA 6th</option>
-                  <option value="MLA">MLA</option>
-                  <option value="Chicago">Chicago</option>
-                  <option value="IEEE">IEEE</option>
-                  <option value="Vancouver">Vancouver</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px;line-height:1.6;">
-            ⚠ These are <strong>suggested</strong> values inferred from your title. Edit them if needed before generating — they will guide the AI throughout all 10 sections.
-          </div>
-
-          <button class="title-generate-btn" id="fastTrackBtn" onclick="startFastTrack()">
-            <svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            Generate full proposal
-          </button>
-          <button class="title-back-btn" onclick="ftBackToStep1()">← Edit title</button>
-        </div>
-
-      </div>
-
-      <!-- MODE INDICATOR (shown after selection) -->
-      <div id="modeIndicator" style="display:none;margin-bottom:16px;">
-        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div id="modeIndicatorIcon" style="width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;">
-              <svg id="modeIndicatorSvg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
-            </div>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:var(--text-dark)" id="modeIndicatorTitle"></div>
-              <div style="font-size:11px;color:var(--text-mid)" id="modeIndicatorDesc"></div>
-            </div>
-          </div>
-          <button onclick="showModeSelection()" style="font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;">Change</button>
+        <div class="save-bar-right">
+          <input class="save-input" type="text" id="proposalNameInput" placeholder="Proposal name...">
+          <button class="btn-save" onclick="saveCurrentProposal()">Save proposal</button>
         </div>
       </div>
 
-      <!-- TOPIC CHIP -->
-      <div class="topic-chip" id="topicChip">
-        <div class="topic-chip-text">
-          <h4 id="chipTitle">No topic selected</h4>
-          <p id="chipMeta">Go to Topic generator to select a topic first</p>
-        </div>
-        <span class="topic-chip-change" onclick="changeTopic()">Change topic</span>
-      </div>
+      <!-- PROPOSALS -->
+      <div id="proposalsContainer"></div>
 
-      <div class="proposal-layout" id="proposalLayout">
+    </div>
+  </div>
+</div>
 
-        <!-- SECTIONS NAV -->
-        <div class="sections-nav">
-          <div class="sections-nav-header">
-            <h3>Proposal sections</h3>
-            <p id="sectionsNavDesc">Click any section to generate</p>
-          </div>
-          <div class="sections-list" id="sectionsList"></div>
-          <div class="nav-progress">
-            <div class="nav-progress-bar">
-              <div class="nav-progress-fill" id="navProgressFill" style="width:0%"></div>
-            </div>
-            <div class="nav-progress-label" id="navProgressLabel">0 of 10 sections complete</div>
-          </div>
-        </div>
-
-        <!-- RIGHT CONTENT -->
-        <div>
-            <div class="generate-all-bar" id="generateAllBar" style="display:flex">
-              <div class="generate-all-text">
-                <h4>Generate full proposal</h4>
-                <p>Auto-generate all 10 sections one by one with academic precision.</p>
-              </div>
-              <button class="generate-all-btn" id="generateAllBtn" onclick="generateAll()">
-                <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                Generate all sections
-              </button>
-            </div>
-
-          <!-- SECTION CARDS -->
-          <div id="sectionCards"></div>
-
-          <!-- EXPORT BAR -->
-          <div class="export-bar" id="exportBar" style="display:none">
-            <div class="export-bar-text">
-              <h4>Your proposal is ready!</h4>
-              <p>All sections generated. Export as DOCX or PDF.</p>
-            </div>
-            <div class="export-bar-actions">
-              <button class="btn-export" onclick="window.location.href='export.html'">Export DOCX / PDF</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modalTitle">Proposal</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-sm-outline" onclick="closeModal()">Close</button>
+      <button class="btn-sm" onclick="loadProposal()">Open in builder</button>
     </div>
   </div>
 </div>
 
 <script>
-  const SECTIONS = [
-    { id: 'title',        label: 'Title',                  desc: 'English & Persian title + short title' },
-    { id: 'problem',      label: 'Problem statement',      desc: 'Introduction, importance, research gap' },
-    { id: 'objectives',   label: 'Objectives',             desc: 'General, specific & applied objectives' },
-    { id: 'questions',    label: 'Research questions',     desc: 'Main question & sub-questions' },
-    { id: 'hypotheses',   label: 'Hypotheses',             desc: 'Main & sub-hypotheses' },
-    { id: 'literature',   label: 'Literature review',      desc: 'Domestic & international background' },
-    { id: 'novelty',      label: 'Innovation & necessity', desc: 'What makes this research unique' },
-    { id: 'methodology',  label: 'Methodology',            desc: 'Type, population, sampling, tools, analysis' },
-    { id: 'limitations',  label: 'Limitations',            desc: 'Research scope and constraints' },
-    { id: 'references',   label: 'Initial references',     desc: 'Suggested key references in correct format' }
-  ];
+  const SECTION_LABELS = {
+    title: 'Title', problem: 'Problem Statement', objectives: 'Objectives',
+    questions: 'Research Questions', hypotheses: 'Hypotheses',
+    literature: 'Literature Review', novelty: 'Innovation & Necessity',
+    methodology: 'Methodology', limitations: 'Limitations', references: 'References'
+  };
 
-  let profile = {};
-  let topic = {};
-  let generated = {};
-  let generating = false;
-  let authoringMode = localStorage.getItem('nira_authoring_mode') || 'ai';
-
-  function changeTopic() {
-    var hasSections = Object.keys(generated).length > 0;
-    if (hasSections) {
-      if (!confirm('Changing the topic will clear all generated sections. Continue?')) return;
-      generated = {};
-      NiraProject.resetModule('proposal');
-    }
-    window.location.href = 'topic.html';
-  }
-
-  function showModeSelection() {
-    document.getElementById('modeSelectionScreen').style.display = 'block';
-    document.getElementById('titleInputScreen').style.display = 'none';
-    document.getElementById('modeIndicator').style.display = 'none';
-    document.getElementById('topicChip').style.display = 'none';
-    document.getElementById('sectionCards').style.display = 'none';
-    document.getElementById('generateAllBar').style.display = 'none';
-    var pl = document.getElementById('proposalLayout');
-    if (pl) pl.style.display = 'none';
-  }
-
-  function selectMode(mode) {
-    authoringMode = mode;
-    localStorage.setItem('nira_authoring_mode', mode);
-    document.getElementById('modeSelectionScreen').style.display = 'none';
-    document.getElementById('titleInputScreen').style.display = 'none';
-
-    // Fast Track: show title input screen instead of main content
-    if (mode === 'fast') {
-      document.getElementById('titleInputScreen').style.display = 'block';
-      document.getElementById('modeIndicator').style.display = 'none';
-      document.getElementById('topicChip').style.display = 'none';
-      var pl2 = document.getElementById('proposalLayout');
-      if (pl2) pl2.style.display = 'none';
-      document.getElementById('sectionCards').style.display = 'none';
-      document.getElementById('generateAllBar').style.display = 'none';
-
-      // Warn if previous proposal data exists
-      var hasPrev = Object.keys(generated).length > 0;
-      if (hasPrev) {
-        var warn = document.getElementById('ftPrevWarn');
-        if (warn) warn.style.display = 'block';
-      }
-      setTimeout(function(){ document.getElementById('fastTrackTitle').focus(); }, 100);
-      return;
-    }
-
-    var indicator = document.getElementById('modeIndicator');
-    indicator.style.display = 'block';
-    var iconEl = document.getElementById('modeIndicatorIcon');
-    var svgEl = document.getElementById('modeIndicatorSvg');
-    var titleEl = document.getElementById('modeIndicatorTitle');
-    var descEl = document.getElementById('modeIndicatorDesc');
-
-    if (mode === 'ai') {
-      iconEl.style.background = 'var(--blue)';
-      svgEl.innerHTML = '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>';
-      titleEl.textContent = 'AI-Assisted Drafting';
-      descEl.textContent = 'Dr. NIRA generates each section — review and edit as needed';
-    } else if (mode === 'manual') {
-      iconEl.style.background = '#16a34a';
-      svgEl.innerHTML = '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>';
-      titleEl.textContent = 'Independent Authoring';
-      descEl.textContent = 'You write each section — full scholarly control, no AI involvement';
-    } else {
-      iconEl.style.background = '#d97706';
-      svgEl.innerHTML = '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>';
-      titleEl.textContent = 'Guided Writing';
-      descEl.textContent = 'You write each section — AI provides feedback and critique on your draft';
-    }
-
-    document.getElementById('generateAllBar').style.display = mode === 'ai' ? 'flex' : 'none';
-    var sectionsNavDesc = document.getElementById('sectionsNavDesc');
-    if (sectionsNavDesc) sectionsNavDesc.textContent = mode === 'ai'
-      ? 'Click any section to generate'
-      : mode === 'guided' ? 'Write each section, then get AI feedback'
-      : 'Click any section to write';
-
-    document.getElementById('topicChip').style.display = 'flex';
-    var pl = document.getElementById('proposalLayout');
-    if (pl) pl.style.display = 'grid';
-    document.getElementById('sectionCards').style.display = 'block';
-
-    renderSectionsNav();
-    renderSectionCards();
-    updateProgress();
-  }
-
-  function setMode(mode) { selectMode(mode); }
-
-  // ── FAST TRACK: TITLE CONTEXT BUILDER ──
-  // ── FAST TRACK: INFERENCE ENGINE ──
-  function guessDomain(title) {
-    var t = title.toLowerCase();
-    var domains = [
-      { pattern: /efl|esl|english language|tefl|tesl|elt|bilingual|foreign language|second language|language learning|language teaching|language acquisition/, domain: 'Applied Linguistics & English Language Teaching', confidence: 'high' },
-      { pattern: /artificial intelligence|machine learning|deep learning|neural network|natural language processing|chatgpt|large language model|computer vision/, domain: 'Artificial Intelligence & Computer Science', confidence: 'high' },
-      { pattern: /finance|banking|investment|stock market|monetary|fiscal|fintech|cryptocurrency|capital market/, domain: 'Economics & Finance', confidence: 'high' },
-      { pattern: /health|medical|clinical|patient|hospital|nursing|therapy|covid|pandemic|disease|pharmaceutical|surgery/, domain: 'Health Sciences & Medicine', confidence: 'high' },
-      { pattern: /education|curriculum|pedagog|academic achievement|higher education|learning outcome|instructional/, domain: 'Education & Pedagogy', confidence: 'high' },
-      { pattern: /environment|climate change|carbon|sustainable|ecology|pollution|renewable energy|biodiversity/, domain: 'Environmental Science & Sustainability', confidence: 'high' },
-      { pattern: /psychology|behavior|cognitive|mental health|emotion|motivation|anxiety|depression|wellbeing/, domain: 'Psychology & Behavioral Science', confidence: 'high' },
-      { pattern: /business|management|organization|leadership|strategy|marketing|human resource|entrepreneurship/, domain: 'Business Administration & Management', confidence: 'high' },
-      { pattern: /social media|digital technology|internet|e-learning|online platform|technology adoption/, domain: 'Digital & Information Technology Studies', confidence: 'medium' },
-      { pattern: /social|society|community|culture|gender|ethnic|identity|inequality|migration/, domain: 'Social Sciences & Sociology', confidence: 'medium' },
-      { pattern: /law|legal|justice|policy|governance|regulation|constitutional|human rights/, domain: 'Law & Policy Studies', confidence: 'medium' },
-    ];
-    for (var i = 0; i < domains.length; i++) {
-      if (domains[i].pattern.test(t)) return { domain: domains[i].domain, confidence: domains[i].confidence };
-    }
-    return { domain: 'Interdisciplinary Academic Research', confidence: 'low' };
-  }
-
-  function guessMethod(title) {
-    var t = title.toLowerCase();
-    var methods = [
-      { pattern: /survey|questionnaire|likert|psychometric|self-report/, method: 'Quantitative — Survey Research', confidence: 'high' },
-      { pattern: /experiment|quasi-experiment|control group|pretest|posttest|intervention/, method: 'Quasi-Experimental Design', confidence: 'high' },
-      { pattern: /interview|narrative|ethnograph|grounded theory|phenomenolog|lived experience/, method: 'Qualitative — Interpretive Inquiry', confidence: 'high' },
-      { pattern: /meta-analysis|systematic review|scoping review/, method: 'Systematic Review & Meta-Analysis', confidence: 'high' },
-      { pattern: /case study|single case|multiple case/, method: 'Qualitative — Case Study', confidence: 'high' },
-      { pattern: /correlation|regression|structural equation|path analysis|factor analysis/, method: 'Quantitative — Correlational', confidence: 'high' },
-      { pattern: /content analysis|discourse analysis|thematic analysis/, method: 'Qualitative — Content/Discourse Analysis', confidence: 'medium' },
-      { pattern: /randomized|rct|randomised|controlled trial/, method: 'Randomized Controlled Trial (RCT)', confidence: 'high' },
-    ];
-    for (var i = 0; i < methods.length; i++) {
-      if (methods[i].pattern.test(t)) return { method: methods[i].method, confidence: methods[i].confidence };
-    }
-    return { method: 'Mixed Methods (Quantitative + Qualitative)', confidence: 'low' };
-  }
-
-  function inferContext(title) {
-    var d = guessDomain(title);
-    var m = guessMethod(title);
-    return { title: title, domain: d.domain, domainConfidence: d.confidence, methodology: m.method, methodConfidence: m.confidence };
-  }
-
-  // Live preview as user types
-  function ftPreview() {
-    var title = (document.getElementById('fastTrackTitle').value || '').trim();
-    var box = document.getElementById('ftPreviewBox');
-    if (title.length < 8) { box.style.display = 'none'; return; }
-    var ctx = inferContext(title);
-    var confBadge = function(c) {
-      var colors = { high: '#16a34a', medium: '#d97706', low: '#dc2626' };
-      return '<span style="color:' + (colors[c]||'#6b7280') + ';font-size:10px">● ' + c + ' confidence</span>';
-    };
-    box.style.display = 'block';
-    box.innerHTML =
-      '<strong style="font-size:11px;letter-spacing:0.05em;text-transform:uppercase;">Preliminary inference</strong><br>' +
-      '📚 ' + ctx.domain + ' ' + confBadge(ctx.domainConfidence) + '<br>' +
-      '🔬 ' + ctx.methodology + ' ' + confBadge(ctx.methodConfidence) + '<br>' +
-      '<span style="opacity:0.7;font-size:11px">You will review and edit these before generation begins.</span>';
-  }
-
-  function ftGoToConfirm() {
-    var title = (document.getElementById('fastTrackTitle').value || '').trim();
-    if (title.length < 10) { alert('Please enter a research title (at least 10 characters).'); return; }
-    var ctx = inferContext(title);
-    var confLabel = function(c) { return c === 'high' ? '(high confidence)' : c === 'medium' ? '(medium confidence — please verify)' : '(low confidence — please edit)'; };
-
-    document.getElementById('ftConfirmTitle').textContent = title;
-    document.getElementById('ftEditDomain').value = ctx.domain;
-    document.getElementById('ftEditMethod').value = ctx.methodology;
-    document.getElementById('domainConfidence').textContent = confLabel(ctx.domainConfidence);
-    document.getElementById('methodConfidence').textContent = confLabel(ctx.methodConfidence);
-
-    document.getElementById('ftStep1').style.display = 'none';
-    document.getElementById('ftStep2').style.display = 'block';
-  }
-
-  function ftBackToStep1() {
-    document.getElementById('ftStep1').style.display = 'block';
-    document.getElementById('ftStep2').style.display = 'none';
-  }
-
-  function startFastTrack() {
-    var title = (document.getElementById('fastTrackTitle').value || '').trim();
-    var domain = (document.getElementById('ftEditDomain').value || '').trim();
-    var methodology = (document.getElementById('ftEditMethod').value || '').trim();
-    var level = document.getElementById('ftEditLevel').value;
-    var citation = document.getElementById('ftEditCitation').value;
-    if (!title || !domain || !methodology) { alert('Please complete all fields.'); return; }
-
-    var btn = document.getElementById('fastTrackBtn');
-    btn.disabled = true; btn.textContent = 'Preparing...';
-
-    // Clear previous proposal data for new topic
-    generated = {};
-    NiraProject.resetModule('proposal');
-    localStorage.removeItem('nira_upload_context');
-
-    // Build synthetic context — independent of profile and topic generator
-    topic = {
-      title_en: title,
-      research_type: methodology,
-      research_gap: 'a substantive gap identified through systematic analysis of existing literature in ' + domain,
-      keywords: title.split(/\s+/).filter(function(w){ return w.length > 4; }).slice(0, 6)
-    };
-    profile = Object.assign({}, profile, { field: domain, degree: level, citation: citation, researchType: methodology });
-
-    document.getElementById('titleInputScreen').style.display = 'none';
-    document.getElementById('modeIndicator').style.display = 'block';
-    document.getElementById('modeIndicatorIcon').style.background = '#7c3aed';
-    document.getElementById('modeIndicatorSvg').innerHTML = '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>';
-    document.getElementById('modeIndicatorTitle').textContent = 'Title-to-Proposal Fast Track';
-    document.getElementById('modeIndicatorDesc').textContent = '"' + title.slice(0, 70) + (title.length > 70 ? '...' : '') + '"';
-    document.getElementById('topicChip').style.display = 'flex';
-    document.getElementById('chipTitle').textContent = title;
-    document.getElementById('chipMeta').textContent = domain + ' · ' + methodology;
-    document.getElementById('generateAllBar').style.display = 'flex';
-    var pl = document.getElementById('proposalLayout');
-    if (pl) pl.style.display = 'grid';
-    document.getElementById('sectionCards').style.display = 'block';
-
-    authoringMode = 'ai';
-    renderSectionsNav();
-    renderSectionCards();
-    updateProgress();
-    setTimeout(function(){ generateAll(); }, 300);
-  }
+  let proposals = JSON.parse(localStorage.getItem('nira_proposals') || '[]');
+  let activeModalId = null;
 
   window.addEventListener('load', function() {
     const sp = localStorage.getItem('nira_profile');
     if (sp) {
-      profile = JSON.parse(sp);
-      document.getElementById('sidebarName').textContent = profile.fullName || 'Dr. Researcher';
-      document.getElementById('sidebarRole').textContent = (profile.degree || 'PhD') + ' Candidate';
-      if (profile.fullName) {
-        document.getElementById('sidebarAvatar').textContent = profile.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      }
-    }
-    // Load topic
-    var _tp = NiraProject.loadTopic();
-    if (_tp && _tp.title_en) {
-      topic = _tp;
-      document.getElementById('chipTitle').textContent = topic.title_en || 'Selected topic';
-      document.getElementById('chipMeta').textContent = (topic.research_type || '') + (topic.keywords ? ' · ' + topic.keywords.slice(0,3).join(', ') : '');
+      const p = JSON.parse(sp);
+      document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
+      document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
+      if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     }
 
-    // Load proposal
-    const sg = NiraProject.load('proposal');
-    if (sg && Object.keys(sg).length > 0) generated = sg;
-
-    // Check if coming from upload
-    if (localStorage.getItem('nira_build_from_upload') === '1') {
-      const uploadText = localStorage.getItem('nira_upload_text') || '';
-      const uploadFile = localStorage.getItem('nira_upload_filename') || 'document';
-      if (uploadText) {
-        localStorage.setItem('nira_upload_context', uploadText);
-        localStorage.removeItem('nira_build_from_upload');
-        const chip = document.getElementById('chipTitle');
-        const meta = document.getElementById('chipMeta');
-        if (chip) chip.textContent = 'Based on: ' + uploadFile;
-        if (meta) meta.textContent = 'Dr. NIRA will use your uploaded document to generate each section';
+    // Check active proposal
+    const active = localStorage.getItem('nira_proposal');
+    const topic = localStorage.getItem('nira_selected_topic');
+    if (active) {
+      const data = JSON.parse(active);
+      const done = Object.keys(data).length;
+      if (done > 0) {
+        document.getElementById('saveBar').style.display = 'flex';
+        const t = topic ? JSON.parse(topic) : {};
+        document.getElementById('activeProposalMeta').textContent =
+          (t.title_en || 'Untitled proposal') + ' · ' + done + ' sections complete';
+        if (t.title_en) document.getElementById('proposalNameInput').value = t.title_en.slice(0, 60);
       }
     }
 
-    renderSectionsNav();
-    renderSectionCards();
-    updateProgress();
-
-    // Always show mode selection on page load
-    showModeSelection();
+    renderProposals();
   });
 
-  function renderSectionsNav() {
-    const list = document.getElementById('sectionsList');
-    list.innerHTML = SECTIONS.map(s => {
-      const isDone = !!generated[s.id];
-      return `
-        <div class="section-nav-item ${isDone ? 'done-item' : ''}" onclick="scrollToSection('${s.id}')">
-          <div class="section-status ${isDone ? 'done' : ''}">
-            <svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg>
-          </div>
-          <span class="section-nav-label">${s.label}</span>
-        </div>
-      `;
-    }).join('');
-  }
+  function saveCurrentProposal() {
+    const name = document.getElementById('proposalNameInput').value.trim();
+    if (!name) { alert('Please enter a proposal name.'); return; }
 
-  function renderSectionCards() {
-    const container = document.getElementById('sectionCards');
-    const isAI = authoringMode === 'ai';
-    const isManual = authoringMode === 'manual';
-    const isGuided = authoringMode === 'guided';
+    const active = localStorage.getItem('nira_proposal');
+    const topic = localStorage.getItem('nira_selected_topic');
+    if (!active) { alert('No active proposal found.'); return; }
 
-    container.innerHTML = SECTIONS.map((s, i) => {
-      const isDone = !!generated[s.id];
-      const rawContent = generated[s.id] || '';
-      const content = rawContent.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^#{1,3}\s+/gm,'').replace(/^[-*]\s+/gm,'• ').trim();
-      const wordCount = content ? content.trim().split(/\s+/).length : 0;
+    const data = JSON.parse(active);
+    const t = topic ? JSON.parse(topic) : {};
 
-      // ── ACTIONS ──
-      let actionsHtml;
-      if (isAI) {
-        actionsHtml = isDone
-          ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
-          : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')">
-              <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              Generate draft
-             </button>`;
-      } else if (isManual) {
-        actionsHtml = isDone
-          ? `<span class="mode-badge manual">Self-authored</span>
-             <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
-          : `<span class="mode-badge manual" style="opacity:0.5">Independent Authoring</span>`;
-      } else {
-        actionsHtml = isDone
-          ? `<span class="mode-badge guided">Guided Writing</span>
-             <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
-          : `<span class="mode-badge guided" style="opacity:0.5">Guided Writing</span>`;
-      }
-
-      // ── BODY ──
-      let bodyHtml;
-      if (isAI) {
-        bodyHtml = isDone
-          ? `<div class="section-content" contenteditable="true" id="content-${s.id}"
-               oninput="onContentInput('${s.id}')"
-               onblur="onContentBlur('${s.id}')"
-               onpaste="onContentPaste(event)"
-               title="Click to edit">${content}</div>`
-          : `<div class="section-empty"><p>Click "Generate draft" to create this section with AI assistance.</p></div>`;
-      } else if (isManual) {
-        bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
-            placeholder="Write the ${s.label} section here. Maintain formal academic register and discipline-appropriate terminology..."
-            oninput="saveEdits('${s.id}')">${content}</textarea>`;
-      } else {
-        // Guided
-        bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
-            placeholder="Write the ${s.label} section here. When ready, click 'Get AI Feedback' to receive critique and improvement suggestions..."
-            oninput="saveEdits('${s.id}')">${content}</textarea>
-          <div class="guided-feedback-panel" id="feedback-${s.id}">
-            <div class="guided-feedback-title">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              AI Academic Feedback
-            </div>
-            <div class="guided-feedback-text" id="feedbackText-${s.id}"></div>
-          </div>`;
-      }
-
-      // ── FOOTER ──
-      let footerHtml;
-      if (isAI) {
-        footerHtml = isDone
-          ? `<div class="section-footer">
-              <span class="word-count">${wordCount} words · AI-drafted</span>
-              <span class="edit-hint">Click text to edit directly</span>
-             </div>`
-          : '';
-      } else if (isManual) {
-        footerHtml = `<div class="manual-section-footer">
-            <span style="font-size:11px;color:#16a34a">
-              ${isDone ? '✓ ' + wordCount + ' words — Self-authored' : 'Begin writing above'}
-            </span>
-            <button class="manual-save-btn" onclick="manualSave('${s.id}')">Save section</button>
-           </div>`;
-      } else {
-        // Guided footer
-        footerHtml = `<div class="manual-section-footer" style="background:#fffbeb;border-top-color:#fde68a;">
-            <span style="font-size:11px;color:#92400e">
-              ${isDone ? '✓ ' + wordCount + ' words — Guided draft' : 'Write above, then get AI feedback'}
-            </span>
-            <div style="display:flex;gap:8px;">
-              <button class="manual-save-btn" style="background:#92400e" onclick="manualSave('${s.id}')">Save section</button>
-              <button class="guided-get-btn" id="feedbackBtn-${s.id}" onclick="getGuidedFeedback('${s.id}')">
-                <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                Get AI Feedback
-              </button>
-            </div>
-           </div>`;
-      }
-
-      return `
-        <div class="section-card" id="card-${s.id}">
-          <div class="section-card-header">
-            <div class="section-card-title">
-              <div class="section-card-num ${isDone ? 'done' : ''}">${isDone ? '✓' : (i+1)}</div>
-              <div>
-                <div class="section-card-label">${s.label}</div>
-                <div class="section-card-desc">${s.desc}</div>
-              </div>
-            </div>
-            <div class="section-card-actions">${actionsHtml}</div>
-          </div>
-          <div class="section-card-body" id="body-${s.id}">${bodyHtml}</div>
-          ${footerHtml}
-        </div>
-      `;
-    }).join('');
-  }
-
-  function clearSection(sectionId) {
-    if (!confirm('Clear this section? Your authored content will be removed.')) return;
-    delete generated[sectionId];
-    NiraProject.save('proposal', generated);
-    renderSectionCards();
-    renderSectionsNav();
-    updateProgress();
-  }
-
-  function manualSave(sectionId) {
-    const el = document.getElementById('content-' + sectionId);
-    if (!el) return;
-    const text = el.value.trim();
-    if (!text) return;
-    generated[sectionId] = text;
-    NiraProject.save('proposal', generated);
-    renderSectionCards();
-    renderSectionsNav();
-    updateProgress();
-    showToast('Section saved', 'success');
-  }
-
-  async function getGuidedFeedback(sectionId) {
-    const el = document.getElementById('content-' + sectionId);
-    if (!el || !el.value.trim()) {
-      showToast('Please write something first', 'warning');
-      return;
-    }
-    const text = el.value.trim();
-    const s = SECTIONS.find(x => x.id === sectionId);
-    const btn = document.getElementById('feedbackBtn-' + sectionId);
-    const panel = document.getElementById('feedback-' + sectionId);
-    const feedbackText = document.getElementById('feedbackText-' + sectionId);
-
-    if (btn) { btn.disabled = true; btn.textContent = 'Analysing...'; }
-    if (panel) panel.classList.add('open');
-    if (feedbackText) feedbackText.textContent = 'Dr. NIRA is reviewing your writing...';
-
-    const prompt = `You are Dr. NIRA, an expert academic writing advisor. A student has written the "${s.label}" section of their PhD proposal.
-
-Review their writing and provide structured academic feedback covering:
-1. **Clarity & precision** — Is the academic language clear and precise?
-2. **Structure & coherence** — Is the section logically organized?
-3. **Academic register** — Is the tone appropriate for a PhD proposal?
-4. **Content completeness** — Are all required elements present?
-5. **Specific improvements** — Give 2-3 concrete, actionable suggestions.
-
-Be constructive, specific, and scholarly. Reference actual phrases from their text.
-
-Student's draft:
-${text}`;
-
-    try {
-      const res = await fetch('/api/proposal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'API error');
-      if (feedbackText) feedbackText.textContent = data.result || '';
-      showToast('Feedback ready', 'success');
-    } catch(err) {
-      if (feedbackText) feedbackText.textContent = 'Error: ' + err.message;
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Get AI Feedback';
-      }
-    }
-  }
-
-  function scrollToSection(id) {
-    const el = document.getElementById('card-' + id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function updateProgress() {
-    const done = Object.keys(generated).length;
-    const total = SECTIONS.length;
-    const pct = Math.round((done / total) * 100);
-    document.getElementById('navProgressFill').style.width = pct + '%';
-    document.getElementById('navProgressLabel').textContent = `${done} of ${total} sections complete`;
-    if (done === total) document.getElementById('exportBar').style.display = 'flex';
-  }
-
-  // ── EDITOR: auto-save timers per section ──
-  var autoSaveTimers = {};
-
-  function saveEdits(sectionId) {
-    var el = document.getElementById('content-' + sectionId);
-    if (!el) return;
-    var text = el.tagName === 'TEXTAREA' ? el.value : el.innerText;
-    generated[sectionId] = text;
-    NiraProject.save('proposal', generated);
-    // Clear unsaved state
-    el.classList.remove('unsaved');
-    var footer = el.closest('.section-card') && el.closest('.section-card').querySelector('.edit-hint');
-    if (footer) { footer.textContent = 'Saved ✓'; footer.className = 'edit-hint'; setTimeout(function(){ footer.textContent = 'Click text to edit directly'; }, 1500); }
-  }
-
-  function onContentInput(sectionId) {
-    var el = document.getElementById('content-' + sectionId);
-    if (!el) return;
-
-    // Mark unsaved
-    el.classList.add('unsaved');
-    var footer = el.closest('.section-card') && el.closest('.section-card').querySelector('.edit-hint');
-    if (footer) { footer.textContent = 'Unsaved changes...'; footer.className = 'edit-hint unsaved-hint'; }
-
-    // Auto-save after 1.5s inactivity
-    clearTimeout(autoSaveTimers[sectionId]);
-    autoSaveTimers[sectionId] = setTimeout(function(){ saveEdits(sectionId); }, 1500);
-  }
-
-  function onContentBlur(sectionId) {
-    // Save immediately on blur
-    clearTimeout(autoSaveTimers[sectionId]);
-    saveEdits(sectionId);
-  }
-
-  function onContentPaste(e) {
-    // Sanitize paste — plain text only, no HTML injection
-    e.preventDefault();
-    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
-    var sel = window.getSelection();
-    if (!sel.rangeCount) return;
-    sel.deleteFromDocument();
-    var range = sel.getRangeAt(0);
-    var textNode = document.createTextNode(text);
-    range.insertNode(textNode);
-    range.setStartAfter(textNode);
-    range.setEndAfter(textNode);
-    sel.removeAllRanges();
-    sel.addRange(range);
-    // Trigger input event
-    var el = e.target;
-    var sectionId = el.id.replace('content-', '');
-    onContentInput(sectionId);
-  }
-
-  function buildPrompt(sectionId) {
-    const s = SECTIONS.find(x => x.id === sectionId);
-    const topicTitle = topic.title_en || 'the research topic';
-    const field = profile.field || 'the research field';
-    const degree = profile.degree || 'PhD';
-    const citation = profile.citation || 'APA 7';
-    const researchType = topic.research_type || profile.researchType || 'Mixed methods';
-    const gap = topic.research_gap || '';
-    const keywords = topic.keywords ? topic.keywords.join(', ') : '';
-
-    const context = `
-Topic: ${topicTitle}
-Field: ${field}
-Degree level: ${degree}
-Research type: ${researchType}
-Citation format: ${citation}
-Research gap: ${gap}
-Keywords: ${keywords}
-    `.trim();
-
-    const uploadContext = localStorage.getItem('nira_upload_context');
-    const uploadSection = uploadContext ? `\n\nReference document (use this as context and basis):\n${uploadContext.slice(0, 3000)}` : '';
-
-    const prompts = {
-      title: `Write the Title section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Full English title\n2. Persian translation of the title\n3. Short title (max 6 words)\n\nWrite in formal academic English. Be precise and scholarly.`,
-
-      problem: `Write the Problem Statement section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Introduction to the topic\n2. Importance of the research area\n3. The main problem being addressed\n4. The research gap in existing literature\n5. Necessity of this research\n\nWrite 400-600 words in formal academic English with strong scholarly tone.${uploadSection}`,
-
-      objectives: `Write the Objectives section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. General objective (1 clear statement)\n2. Specific objectives (3-4 numbered items)\n3. Applied objectives (2-3 practical goals)\n\nWrite in formal academic English.`,
-
-      questions: `Write the Research Questions section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Main research question\n2. Sub-questions (3-4 items)\n\nEach question should be clear, researchable, and directly tied to the research gap. Write in formal academic English.`,
-
-      hypotheses: `Write the Hypotheses section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Main hypothesis\n2. Sub-hypotheses (2-3 items)\n\nWrite testable, clear hypotheses appropriate for ${researchType} research. Use formal academic English.`,
-
-      literature: `Write the Literature Review / Research Background section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Overview of domestic (Iranian/local) studies (3-4 examples with years)\n2. Overview of international studies (4-5 examples with years)\n3. Comparison of existing research\n4. Identified gap in literature\n\nIMPORTANT: Write plausible, representative academic references in ${citation} format. These are illustrative examples — the researcher must verify all references independently. Write 500-700 words in formal academic English.`,
-
-      novelty: `Write the Innovation and Necessity section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. What makes this research innovative\n2. Why this research is necessary\n3. How it contributes to the field\n4. Practical significance\n\nWrite 250-350 words in formal academic English.`,
-
-      methodology: `Write the Methodology section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Type of research (${researchType})\n2. Statistical population / participants\n3. Sampling method and sample size\n4. Data collection instrument(s)\n5. Validity and reliability\n6. Data analysis method\n7. Software tools to be used\n\nWrite in formal academic English with clear structure.`,
-
-      limitations: `Write the Limitations section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Scope limitations (what is excluded)\n2. Methodological limitations\n3. Access/resource limitations\n4. Generalizability constraints\n\nWrite 200-300 words in formal academic English.`,
-
-      references: `Generate an Initial References list for a ${degree} research proposal on: ${topicTitle}\nField: ${field}\n\nProvide 10-12 illustrative academic references in ${citation} format. Include a mix of:\n- Journal articles (recent, 2020-2026)\n- Books\n- Conference papers\n\nIMPORTANT: These are representative examples to guide the researcher. Add a note at the end: "Note: All references must be independently verified before submission."\n\nFormat correctly in ${citation} style.`
+    const proposal = {
+      id: Date.now(),
+      name,
+      topic: t.title_en || name,
+      field: t.keywords ? t.keywords.slice(0,2).join(', ') : '',
+      researchType: t.research_type || '',
+      sections: data,
+      sectionCount: Object.keys(data).length,
+      wordCount: Object.values(data).reduce((acc, v) => acc + (v || '').trim().split(/\s+/).length, 0),
+      savedAt: new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }),
+      savedTs: Date.now()
     };
 
-    return prompts[sectionId] || `Write the ${s.label} section for a research proposal on: ${topicTitle}`;
+    proposals.unshift(proposal);
+    localStorage.setItem('nira_proposals', JSON.stringify(proposals));
+    document.getElementById('saveBar').style.display = 'none';
+    renderProposals();
+    showToast('Proposal saved!', 'success');
+
+    const btn = event.target;
+    btn.textContent = '✓ Saved!';
+    setTimeout(() => { btn.textContent = 'Save proposal'; }, 2000);
   }
 
-  async function generateSection(sectionId) {
-    if (generating) return;
-    generating = true;
+  function renderProposals() {
+    const container = document.getElementById('proposalsContainer');
+    if (proposals.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+          <h3>No saved proposals yet</h3>
+          <p>Build a proposal and save it here to manage all your work in one place.</p>
+          <button class="btn-sm" onclick="window.location.href='proposal.html'">Start a proposal</button>
+        </div>
+      `;
+      return;
+    }
 
-    const btn = document.getElementById('btn-' + sectionId);
-    const body = document.getElementById('body-' + sectionId);
-    const card = document.getElementById('card-' + sectionId);
+    const keys = Object.keys(SECTION_LABELS);
+    container.innerHTML = `
+      <div class="proposals-grid">
+        ${proposals.map((p, i) => {
+          const pct = Math.round((p.sectionCount / 10) * 100);
+          const sectionDots = keys.map(k => `<div class="section-dot ${p.sections[k] ? 'done' : 'empty'}"></div>`).join('');
+          return `
+            <div class="proposal-card" onclick="openModal(${p.id})">
+              <div class="proposal-card-top">
+                <div class="proposal-card-num">Proposal ${proposals.length - i}</div>
+                <div class="proposal-card-title">${p.name}</div>
+                <div class="proposal-card-meta">${p.savedAt}${p.researchType ? ' · ' + p.researchType : ''}</div>
+              </div>
+              <div class="proposal-card-body">
+                <div class="proposal-progress">
+                  <div class="proposal-progress-fill" style="width:${pct}%"></div>
+                </div>
+                <div class="proposal-stats">
+                  <div class="proposal-stat"><strong>${p.sectionCount}/10</strong> sections</div>
+                  <div class="proposal-stat"><strong>${p.wordCount > 999 ? (p.wordCount/1000).toFixed(1)+'k' : p.wordCount}</strong> words</div>
+                  <div class="proposal-stat"><strong>${pct}%</strong> complete</div>
+                </div>
+                <div class="proposal-sections">${sectionDots}</div>
+                <div class="proposal-card-actions" onclick="event.stopPropagation()">
+                  <button class="btn-card primary" onclick="loadAndOpen(${p.id})">Open</button>
+                  <button class="btn-card" onclick="exportProposal(${p.id})">Export</button>
+                  <button class="btn-card danger" onclick="deleteProposal(${p.id})">Delete</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
 
-    if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
-    body.innerHTML = `<div class="generating-placeholder"><div class="spinner"></div><span>Dr. NIRA is writing this section...</span></div>`;
-
-    // Mark as generating in nav
-    const navItems = document.querySelectorAll('.section-nav-item');
-    SECTIONS.forEach((s, i) => {
-      if (s.id === sectionId && navItems[i]) {
-        navItems[i].querySelector('.section-status').classList.add('generating');
+  function openModal(id) {
+    const p = proposals.find(x => x.id === id);
+    if (!p) return;
+    activeModalId = id;
+    document.getElementById('modalTitle').textContent = p.name;
+    const keys = Object.keys(SECTION_LABELS);
+    let html = '';
+    keys.forEach(k => {
+      if (p.sections[k]) {
+        html += `
+          <div class="modal-section">
+            <div class="modal-section-title">${SECTION_LABELS[k]}</div>
+            <div class="modal-section-text">${p.sections[k].slice(0, 300)}${p.sections[k].length > 300 ? '...' : ''}</div>
+          </div>
+        `;
       }
     });
+    document.getElementById('modalBody').innerHTML = html || '<p style="color:var(--text-mid);font-size:13px">No sections found.</p>';
+    document.getElementById('modalOverlay').style.display = 'flex';
+  }
 
-    try {
-      const prompt = buildPrompt(sectionId);
-      const res = await fetch('/api/proposal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'API error');
-
-      const content = data.result || '';
-      generated[sectionId] = content;
-      NiraProject.save('proposal', generated);
-      showToast('Section generated!', 'success');
-
-      // Clean markdown from AI response
-      var cleaned = content
-        .replace(/\*\*([^*]+)\*\*/g, '$1')
-        .replace(/\*([^*]+)\*/g, '$1')
-        .replace(/^#{1,3}\s+/gm, '')
-        .replace(/^[-*]\s+/gm, '• ')
-        .trim();
-
-      const wordCount = cleaned.trim().split(/\s+/).length;
-
-      // Update card — use separate elements to avoid innerHTML+= breaking contenteditable
-      const sectionMeta = SECTIONS.find(s => s.id === sectionId);
-      const idx = SECTIONS.findIndex(s => s.id === sectionId);
-      card.querySelector('.section-card-num').textContent = '✓';
-      card.querySelector('.section-card-num').classList.add('done');
-      card.querySelector('.section-card-actions').innerHTML = `<button class="btn-regen" onclick="generateSection('${sectionId}')">Regenerate</button>`;
-      body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}"
-        oninput="onContentInput('${sectionId}')"
-        onblur="onContentBlur('${sectionId}')"
-        onpaste="onContentPaste(event)"
-        title="Click to edit">${cleaned}</div>`;
-
-      // Remove old footer if exists, then add new one
-      var oldFooter = card.querySelector('.section-footer');
-      if (oldFooter) oldFooter.remove();
-      var footer = document.createElement('div');
-      footer.className = 'section-footer';
-      footer.innerHTML = '<span class="word-count">' + wordCount + ' words · AI-drafted</span><span class="edit-hint">Click text to edit directly</span>';
-      card.appendChild(footer);
-
-      renderSectionsNav();
-      updateProgress();
-
-    } catch (err) {
-      body.innerHTML = `<div class="section-empty"><p style="color:#dc2626">Error: ${err.message}. Please try again.</p></div>`;
-      if (btn) { btn.disabled = false; btn.textContent = 'Generate'; }
-    } finally {
-      generating = false;
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modalOverlay')) {
+      document.getElementById('modalOverlay').style.display = 'none';
+      activeModalId = null;
     }
   }
 
-  async function generateAll() {
-    const btn = document.getElementById('generateAllBtn');
-    btn.disabled = true;
-    btn.textContent = 'Generating...';
+  function loadProposal() {
+    if (!activeModalId) return;
+    loadAndOpen(activeModalId);
+  }
 
-    for (const section of SECTIONS) {
-      if (!generated[section.id]) {
-        await generateSection(section.id);
-        await new Promise(r => setTimeout(r, 500));
+  function loadAndOpen(id) {
+    const p = proposals.find(x => x.id === id);
+    if (!p) return;
+    localStorage.setItem('nira_proposal', JSON.stringify(p.sections));
+    window.location.href = 'proposal.html';
+  }
+
+  function deleteProposal(id) {
+    if (!confirm('Delete this proposal? This cannot be undone.')) return;
+    proposals = proposals.filter(p => p.id !== id);
+    localStorage.setItem('nira_proposals', JSON.stringify(proposals));
+    renderProposals();
+  }
+
+  function exportProposal(id) {
+    const p = proposals.find(x => x.id === id);
+    if (!p) return;
+    const keys = Object.keys(SECTION_LABELS);
+    let text = `PhD RESEARCH PROPOSAL\n${'='.repeat(50)}\n`;
+    text += `Title: ${p.name}\nDate: ${p.savedAt}\n\n`;
+    let num = 1;
+    keys.forEach(k => {
+      if (p.sections[k]) {
+        text += `${num}. ${SECTION_LABELS[k].toUpperCase()}\n${'─'.repeat(40)}\n${p.sections[k]}\n\n`;
+        num++;
       }
-    }
-
-    btn.disabled = false;
-    btn.innerHTML = '✓ All sections generated';
+    });
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = p.name.replace(/[^a-z0-9]/gi,'-').toLowerCase() + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 </script>
 
