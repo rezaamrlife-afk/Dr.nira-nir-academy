@@ -1104,7 +1104,7 @@ Keywords: ${keywords}
 
       hypotheses: `Write the Hypotheses section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Main hypothesis\n2. Sub-hypotheses (2-3 items)\n\nWrite testable, clear hypotheses appropriate for ${researchType} research. Use formal academic English.`,
 
-      literature: `Write the Literature Review / Research Background section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Overview of domestic (Iranian/local) studies (3-4 examples with years)\n2. Overview of international studies (4-5 examples with years)\n3. Comparison of existing research\n4. Identified gap in literature\n\nNote: Use plausible academic references in ${citation} format. Write 500-700 words in formal academic English.`,
+      literature: `Write the Literature Review / Research Background section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Overview of domestic (Iranian/local) studies (3-4 examples with years)\n2. Overview of international studies (4-5 examples with years)\n3. Comparison of existing research\n4. Identified gap in literature\n\nIMPORTANT: Write plausible, representative academic references in ${citation} format. These are illustrative examples — the researcher must verify all references independently. Write 500-700 words in formal academic English.`,
 
       novelty: `Write the Innovation and Necessity section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. What makes this research innovative\n2. Why this research is necessary\n3. How it contributes to the field\n4. Practical significance\n\nWrite 250-350 words in formal academic English.`,
 
@@ -1112,7 +1112,7 @@ Keywords: ${keywords}
 
       limitations: `Write the Limitations section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Scope limitations (what is excluded)\n2. Methodological limitations\n3. Access/resource limitations\n4. Generalizability constraints\n\nWrite 200-300 words in formal academic English.`,
 
-      references: `Generate an Initial References list for a ${degree} research proposal on: ${topicTitle}\nField: ${field}\n\nProvide 10-12 plausible, realistic academic references in ${citation} format. Include a mix of:\n- Journal articles (recent, 2018-2024)\n- Books\n- Conference papers\n\nFormat correctly in ${citation} style. Write only the reference list, no extra text.`
+      references: `Generate an Initial References list for a ${degree} research proposal on: ${topicTitle}\nField: ${field}\n\nProvide 10-12 illustrative academic references in ${citation} format. Include a mix of:\n- Journal articles (recent, 2020-2026)\n- Books\n- Conference papers\n\nIMPORTANT: These are representative examples to guide the researcher. Add a note at the end: "Note: All references must be independently verified before submission."\n\nFormat correctly in ${citation} style.`
     };
 
     return prompts[sectionId] || `Write the ${s.label} section for a research proposal on: ${topicTitle}`;
