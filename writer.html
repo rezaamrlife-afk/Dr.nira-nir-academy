@@ -244,7 +244,29 @@
     .topbar { padding: 0 16px; }
   }
 </style>
-<script src="toast.js"></script>
+<script>
+function showToast(message, type = 'success', duration = 3000) {
+  if (!document.getElementById('nira-toast-container')) {
+    const c = document.createElement('div');
+    c.id = 'nira-toast-container';
+    c.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(c);
+  }
+  if (!document.getElementById('nira-toast-style')) {
+    const s = document.createElement('style');
+    s.id = 'nira-toast-style';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(s);
+  }
+  const colors = { success:'#16a34a', error:'#dc2626', info:'#2563EB', warning:'#d97706' };
+  const icons  = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+  const toast = document.createElement('div');
+  toast.style.cssText = `background:${colors[type]||colors.success};color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;white-space:nowrap;animation:toastIn 0.25s ease;`;
+  toast.innerHTML = `<span>${icons[type]||'✓'}</span>${message}`;
+  document.getElementById('nira-toast-container').appendChild(toast);
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
+}
+</script>
 </head>
 <body>
 <div class="app-shell">
@@ -307,37 +329,8 @@
       <!-- EDITOR AREA -->
       <div class="editor-area" id="editorArea">
 
-        <!-- QUILL TOOLBAR -->
-        <div id="toolbar" style="width:100%;max-width:820px">
-          <span class="ql-formats">
-            <select class="ql-header">
-              <option value="1">Heading 1</option>
-              <option value="2">Heading 2</option>
-              <option value="3">Heading 3</option>
-              <option selected>Normal</option>
-            </select>
-          </span>
-          <span class="ql-formats">
-            <button class="ql-bold" title="Bold"></button>
-            <button class="ql-italic" title="Italic"></button>
-            <button class="ql-underline" title="Underline"></button>
-            <button class="ql-strike" title="Strikethrough"></button>
-          </span>
-          <span class="ql-formats">
-            <button class="ql-blockquote" title="Blockquote"></button>
-            <button class="ql-list" value="ordered" title="Numbered list"></button>
-            <button class="ql-list" value="bullet" title="Bullet list"></button>
-          </span>
-          <span class="ql-formats">
-            <button class="ql-align" value="" title="Left"></button>
-            <button class="ql-align" value="center" title="Center"></button>
-            <button class="ql-align" value="right" title="Right"></button>
-          </span>
-          <span class="ql-formats">
-            <button class="ql-link" title="Insert link"></button>
-            <button class="ql-clean" title="Clear formatting"></button>
-          </span>
-        </div>
+        <!-- QUILL TOOLBAR - defined by JS -->
+        <div id="toolbar" style="width:100%;max-width:820px"></div>
 
         <!-- WRITING CARD -->
         <div id="editor-container">
@@ -379,11 +372,26 @@
   const quill = new Quill('#editor', {
     theme: 'snow',
     modules: {
-      toolbar: '#toolbar',
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', { list: 'ordered' }, { list: 'bullet' }],
+          [{ align: [] }],
+          ['link', 'clean']
+        ],
+        handlers: {}
+      },
       history: { delay: 1000, maxStack: 100, userOnly: true }
     },
     placeholder: 'Start writing your academic document here...'
   });
+
+  // Style the toolbar container
+  const toolbarEl = document.querySelector('.ql-toolbar');
+  if (toolbarEl) {
+    toolbarEl.style.cssText = 'width:100%;max-width:820px;background:#fff;border:1px solid #dde6f5;border-radius:10px 10px 0 0;padding:8px 12px;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,0.06);';
+  }
 
   // Add undo/redo buttons outside toolbar
   document.getElementById('extraToolbar').innerHTML = `
