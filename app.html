@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="js/project-manager.js"></script>
 <script src="js/auth-guard.js"></script>
 
 <meta charset="UTF-8">
@@ -745,6 +746,7 @@
     <div class="topbar">
       <span class="topbar-title">Dashboard</span>
       <div class="topbar-actions">
+        <button class="btn-sm-outline" style="color:#dc2626;border-color:#fecaca;font-size:12px" onclick="resetAllData()">Reset data</button>
         <button class="btn-sm-outline" onclick="window.location.href='index.html'">
           <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1V10"/></svg>
           Home
@@ -938,6 +940,12 @@
 </div>
 
 <script>
+function resetAllData() {
+  if (!confirm('This will clear ALL your research data including proposals, thesis, and questionnaires. This cannot be undone. Continue?')) return;
+  NiraProject.hardReset();
+  window.location.reload();
+}
+
 function toggleMoreDrawer() {
   document.getElementById('moreDrawer').classList.toggle('open');
   document.getElementById('moreOverlay').classList.toggle('open');
