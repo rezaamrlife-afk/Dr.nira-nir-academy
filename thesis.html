@@ -166,6 +166,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
   .topbar{padding:0 16px;}
 }
 </style>
+<script src="js/project-manager.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -350,13 +351,13 @@ var chapterIds = ['chapter1','chapter2','chapter3','chapter4','chapter5'];
 // ════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════
-var thesisData = JSON.parse(localStorage.getItem('nira_thesis_v2') || '{}');
+var thesisData = NiraProject.load('thesis') || {};
 var profile = JSON.parse(localStorage.getItem('nira_profile') || '{}');
 var topic = JSON.parse(localStorage.getItem('nira_selected_topic') || '{}');
 var proposal = JSON.parse(localStorage.getItem('nira_proposal') || '{}');
 
 function saveState() {
-  localStorage.setItem('nira_thesis_v2', JSON.stringify(thesisData));
+  NiraProject.save('thesis', thesisData);
 }
 
 // ════════════════════════════════════════
