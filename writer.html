@@ -244,6 +244,7 @@
     .topbar { padding: 0 16px; }
   }
 </style>
+<script src="toast.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -338,14 +339,13 @@
           </span>
         </div>
 
-        <!-- UNDO/REDO outside toolbar -->
-        <div class="extra-toolbar" id="extraToolbar">
-        </div>
-
         <!-- WRITING CARD -->
         <div id="editor-container">
           <div id="editor"></div>
         </div>
+
+        <!-- UNDO/REDO — placed AFTER editor so Quill doesn't interfere -->
+        <div class="extra-toolbar" id="extraToolbar"></div>
 
         <!-- STATS BAR -->
         <div class="stats-bar">
