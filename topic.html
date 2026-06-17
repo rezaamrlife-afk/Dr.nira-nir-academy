@@ -217,7 +217,29 @@
     .topbar { padding: 0 16px; }
   }
 </style>
-<script src="toast.js"></script>
+<script>
+function showToast(message, type = 'success', duration = 3000) {
+  if (!document.getElementById('nira-toast-container')) {
+    const c = document.createElement('div');
+    c.id = 'nira-toast-container';
+    c.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(c);
+  }
+  if (!document.getElementById('nira-toast-style')) {
+    const s = document.createElement('style');
+    s.id = 'nira-toast-style';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(s);
+  }
+  const colors = { success:'#16a34a', error:'#dc2626', info:'#2563EB', warning:'#d97706' };
+  const icons  = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+  const toast = document.createElement('div');
+  toast.style.cssText = `background:${colors[type]||colors.success};color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;white-space:nowrap;animation:toastIn 0.25s ease;`;
+  toast.innerHTML = `<span>${icons[type]||'✓'}</span>${message}`;
+  document.getElementById('nira-toast-container').appendChild(toast);
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
+}
+</script>
 </head>
 <body>
 <div class="app-shell">
