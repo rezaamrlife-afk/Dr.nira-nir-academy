@@ -89,8 +89,27 @@
   .topic-chip-text p { font-size: 11px; color: var(--muted); }
   .topic-chip-change { font-size: 11px; color: var(--blue-light); cursor: pointer; white-space: nowrap; flex-shrink: 0; text-decoration: underline; }
 
-  /* GENERATE ALL */
-  .generate-all-bar { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  /* AUTHORING MODE TOGGLE */
+  .mode-toggle-bar { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .mode-toggle-left h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
+  .mode-toggle-left p { font-size: 12px; color: var(--text-mid); }
+  .mode-toggle-pills { display: flex; background: #f0f4ff; border-radius: 9px; padding: 3px; gap: 2px; flex-shrink: 0; }
+  .mode-pill { padding: 7px 16px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; background: transparent; font-family: 'Inter', sans-serif; color: var(--text-mid); transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .mode-pill.active { background: #fff; color: var(--text-dark); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .mode-pill.active.ai { color: var(--blue); }
+  .mode-pill.active.manual { color: #16a34a; }
+  .mode-pill svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mode-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .mode-badge.ai { background: var(--blue-pale); color: var(--blue); }
+  .mode-badge.manual { background: #dcfce7; color: #16a34a; }
+
+  /* MANUAL MODE TEXTAREA */
+  .manual-textarea { width: 100%; padding: 16px; border: none; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.8; resize: vertical; min-height: 160px; background: #fafcff; }
+  .manual-textarea::placeholder { color: #b0bec5; font-style: italic; }
+  .manual-section-footer { padding: 10px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; }
+  .manual-save-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .manual-save-btn:hover { background: #15803d; }
+  .authored-badge { font-size: 11px; color: #16a34a; font-weight: 500; }
   .generate-all-text h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
   .generate-all-text p { font-size: 12px; color: var(--text-mid); }
   .generate-all-btn { background: var(--navy-dark); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; transition: background 0.2s; }
@@ -327,8 +346,26 @@ function showToast(message, type = 'success', duration = 3000) {
 
         <!-- RIGHT CONTENT -->
         <div>
-          <!-- GENERATE ALL -->
-          <div class="generate-all-bar">
+          <!-- AUTHORING MODE TOGGLE -->
+          <div class="mode-toggle-bar">
+            <div class="mode-toggle-left">
+              <h4 id="modeTitle">AI-Assisted Drafting</h4>
+              <p id="modeDesc">Dr. NIRA generates each section — review and edit as needed</p>
+            </div>
+            <div class="mode-toggle-pills">
+              <button class="mode-pill active ai" id="pillAI" onclick="setMode('ai')">
+                <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                AI-Assisted Drafting
+              </button>
+              <button class="mode-pill manual" id="pillManual" onclick="setMode('manual')">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Independent Authoring
+              </button>
+            </div>
+          </div>
+
+          <!-- GENERATE ALL (AI mode only) -->
+          <div class="generate-all-bar" id="generateAllBar">
             <div class="generate-all-text">
               <h4>Generate full proposal</h4>
               <p>Auto-generate all 10 sections one by one with academic precision.</p>
@@ -377,6 +414,32 @@ function showToast(message, type = 'success', duration = 3000) {
   let topic = {};
   let generated = {};
   let generating = false;
+  let authoringMode = localStorage.getItem('nira_authoring_mode') || 'ai';
+
+  function setMode(mode) {
+    authoringMode = mode;
+    localStorage.setItem('nira_authoring_mode', mode);
+
+    // Update pills
+    document.getElementById('pillAI').classList.toggle('active', mode === 'ai');
+    document.getElementById('pillAI').classList.toggle('ai', mode === 'ai');
+    document.getElementById('pillManual').classList.toggle('active', mode === 'manual');
+    document.getElementById('pillManual').classList.toggle('manual', mode === 'manual');
+
+    // Update labels
+    if (mode === 'ai') {
+      document.getElementById('modeTitle').textContent = 'AI-Assisted Drafting';
+      document.getElementById('modeDesc').textContent = 'Dr. NIRA generates each section — review and edit as needed';
+      document.getElementById('generateAllBar').style.display = 'flex';
+    } else {
+      document.getElementById('modeTitle').textContent = 'Independent Authoring';
+      document.getElementById('modeDesc').textContent = 'Write each section yourself — full scholarly control';
+      document.getElementById('generateAllBar').style.display = 'none';
+    }
+
+    // Re-render cards with new mode
+    renderSectionCards();
+  }
 
   window.addEventListener('load', function() {
     const sp = localStorage.getItem('nira_profile');
@@ -414,6 +477,9 @@ function showToast(message, type = 'success', duration = 3000) {
     renderSectionsNav();
     renderSectionCards();
     updateProgress();
+
+    // Apply saved authoring mode
+    setMode(authoringMode);
   });
 
   function renderSectionsNav() {
@@ -433,10 +499,50 @@ function showToast(message, type = 'success', duration = 3000) {
 
   function renderSectionCards() {
     const container = document.getElementById('sectionCards');
+    const isManual = authoringMode === 'manual';
+
     container.innerHTML = SECTIONS.map((s, i) => {
       const isDone = !!generated[s.id];
       const content = generated[s.id] || '';
       const wordCount = content ? content.trim().split(/\s+/).length : 0;
+
+      // Actions differ by mode
+      const actionsHtml = isManual
+        ? (isDone
+            ? `<span class="mode-badge manual">Self-authored</span>
+               <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
+            : `<span class="mode-badge manual" style="opacity:0.5">Independent Authoring</span>`)
+        : (isDone
+            ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
+            : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')">
+                <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                Generate draft
+               </button>`);
+
+      // Body differs by mode
+      const bodyHtml = isManual
+        ? `<textarea class="manual-textarea" id="content-${s.id}"
+              placeholder="Write the ${s.label} section here. Maintain formal academic register and discipline-appropriate terminology..."
+              oninput="saveEdits('${s.id}')">${content}</textarea>`
+        : (isDone
+            ? `<div class="section-content" contenteditable="true" id="content-${s.id}" oninput="saveEdits('${s.id}')">${content}</div>`
+            : `<div class="section-empty"><p>Click "Generate draft" to create this section with AI assistance.</p></div>`);
+
+      // Footer differs by mode
+      const footerHtml = isManual
+        ? `<div class="manual-section-footer">
+            <span class="authored-label" style="font-size:11px;color:#16a34a">
+              ${isDone ? '✓ ' + wordCount + ' words — Self-authored' : 'Begin writing above'}
+            </span>
+            <button class="manual-save-btn" onclick="manualSave('${s.id}')">Save section</button>
+           </div>`
+        : (isDone
+            ? `<div class="section-footer">
+                <span class="word-count">${wordCount} words · AI-drafted</span>
+                <span class="edit-hint">Click text to edit directly</span>
+               </div>`
+            : '');
+
       return `
         <div class="section-card" id="card-${s.id}">
           <div class="section-card-header">
@@ -447,24 +553,35 @@ function showToast(message, type = 'success', duration = 3000) {
                 <div class="section-card-desc">${s.desc}</div>
               </div>
             </div>
-            <div class="section-card-actions">
-              ${isDone ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>` : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')">Generate</button>`}
-            </div>
+            <div class="section-card-actions">${actionsHtml}</div>
           </div>
-          <div class="section-card-body" id="body-${s.id}">
-            ${isDone
-              ? `<div class="section-content" contenteditable="true" id="content-${s.id}" oninput="saveEdits('${s.id}')">${content}</div>`
-              : `<div class="section-empty"><p>Click "Generate" to create this section with AI.</p></div>`
-            }
-          </div>
-          ${isDone ? `
-          <div class="section-footer">
-            <span class="word-count">${wordCount} words</span>
-            <span class="edit-hint">Click text to edit directly</span>
-          </div>` : ''}
+          <div class="section-card-body" id="body-${s.id}">${bodyHtml}</div>
+          ${footerHtml}
         </div>
       `;
     }).join('');
+  }
+
+  function clearSection(sectionId) {
+    if (!confirm('Clear this section? Your authored content will be removed.')) return;
+    delete generated[sectionId];
+    localStorage.setItem('nira_proposal', JSON.stringify(generated));
+    renderSectionCards();
+    renderSectionsNav();
+    updateProgress();
+  }
+
+  function manualSave(sectionId) {
+    const el = document.getElementById('content-' + sectionId);
+    if (!el) return;
+    const text = el.value.trim();
+    if (!text) return;
+    generated[sectionId] = text;
+    localStorage.setItem('nira_proposal', JSON.stringify(generated));
+    renderSectionCards();
+    renderSectionsNav();
+    updateProgress();
+    showToast('Section saved', 'success');
   }
 
   function scrollToSection(id) {
@@ -483,10 +600,10 @@ function showToast(message, type = 'success', duration = 3000) {
 
   function saveEdits(sectionId) {
     const el = document.getElementById('content-' + sectionId);
-    if (el) {
-      generated[sectionId] = el.innerText;
-      localStorage.setItem('nira_proposal', JSON.stringify(generated));
-    }
+    if (!el) return;
+    const text = el.tagName === 'TEXTAREA' ? el.value : el.innerText;
+    generated[sectionId] = text;
+    localStorage.setItem('nira_proposal', JSON.stringify(generated));
   }
 
   function buildPrompt(sectionId) {
