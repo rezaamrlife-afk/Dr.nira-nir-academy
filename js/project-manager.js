@@ -202,7 +202,7 @@ var NiraProject = (function() {
   }
 
   function hardReset() {
-    // Clear ALL Dr. NIRA data from browser
+    // Clear ALL Dr. NIRA data — but preserve auth session
     var keysToRemove = [
       'nira_projects', 'nira_active_project',
       'nira_proposal', 'nira_thesis_v2', 'nira_questionnaire',
