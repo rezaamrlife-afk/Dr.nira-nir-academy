@@ -201,6 +201,19 @@ var NiraProject = (function() {
     return true;
   }
 
+  function hardReset() {
+    // Clear ALL Dr. NIRA data from browser
+    var keysToRemove = [
+      'nira_projects', 'nira_active_project',
+      'nira_proposal', 'nira_thesis_v2', 'nira_questionnaire',
+      'nira_citations', 'nira_selected_topic', 'nira_topics',
+      'nira_upload_text', 'nira_upload_context', 'nira_upload_filename',
+      'nira_build_from_upload', 'nira_authoring_mode'
+    ];
+    keysToRemove.forEach(function(k){ localStorage.removeItem(k); });
+    return true;
+  }
+
   // ── AUTO-INIT ──
   // Do NOT auto-migrate legacy data — start fresh with project system
   // Legacy keys (nira_proposal, nira_thesis_v2 etc.) are ignored
@@ -219,7 +232,8 @@ var NiraProject = (function() {
     load:         loadModule,
     saveTopic:    saveTopic,
     loadTopic:    loadTopic,
-    getActiveId:  getActiveId
+    getActiveId:  getActiveId,
+    hardReset:    hardReset
   };
 
 })();
