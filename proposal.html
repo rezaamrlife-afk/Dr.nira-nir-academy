@@ -183,6 +183,7 @@
     .topbar { padding: 0 16px; }
   }
 </style>
+<script src="toast.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -535,6 +536,7 @@ Keywords: ${keywords}
       const content = data.result || '';
       generated[sectionId] = content;
       localStorage.setItem('nira_proposal', JSON.stringify(generated));
+      showToast('Section generated!', 'success');
 
       const wordCount = content.trim().split(/\s+/).length;
 
