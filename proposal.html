@@ -89,19 +89,26 @@
   .topic-chip-text p { font-size: 11px; color: var(--muted); }
   .topic-chip-change { font-size: 11px; color: var(--blue-light); cursor: pointer; white-space: nowrap; flex-shrink: 0; text-decoration: underline; }
 
-  /* AUTHORING MODE TOGGLE */
-  .mode-toggle-bar { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .mode-toggle-left h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
-  .mode-toggle-left p { font-size: 12px; color: var(--text-mid); }
-  .mode-toggle-pills { display: flex; background: #f0f4ff; border-radius: 9px; padding: 3px; gap: 2px; flex-shrink: 0; }
-  .mode-pill { padding: 7px 16px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; background: transparent; font-family: 'Inter', sans-serif; color: var(--text-mid); transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
-  .mode-pill.active { background: #fff; color: var(--text-dark); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .mode-pill.active.ai { color: var(--blue); }
-  .mode-pill.active.manual { color: #16a34a; }
-  .mode-pill svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .mode-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
-  .mode-badge.ai { background: var(--blue-pale); color: var(--blue); }
-  .mode-badge.manual { background: #dcfce7; color: #16a34a; }
+  /* MODE CHOICE CARDS */
+  .mode-choice-card { background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 24px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 12px; }
+  .mode-choice-card:hover { border-color: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+  .mode-choice-card.selected-ai { border-color: var(--blue); background: var(--blue-pale); }
+  .mode-choice-card.selected-manual { border-color: #16a34a; background: #f0fdf4; }
+  .mode-choice-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .mode-choice-icon.ai { background: var(--blue); }
+  .mode-choice-icon.manual { background: #16a34a; }
+  .mode-choice-icon svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mode-choice-title { font-size: 15px; font-weight: 600; color: var(--navy-dark); }
+  .mode-choice-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+  .mode-choice-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .mode-choice-list li { font-size: 12px; color: var(--text-mid); display: flex; align-items: center; gap: 6px; }
+  .mode-choice-list li::before { content: '✓'; color: var(--blue); font-weight: 600; font-size: 11px; }
+  .mode-choice-card.selected-manual .mode-choice-list li::before { color: #16a34a; }
+  .mode-choice-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-align: center; margin-top: 4px; }
+  .mode-choice-badge.ai { background: var(--blue-pale); color: var(--blue); }
+  .mode-choice-badge.manual { background: #dcfce7; color: #16a34a; }
+
+  /* AUTHORING MODE TOGGLE (old - remove) */
 
   /* MANUAL MODE TEXTAREA */
   .manual-textarea { width: 100%; padding: 16px; border: none; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.8; resize: vertical; min-height: 160px; background: #fafcff; }
@@ -318,6 +325,61 @@ function showToast(message, type = 'success', duration = 3000) {
 
     <div class="content">
 
+      <!-- MODE SELECTION SCREEN -->
+      <div id="modeSelectionScreen" style="display:none;max-width:640px;margin:0 auto 24px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <p style="font-size:11px;font-weight:600;color:var(--blue);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Choose your authoring approach</p>
+          <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--navy-dark);margin-bottom:8px">How would you like to work?</h2>
+          <p style="font-size:13px;color:var(--text-mid)">Your selection will be saved and can be changed at any time.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="mode-choice-card" id="choiceAI" onclick="selectMode('ai')">
+            <div class="mode-choice-icon ai">
+              <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <h3 class="mode-choice-title">AI-Assisted Drafting</h3>
+            <p class="mode-choice-desc">Dr. NIRA generates each section based on your research profile and topic. Review, edit, and refine the output.</p>
+            <ul class="mode-choice-list">
+              <li>AI generates all 10 sections</li>
+              <li>Instant academic drafts</li>
+              <li>Fully editable output</li>
+              <li>Regenerate any section</li>
+            </ul>
+            <div class="mode-choice-badge ai">Recommended for speed</div>
+          </div>
+          <div class="mode-choice-card" id="choiceManual" onclick="selectMode('manual')">
+            <div class="mode-choice-icon manual">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <h3 class="mode-choice-title">Independent Authoring</h3>
+            <p class="mode-choice-desc">Write each section yourself with full scholarly control. No AI generation — pure independent academic work.</p>
+            <ul class="mode-choice-list">
+              <li>You write every section</li>
+              <li>No AI involvement</li>
+              <li>Full academic ownership</li>
+              <li>Save & edit anytime</li>
+            </ul>
+            <div class="mode-choice-badge manual">Recommended for integrity</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODE INDICATOR (shown after selection) -->
+      <div id="modeIndicator" style="display:none;margin-bottom:16px;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="modeIndicatorIcon" style="width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;">
+              <svg id="modeIndicatorSvg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-dark)" id="modeIndicatorTitle"></div>
+              <div style="font-size:11px;color:var(--text-mid)" id="modeIndicatorDesc"></div>
+            </div>
+          </div>
+          <button onclick="showModeSelection()" style="font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;">Change</button>
+        </div>
+      </div>
+
       <!-- TOPIC CHIP -->
       <div class="topic-chip" id="topicChip">
         <div class="topic-chip-text">
@@ -327,13 +389,13 @@ function showToast(message, type = 'success', duration = 3000) {
         <span class="topic-chip-change" onclick="window.location.href='topic.html'">Change topic</span>
       </div>
 
-      <div class="proposal-layout">
+      <div class="proposal-layout" id="proposalLayout">
 
         <!-- SECTIONS NAV -->
         <div class="sections-nav">
           <div class="sections-nav-header">
             <h3>Proposal sections</h3>
-            <p>Click any section to generate</p>
+            <p id="sectionsNavDesc">Click any section to generate</p>
           </div>
           <div class="sections-list" id="sectionsList"></div>
           <div class="nav-progress">
@@ -346,35 +408,16 @@ function showToast(message, type = 'success', duration = 3000) {
 
         <!-- RIGHT CONTENT -->
         <div>
-          <!-- AUTHORING MODE TOGGLE -->
-          <div class="mode-toggle-bar">
-            <div class="mode-toggle-left">
-              <h4 id="modeTitle">AI-Assisted Drafting</h4>
-              <p id="modeDesc">Dr. NIRA generates each section — review and edit as needed</p>
-            </div>
-            <div class="mode-toggle-pills">
-              <button class="mode-pill active ai" id="pillAI" onclick="setMode('ai')">
-                <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                AI-Assisted Drafting
-              </button>
-              <button class="mode-pill manual" id="pillManual" onclick="setMode('manual')">
-                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Independent Authoring
+            <div class="generate-all-bar" id="generateAllBar" style="display:flex">
+              <div class="generate-all-text">
+                <h4>Generate full proposal</h4>
+                <p>Auto-generate all 10 sections one by one with academic precision.</p>
+              </div>
+              <button class="generate-all-btn" id="generateAllBtn" onclick="generateAll()">
+                <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                Generate all sections
               </button>
             </div>
-          </div>
-
-          <!-- GENERATE ALL (AI mode only) -->
-          <div class="generate-all-bar" id="generateAllBar">
-            <div class="generate-all-text">
-              <h4>Generate full proposal</h4>
-              <p>Auto-generate all 10 sections one by one with academic precision.</p>
-            </div>
-            <button class="generate-all-btn" id="generateAllBtn" onclick="generateAll()">
-              <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              Generate all sections
-            </button>
-          </div>
 
           <!-- SECTION CARDS -->
           <div id="sectionCards"></div>
@@ -416,30 +459,60 @@ function showToast(message, type = 'success', duration = 3000) {
   let generating = false;
   let authoringMode = localStorage.getItem('nira_authoring_mode') || 'ai';
 
-  function setMode(mode) {
+  function showModeSelection() {
+    document.getElementById('modeSelectionScreen').style.display = 'block';
+    document.getElementById('modeIndicator').style.display = 'none';
+    document.getElementById('topicChip').style.display = 'none';
+    document.getElementById('sectionCards').style.display = 'none';
+    document.getElementById('generateAllBar').style.display = 'none';
+    var pl = document.getElementById('proposalLayout');
+    if (pl) pl.style.display = 'none';
+  }
+
+  function selectMode(mode) {
     authoringMode = mode;
     localStorage.setItem('nira_authoring_mode', mode);
 
-    // Update pills
-    document.getElementById('pillAI').classList.toggle('active', mode === 'ai');
-    document.getElementById('pillAI').classList.toggle('ai', mode === 'ai');
-    document.getElementById('pillManual').classList.toggle('active', mode === 'manual');
-    document.getElementById('pillManual').classList.toggle('manual', mode === 'manual');
+    document.getElementById('modeSelectionScreen').style.display = 'none';
 
-    // Update labels
+    var indicator = document.getElementById('modeIndicator');
+    indicator.style.display = 'block';
+
+    var iconEl = document.getElementById('modeIndicatorIcon');
+    var svgEl = document.getElementById('modeIndicatorSvg');
+    var titleEl = document.getElementById('modeIndicatorTitle');
+    var descEl = document.getElementById('modeIndicatorDesc');
+
     if (mode === 'ai') {
-      document.getElementById('modeTitle').textContent = 'AI-Assisted Drafting';
-      document.getElementById('modeDesc').textContent = 'Dr. NIRA generates each section — review and edit as needed';
-      document.getElementById('generateAllBar').style.display = 'flex';
+      iconEl.style.background = 'var(--blue)';
+      svgEl.innerHTML = '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>';
+      titleEl.textContent = 'AI-Assisted Drafting';
+      descEl.textContent = 'Dr. NIRA generates each section — review and edit as needed';
     } else {
-      document.getElementById('modeTitle').textContent = 'Independent Authoring';
-      document.getElementById('modeDesc').textContent = 'Write each section yourself — full scholarly control';
-      document.getElementById('generateAllBar').style.display = 'none';
+      iconEl.style.background = '#16a34a';
+      svgEl.innerHTML = '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>';
+      titleEl.textContent = 'Independent Authoring';
+      descEl.textContent = 'You write each section — full scholarly control, no AI involvement';
     }
 
-    // Re-render cards with new mode
+    document.getElementById('generateAllBar').style.display = mode === 'ai' ? 'flex' : 'none';
+
+    var sectionsNavDesc = document.getElementById('sectionsNavDesc');
+    if (sectionsNavDesc) sectionsNavDesc.textContent = mode === 'ai'
+      ? 'Click any section to generate'
+      : 'Click any section to write';
+
+    document.getElementById('topicChip').style.display = 'flex';
+    var pl = document.getElementById('proposalLayout');
+    if (pl) pl.style.display = 'grid';
+    document.getElementById('sectionCards').style.display = 'block';
+
+    renderSectionsNav();
     renderSectionCards();
+    updateProgress();
   }
+
+  function setMode(mode) { selectMode(mode); }
 
   window.addEventListener('load', function() {
     const sp = localStorage.getItem('nira_profile');
@@ -478,8 +551,13 @@ function showToast(message, type = 'success', duration = 3000) {
     renderSectionCards();
     updateProgress();
 
-    // Apply saved authoring mode
-    setMode(authoringMode);
+    // Apply saved authoring mode or show selection screen
+    const savedMode = localStorage.getItem('nira_authoring_mode');
+    if (savedMode) {
+      selectMode(savedMode);
+    } else {
+      showModeSelection();
+    }
   });
 
   function renderSectionsNav() {
