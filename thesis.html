@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Thesis Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:#1B2A4A; --navy-dark:#0F1B33; --blue:#2563EB;
+  --blue-light:#60A5FA; --blue-pale:#EEF4FF;
+  --muted:#a0b0cc; --text-dark:#1B2A4A; --text-mid:#6B7FA3;
+  --border:#dde6f5; --sidebar-w:240px;
+  --green:#16a34a; --green-pale:#f0fdf4;
+  --amber:#d97706; --red:#dc2626;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:var(--text-dark);}
+.app-shell{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:var(--sidebar-w);background:var(--navy-dark);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.sidebar-logo-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sidebar-logo-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;}
+.sidebar-section{padding:20px 12px 8px;}
+.sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding:0 8px;margin-bottom:6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.06);}
+.nav-item.active{background:var(--blue);}
+.nav-item svg{width:17px;height:17px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.nav-item.active svg,.nav-item:hover svg{stroke:#fff;}
+.nav-item span{font-size:13px;color:var(--muted);}
+.nav-item.active span,.nav-item:hover span{color:#fff;}
+.nav-item .nav-badge{margin-left:auto;background:var(--blue-light);color:var(--navy-dark);font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06);}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;color:#fff;}
+.user-role{font-size:11px;color:var(--muted);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text-dark);}
+.topbar-actions{display:flex;align-items:center;gap:10px;}
+.btn-sm{background:var(--blue);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:background 0.2s;}
+.btn-sm:hover{background:#1d4ed8;}
+.btn-sm:disabled{background:#93b4f0;cursor:not-allowed;}
+.btn-sm-outline{background:transparent;color:var(--text-dark);border:1px solid var(--border);padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.2s;}
+.btn-sm-outline:hover{background:var(--blue-pale);}
+.content{flex:1;overflow-y:auto;padding:28px;}
+
+/* LAYOUT */
+.thesis-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start;}
+
+/* CHAPTER NAV */
+.chapter-nav{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;position:sticky;top:0;}
+.chapter-nav-header{padding:16px 18px;border-bottom:1px solid var(--border);}
+.chapter-nav-header h3{font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:2px;}
+.chapter-nav-header p{font-size:11px;color:var(--text-mid);}
+.chapter-list{padding:10px;}
+.chapter-nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:9px;cursor:pointer;transition:background 0.15s;margin-bottom:4px;border:1.5px solid transparent;}
+.chapter-nav-item:hover{background:#f8faff;}
+.chapter-nav-item.active{background:var(--blue-pale);border-color:#c7d9f8;}
+.ch-status{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.ch-status.pending{background:var(--border);color:var(--text-mid);}
+.ch-status.partial{background:var(--amber);color:#fff;}
+.ch-status.done{background:var(--green);color:#fff;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.ch-status.generating{background:var(--blue);color:#fff;animation:pulse 1s infinite;}
+.ch-nav-label{font-size:12px;font-weight:500;color:var(--text-dark);}
+.chapter-nav-item.active .ch-nav-label{color:var(--blue);}
+.ch-nav-sub{font-size:10px;color:var(--text-mid);}
+.thesis-progress{padding:14px 18px;border-top:1px solid var(--border);}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.progress-fill{height:100%;background:var(--blue);border-radius:3px;transition:width 0.4s;}
+.progress-label{font-size:11px;color:var(--text-mid);}
+
+/* WARNINGS */
+.warnings-bar{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:none;}
+.warnings-bar h4{font-size:12px;font-weight:600;color:var(--amber);margin-bottom:6px;}
+.warnings-bar ul{list-style:none;padding:0;}
+.warnings-bar li{font-size:12px;color:#92400e;padding:2px 0;}
+.warnings-bar li::before{content:'⚠ ';font-size:11px;}
+
+/* GENERATE ALL */
+.generate-all-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.generate-all-text h4{font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:2px;}
+.generate-all-text p{font-size:12px;color:var(--text-mid);}
+.gen-all-btn{background:var(--navy-dark);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
+.gen-all-btn:hover{background:var(--navy);}
+.gen-all-btn:disabled{background:#93b4f0;cursor:not-allowed;}
+
+/* CHAPTER CARD */
+.chapter-card{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.chapter-card-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.chapter-label-tag{font-size:10px;font-weight:600;color:var(--blue);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
+.chapter-main-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy-dark);margin-bottom:4px;}
+.chapter-desc{font-size:12px;color:var(--text-mid);line-height:1.5;}
+.chapter-card-actions{display:flex;gap:8px;flex-shrink:0;}
+.btn-gen-ch{background:var(--blue);color:#fff;border:none;padding:8px 16px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px;}
+.btn-gen-ch:hover{background:#1d4ed8;}
+.btn-gen-ch:disabled{background:#93b4f0;cursor:not-allowed;}
+.btn-regen-ch{background:transparent;color:var(--text-mid);border:1px solid var(--border);padding:8px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-regen-ch:hover{background:var(--blue-pale);color:var(--blue);}
+
+/* SECTIONS */
+.sections-container{padding:0;}
+.section-row{border-bottom:1px solid var(--border);}
+.section-row:last-child{border-bottom:none;}
+.section-header{padding:12px 22px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.15s;}
+.section-header:hover{background:#fafcff;}
+.section-header-left{display:flex;align-items:center;gap:10px;}
+.section-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.section-dot.done{background:var(--green);}
+.section-dot.pending{background:var(--border);}
+.section-dot.generating{background:var(--blue);animation:pulse 1s infinite;}
+.section-name{font-size:13px;font-weight:500;color:var(--text-dark);}
+.section-wc{font-size:11px;color:var(--text-mid);}
+.section-header-right{display:flex;gap:6px;}
+.btn-sec{background:var(--blue);color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-sec:hover{background:#1d4ed8;}
+.btn-sec:disabled{background:#93b4f0;cursor:not-allowed;}
+.btn-sec-regen{background:transparent;color:var(--text-mid);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-sec-regen:hover{background:var(--blue-pale);color:var(--blue);}
+.section-body{padding:16px 22px;background:#fafcff;border-top:1px solid var(--border);display:none;}
+.section-body.open{display:block;}
+.section-text{font-size:14px;color:var(--text-dark);line-height:1.8;outline:none;white-space:pre-wrap;border:1px dashed transparent;border-radius:6px;padding:8px;min-height:60px;}
+.section-text:focus{border-color:var(--border);}
+.section-spinner{display:flex;align-items:center;gap:10px;padding:12px;color:var(--text-mid);font-size:13px;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* CONTEXT CHIP */
+.context-chip{background:var(--navy-dark);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.context-chip h4{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;}
+.context-chip p{font-size:11px;color:var(--muted);}
+
+/* MOBILE */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy-dark);border-top:1px solid rgba(255,255,255,0.08);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;}
+.mobile-nav-items{display:flex;justify-content:space-around;align-items:center;}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:4px 8px;border-radius:8px;min-width:52px;background:none;border:none;cursor:pointer;font-family:inherit;}
+.mobile-nav-item svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.mobile-nav-item span{font-size:9px;color:var(--muted);font-weight:500;}
+.mobile-nav-item.active svg{stroke:var(--blue-light);}
+.mobile-nav-item.active span{color:var(--blue-light);}
+.more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;}
+.more-overlay.open{display:block;}
+.more-drawer{position:fixed;bottom:-100%;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:200;padding:12px 0 max(20px,env(safe-area-inset-bottom));transition:bottom 0.3s cubic-bezier(0.32,0.72,0,1);}
+.more-drawer.open{bottom:0;}
+.more-drawer-handle{width:36px;height:4px;background:#dde6f5;border-radius:2px;margin:0 auto 16px;}
+.more-drawer-title{font-size:11px;font-weight:600;color:var(--text-mid);letter-spacing:0.08em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;}
+.more-item{display:flex;align-items:center;gap:14px;padding:14px 20px;text-decoration:none;transition:background 0.15s;}
+.more-item:active{background:var(--blue-pale);}
+.more-item-icon{width:40px;height:40px;background:var(--blue-pale);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.more-item-icon svg{width:20px;height:20px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.more-item-label{font-size:14px;font-weight:500;color:var(--text-dark);}
+.more-item-sub{font-size:12px;color:var(--text-mid);}
+.more-item-arrow{width:16px;height:16px;fill:none;stroke:var(--text-mid);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-left:auto;}
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .mobile-nav{display:block;}
+  .thesis-layout{grid-template-columns:1fr;}
+  .chapter-nav{display:none;}
+  .content{padding:16px;padding-bottom:80px;}
+  .topbar{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+      <a class="nav-item" href="proposals.html"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg><span>My proposals</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span><span class="nav-badge">New</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item active" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis builder</span></a>
+      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">DR</div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Thesis builder</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="runValidation()">Validate</button>
+        <button class="btn-sm-outline" onclick="window.location.href='app.html'">← Dashboard</button>
+        <button class="btn-sm" onclick="exportThesis()">Export thesis</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="context-chip">
+        <div>
+          <h4 id="chipTitle">No topic selected</h4>
+          <p id="chipMeta">Complete Topic generator and Proposal builder first for best results</p>
+        </div>
+        <button class="btn-sm-outline" style="color:#a0b0cc;border-color:rgba(255,255,255,0.2);font-size:12px" onclick="window.location.href='proposal.html'">View proposal</button>
+      </div>
+
+      <div class="warnings-bar" id="warningsBar">
+        <h4>Consistency warnings</h4>
+        <ul id="warningsList"></ul>
+      </div>
+
+      <div class="thesis-layout">
+        <div class="chapter-nav">
+          <div class="chapter-nav-header"><h3>Chapters</h3><p>Click to navigate</p></div>
+          <div class="chapter-list" id="chapterList"></div>
+          <div class="thesis-progress">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <div class="progress-label" id="progressLabel">0 of 5 chapters complete</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="generate-all-bar">
+            <div class="generate-all-text">
+              <h4>Generate full thesis</h4>
+              <p>Generate all 5 chapters section by section with academic precision.</p>
+            </div>
+            <button class="gen-all-btn" id="genAllBtn" onclick="generateAllChapters()">
+              <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate all
+            </button>
+          </div>
+          <div id="chapterCards"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-items">
+    <a class="mobile-nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Home</span></a>
+    <a class="mobile-nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal</span></a>
+    <a class="mobile-nav-item active" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis</span></a>
+    <a class="mobile-nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload</span></a>
+    <button class="mobile-nav-item" onclick="toggleMoreDrawer()"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>More</span></button>
+  </div>
+</nav>
+<div class="more-overlay" id="moreOverlay" onclick="closeMoreDrawer()"></div>
+<div class="more-drawer" id="moreDrawer">
+  <div class="more-drawer-handle"></div>
+  <div class="more-drawer-title">More</div>
+  <a class="more-item" href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="more-item-label">Academic Writer</div><div class="more-item-sub">Write essays & papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE & more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div><div class="more-item-label">Export</div><div class="more-item-sub">Download thesis</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="profile.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="more-item-label">My Profile</div><div class="more-item-sub">Research settings</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// SCHEMA
+// ════════════════════════════════════════
+var chapterSchema = {
+  chapter1: {
+    num: 1, title: 'Introduction',
+    desc: 'Problem statement, objectives, questions, hypotheses, scope',
+    goal: 'Establish the research problem, justify its importance, and outline the study framework.',
+    sections: {
+      intro:       'Introduction & Background',
+      problem:     'Statement of the Problem',
+      objectives:  'Research Objectives',
+      questions:   'Research Questions',
+      hypotheses:  'Hypotheses',
+      scope:       'Scope & Limitations',
+      definitions: 'Definitions of Key Terms'
+    }
+  },
+  chapter2: {
+    num: 2, title: 'Literature Review',
+    desc: 'Theoretical framework, related studies, research gap',
+    goal: 'Synthesize existing knowledge and identify the gap this research fills.',
+    sections: {
+      overview:      'Overview',
+      theory:        'Theoretical Framework',
+      framework:     'Conceptual Framework',
+      domestic:      'Domestic Studies',
+      international: 'International Studies',
+      summary:       'Summary & Research Gap'
+    }
+  },
+  chapter3: {
+    num: 3, title: 'Methodology',
+    desc: 'Research design, sampling, tools, validity, analysis',
+    goal: 'Describe and justify all research methods used in the study.',
+    sections: {
+      methodology: 'Research Design & Approach',
+      sample:      'Population & Sampling',
+      tools:       'Data Collection Instruments',
+      validity:    'Validity & Reliability',
+      procedure:   'Data Collection Procedure',
+      analysis:    'Data Analysis Method'
+    }
+  },
+  chapter4: {
+    num: 4, title: 'Data Analysis & Results',
+    desc: 'Descriptive statistics, hypothesis testing, interpretation',
+    goal: 'Present and interpret all research findings systematically.',
+    sections: {
+      descriptive:     'Descriptive Statistics',
+      testing:         'Hypothesis Testing',
+      results:         'Results & Findings',
+      interpretation:  'Interpretation of Results'
+    }
+  },
+  chapter5: {
+    num: 5, title: 'Conclusion & Discussion',
+    desc: 'Summary, discussion, implications, limitations, future work',
+    goal: 'Synthesize findings, discuss implications, and suggest future directions.',
+    sections: {
+      summary:      'Summary of Findings',
+      discussion:   'Discussion',
+      implications: 'Practical Implications',
+      limitations:  'Limitations of the Study',
+      future:       'Recommendations for Future Research',
+      conclusion:   'Conclusion'
+    }
+  }
+};
+
+var chapterIds = ['chapter1','chapter2','chapter3','chapter4','chapter5'];
+
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+var thesisData = JSON.parse(localStorage.getItem('nira_thesis_v2') || '{}');
+var profile = JSON.parse(localStorage.getItem('nira_profile') || '{}');
+var topic = JSON.parse(localStorage.getItem('nira_selected_topic') || '{}');
+var proposal = JSON.parse(localStorage.getItem('nira_proposal') || '{}');
+
+function saveState() {
+  localStorage.setItem('nira_thesis_v2', JSON.stringify(thesisData));
+}
+
+// ════════════════════════════════════════
+// CONTEXT BUILDER
+// ════════════════════════════════════════
+function buildChapterContext(chapterId) {
+  var ch = chapterSchema[chapterId];
+  var prevChapters = {};
+
+  chapterIds.forEach(function(id) {
+    if (id === chapterId) return;
+    var chNum = chapterSchema[id].num;
+    if (chNum < ch.num && thesisData[id]) {
+      var sections = thesisData[id];
+      var combined = Object.values(sections).join(' ').slice(0, 600);
+      if (combined) prevChapters[id] = combined;
+    }
+  });
+
+  return {
+    profile: {
+      fullName: profile.fullName || '',
+      field: profile.field || '',
+      degree: profile.degree || 'PhD',
+      university: profile.university || '',
+      citation: profile.citation || 'APA 7',
+      researchType: profile.researchType || 'Mixed methods'
+    },
+    topic: {
+      title: topic.title_en || '',
+      researchGap: topic.research_gap || '',
+      keywords: topic.keywords ? topic.keywords.join(', ') : '',
+      researchType: topic.research_type || '',
+      novelty: topic.novelty || ''
+    },
+    proposalSummary: {
+      problem: (proposal.problem || '').slice(0, 300),
+      objectives: (proposal.objectives || '').slice(0, 200),
+      methodology: (proposal.methodology || '').slice(0, 200)
+    },
+    previousChapters: prevChapters,
+    currentChapterGoal: ch.goal
+  };
+}
+
+// ════════════════════════════════════════
+// CONSISTENCY VALIDATOR
+// ════════════════════════════════════════
+function validateThesisConsistency(data) {
+  var warnings = [];
+  if (!data.chapter1 || !data.chapter1.objectives)
+    warnings.push('Chapter 1: Objectives section is missing.');
+  if (!data.chapter1 || !data.chapter1.hypotheses)
+    warnings.push('Chapter 1: Hypotheses section is missing.');
+  if (!data.chapter2 || !data.chapter2.theory)
+    warnings.push('Chapter 2: Theoretical framework is missing.');
+  if (!data.chapter3 || !data.chapter3.methodology)
+    warnings.push('Chapter 3: Research design is missing.');
+  if (!data.chapter3 || !data.chapter3.analysis)
+    warnings.push('Chapter 3: Data analysis method is missing.');
+  if (!data.chapter4 || !data.chapter4.results)
+    warnings.push('Chapter 4: Results section is missing.');
+  if (!data.chapter4 || !data.chapter4.testing)
+    warnings.push('Chapter 4: Hypothesis testing is missing.');
+  if (!data.chapter5 || !data.chapter5.conclusion)
+    warnings.push('Chapter 5: Conclusion is missing.');
+  if (data.chapter3 && data.chapter3.methodology && data.chapter4 && !data.chapter4.results)
+    warnings.push('Chapter 4 results are missing despite Chapter 3 methodology being complete.');
+  return warnings;
+}
+
+function runValidation() {
+  var warnings = validateThesisConsistency(thesisData);
+  var bar = document.getElementById('warningsBar');
+  var list = document.getElementById('warningsList');
+  if (warnings.length === 0) {
+    bar.style.display = 'none';
+    alert('No consistency issues found!');
+  } else {
+    list.innerHTML = warnings.map(function(w){ return '<li>' + w + '</li>'; }).join('');
+    bar.style.display = 'block';
+    bar.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// ════════════════════════════════════════
+// API
+// ════════════════════════════════════════
+async function callGroq(prompt) {
+  var res = await fetch('/api/proposal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt })
+  });
+  var data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'API error');
+  return data.result || '';
+}
+
+// ════════════════════════════════════════
+// SECTION GENERATOR (CORE)
+// ════════════════════════════════════════
+async function generateSection(chapterId, sectionId) {
+  var ch = chapterSchema[chapterId];
+  var sectionLabel = ch.sections[sectionId];
+  var context = buildChapterContext(chapterId);
+
+  var prompt = 'You are Dr. NIRA, an expert PhD thesis writer.\n\n' +
+    'Write the "' + sectionLabel + '" section for Chapter ' + ch.num + ': ' + ch.title + '\n\n' +
+    'Thesis context:\n' +
+    'Field: ' + context.profile.field + '\n' +
+    'Degree: ' + context.profile.degree + '\n' +
+    'University: ' + context.profile.university + '\n' +
+    'Citation format: ' + context.profile.citation + '\n' +
+    'Research type: ' + (context.topic.researchType || context.profile.researchType) + '\n' +
+    'Topic: ' + context.topic.title + '\n' +
+    'Research gap: ' + context.topic.researchGap + '\n' +
+    'Keywords: ' + context.topic.keywords + '\n' +
+    'Chapter goal: ' + context.currentChapterGoal + '\n' +
+    (Object.keys(context.previousChapters).length > 0
+      ? 'Previous chapters summary: ' + JSON.stringify(context.previousChapters).slice(0, 800) + '\n'
+      : '') +
+    (context.proposalSummary.problem
+      ? 'Proposal problem: ' + context.proposalSummary.problem + '\n'
+      : '') +
+    '\nRequirements:\n' +
+    '- Write 350-500 words of formal academic English\n' +
+    '- Use discipline-specific vocabulary appropriate for ' + context.profile.field + '\n' +
+    '- Vary sentence length and structure for natural academic flow\n' +
+    '- Do NOT use placeholder text, brackets, or generic content\n' +
+    '- Reference the specific topic and context throughout\n' +
+    '- Maintain consistency with previous chapters\n' +
+    '- Write complete publication-ready academic prose\n\n' +
+    'Output: Only the section text. No title, no heading.';
+
+  var result = await callGroq(prompt);
+  if (!thesisData[chapterId]) thesisData[chapterId] = {};
+  thesisData[chapterId][sectionId] = result;
+  saveState();
+  return result;
+}
+
+// ════════════════════════════════════════
+// UI RENDER
+// ════════════════════════════════════════
+function getChapterStatus(chId) {
+  var ch = chapterSchema[chId];
+  var data = thesisData[chId] || {};
+  var sectionIds = Object.keys(ch.sections);
+  var filled = sectionIds.filter(function(s){ return data[s] && data[s].length > 0; }).length;
+  if (filled === 0) return 'pending';
+  if (filled === sectionIds.length) return 'done';
+  return 'partial';
+}
+
+function renderChapterNav() {
+  var html = '';
+  chapterIds.forEach(function(chId) {
+    var ch = chapterSchema[chId];
+    var status = getChapterStatus(chId);
+    var icon = status === 'done' ? '✓' : status === 'partial' ? '~' : ch.num;
+    html += '<div class="chapter-nav-item" onclick="scrollToChapter(\'' + chId + '\')">' +
+      '<div class="ch-status ' + status + '">' + icon + '</div>' +
+      '<div><div class="ch-nav-label">' + ch.title + '</div>' +
+      '<div class="ch-nav-sub">Ch.' + ch.num + ' · ' + Object.keys(ch.sections).length + ' sections</div></div>' +
+      '</div>';
+  });
+  document.getElementById('chapterList').innerHTML = html;
+}
+
+function updateProgress() {
+  var done = chapterIds.filter(function(id){ return getChapterStatus(id) === 'done'; }).length;
+  var pct = Math.round((done / chapterIds.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = done + ' of ' + chapterIds.length + ' chapters complete';
+}
+
+function renderChapterCards() {
+  var html = '';
+  chapterIds.forEach(function(chId) {
+    html += renderChapterCard(chId);
+  });
+  document.getElementById('chapterCards').innerHTML = html;
+}
+
+function renderChapterCard(chId) {
+  var ch = chapterSchema[chId];
+  var data = thesisData[chId] || {};
+  var hasAny = Object.keys(data).length > 0;
+  var sectionIds = Object.keys(ch.sections);
+
+  var sectionsHtml = sectionIds.map(function(sId) {
+    var label = ch.sections[sId];
+    var content = data[sId] || '';
+    var isDone = content.length > 0;
+    var wc = isDone ? content.trim().split(/\s+/).length + ' words' : '';
+
+    return '<div class="section-row" id="srow-' + chId + '-' + sId + '">' +
+      '<div class="section-header" onclick="toggleSection(\'' + chId + '\',\'' + sId + '\')">' +
+        '<div class="section-header-left">' +
+          '<div class="section-dot ' + (isDone ? 'done' : 'pending') + '" id="sdot-' + chId + '-' + sId + '"></div>' +
+          '<span class="section-name">' + label + '</span>' +
+          (wc ? '<span class="section-wc">· ' + wc + '</span>' : '') +
+        '</div>' +
+        '<div class="section-header-right">' +
+          (isDone
+            ? '<button class="btn-sec-regen" onclick="event.stopPropagation();generateSectionUI(\'' + chId + '\',\'' + sId + '\')">Regen</button>'
+            : '<button class="btn-sec" onclick="event.stopPropagation();generateSectionUI(\'' + chId + '\',\'' + sId + '\')">Generate</button>') +
+        '</div>' +
+      '</div>' +
+      '<div class="section-body" id="sbody-' + chId + '-' + sId + '">' +
+        (isDone
+          ? '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')">' + content + '</div>'
+          : '<div style="font-size:13px;color:var(--text-mid);padding:8px">Click Generate to create this section.</div>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="chapter-card" id="card-' + chId + '">' +
+    '<div class="chapter-card-header">' +
+      '<div>' +
+        '<div class="chapter-label-tag">Chapter ' + ch.num + '</div>' +
+        '<div class="chapter-main-title">' + ch.title + '</div>' +
+        '<div class="chapter-desc">' + ch.desc + '</div>' +
+      '</div>' +
+      '<div class="chapter-card-actions">' +
+        '<button class="btn-gen-ch" id="chbtn-' + chId + '" onclick="generateChapterAllSections(\'' + chId + '\')">' +
+          '<svg style="width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' +
+          (hasAny ? 'Regenerate all' : 'Generate chapter') +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sections-container">' + sectionsHtml + '</div>' +
+  '</div>';
+}
+
+function toggleSection(chId, sId) {
+  var body = document.getElementById('sbody-' + chId + '-' + sId);
+  if (body) body.classList.toggle('open');
+}
+
+function onSectionEdit(chId, sId) {
+  var el = document.getElementById('stxt-' + chId + '-' + sId);
+  if (!el) return;
+  if (!thesisData[chId]) thesisData[chId] = {};
+  thesisData[chId][sId] = el.innerText;
+  saveState();
+  updateProgress();
+  renderChapterNav();
+}
+
+async function generateSectionUI(chId, sId) {
+  var body = document.getElementById('sbody-' + chId + '-' + sId);
+  var dot = document.getElementById('sdot-' + chId + '-' + sId);
+  if (body) { body.classList.add('open'); body.innerHTML = '<div class="section-spinner"><div class="spinner"></div><span>Generating...</span></div>'; }
+  if (dot) { dot.className = 'section-dot generating'; }
+
+  try {
+    var result = await generateSection(chId, sId);
+    var wc = result.trim().split(/\s+/).length;
+
+    if (body) {
+      body.innerHTML = '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')">' + result + '</div>';
+    }
+    if (dot) { dot.className = 'section-dot done'; }
+
+    // Update header
+    var row = document.getElementById('srow-' + chId + '-' + sId);
+    if (row) {
+      var wcSpan = row.querySelector('.section-wc');
+      if (wcSpan) wcSpan.textContent = '· ' + wc + ' words';
+      var btn = row.querySelector('.btn-sec');
+      if (btn) { btn.className = 'btn-sec-regen'; btn.textContent = 'Regen'; btn.onclick = function(){ event.stopPropagation(); generateSectionUI(chId, sId); }; }
+    }
+
+    updateProgress();
+    renderChapterNav();
+  } catch(err) {
+    if (body) body.innerHTML = '<div style="font-size:13px;color:#dc2626;padding:8px">Error: ' + err.message + '. Please try again.</div>';
+    if (dot) dot.className = 'section-dot pending';
+  }
+}
+
+async function generateChapterAllSections(chId) {
+  var btn = document.getElementById('chbtn-' + chId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+
+  var sectionIds = Object.keys(chapterSchema[chId].sections);
+  for (var i = 0; i < sectionIds.length; i++) {
+    await generateSectionUI(chId, sectionIds[i]);
+    await new Promise(function(r){ setTimeout(r, 300); });
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Regenerate all'; }
+}
+
+async function generateAllChapters() {
+  var btn = document.getElementById('genAllBtn');
+  btn.disabled = true; btn.textContent = 'Generating all chapters...';
+
+  for (var i = 0; i < chapterIds.length; i++) {
+    await generateChapterAllSections(chapterIds[i]);
+    await new Promise(function(r){ setTimeout(r, 500); });
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Generate all';
+}
+
+function scrollToChapter(chId) {
+  var el = document.getElementById('card-' + chId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function exportThesis() {
+  var title = topic.title_en || 'PhD Thesis';
+  var p = profile;
+  var text = 'PhD THESIS\n' + '='.repeat(60) + '\n\n';
+  text += 'Title: ' + title + '\n';
+  text += 'Researcher: ' + (p.fullName || '—') + '\n';
+  text += 'University: ' + (p.university || '—') + '\n';
+  text += 'Field: ' + (p.field || '—') + '\n\n';
+
+  chapterIds.forEach(function(chId) {
+    var ch = chapterSchema[chId];
+    var data = thesisData[chId] || {};
+    text += 'CHAPTER ' + ch.num + ': ' + ch.title.toUpperCase() + '\n' + '─'.repeat(50) + '\n\n';
+    Object.keys(ch.sections).forEach(function(sId) {
+      if (data[sId]) {
+        text += ch.sections[sId] + '\n' + data[sId] + '\n\n';
+      }
+    });
+  });
+
+  var blob = new Blob([text], { type: 'text/plain' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = title.replace(/[^a-z0-9]/gi,'-').toLowerCase().slice(0,40) + '-thesis.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function toggleMoreDrawer() {
+  document.getElementById('moreDrawer').classList.toggle('open');
+  document.getElementById('moreOverlay').classList.toggle('open');
+}
+function closeMoreDrawer() {
+  document.getElementById('moreDrawer').classList.remove('open');
+  document.getElementById('moreOverlay').classList.remove('open');
+}
+
+// ── INIT ──
+window.addEventListener('load', function() {
+  var sp = localStorage.getItem('nira_profile');
+  if (sp) {
+    profile = JSON.parse(sp);
+    document.getElementById('sidebarName').textContent = profile.fullName || 'Dr. Researcher';
+    document.getElementById('sidebarRole').textContent = (profile.degree || 'PhD') + ' Candidate';
+    if (profile.fullName) document.getElementById('sidebarAvatar').textContent = profile.fullName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  }
+  var st = localStorage.getItem('nira_selected_topic');
+  if (st) {
+    topic = JSON.parse(st);
+    document.getElementById('chipTitle').textContent = topic.title_en || 'Topic selected';
+    document.getElementById('chipMeta').textContent = (topic.research_type || '') + (topic.keywords ? ' · ' + topic.keywords.slice(0,3).join(', ') : '');
+  }
+  var sg = localStorage.getItem('nira_proposal');
+  if (sg) proposal = JSON.parse(sg);
+
+  renderChapterNav();
+  renderChapterCards();
+  updateProgress();
+});
+</script>
+</body>
+</html>
