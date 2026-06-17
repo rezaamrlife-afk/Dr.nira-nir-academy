@@ -178,6 +178,7 @@
     .topbar { padding: 0 16px; }
   }
 </style>
+<script src="toast.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -481,10 +482,7 @@
     library.unshift(item);
     localStorage.setItem('nira_citations', JSON.stringify(library));
     renderLibrary();
-    const btn = event.target;
-    btn.textContent = '✓ Saved!';
-    btn.style.background = '#15803d';
-    setTimeout(() => { btn.textContent = 'Save to library'; btn.style.background = ''; }, 2000);
+    showToast('Saved to library!', 'success');
   }
 
   async function quickConvert() {
