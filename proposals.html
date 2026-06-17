@@ -204,6 +204,7 @@ function showToast(message, type = 'success', duration = 3000) {
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
       <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
       <a class="nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
       <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
@@ -312,11 +313,11 @@ function showToast(message, type = 'success', duration = 3000) {
 
   function saveCurrentProposal() {
     const name = document.getElementById('proposalNameInput').value.trim();
-    if (!name) { alert('Please enter a proposal name.'); return; }
+    if (!name) { showToast('Please enter a proposal name.', 'warning'); return; }
 
     const active = localStorage.getItem('nira_proposal');
     const topic = localStorage.getItem('nira_selected_topic');
-    if (!active) { alert('No active proposal found.'); return; }
+    if (!active) { showToast('No active proposal found.', 'warning'); return; }
 
     const data = JSON.parse(active);
     const t = topic ? JSON.parse(topic) : {};
