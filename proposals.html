@@ -204,6 +204,7 @@ function showToast(message, type = 'success', duration = 3000) {
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="structural-editor.html"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg><span>Structural editor</span></a>
       <a class="nav-item" href="charts.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Charts &amp; tables</span></a>
       <a class="nav-item" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
       <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
@@ -294,15 +295,23 @@ function showToast(message, type = 'success', duration = 3000) {
       if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     }
 
-    // Check active proposal
-    const active = localStorage.getItem('nira_proposal');
-    const topic = localStorage.getItem('nira_selected_topic');
-    if (active) {
-      const data = JSON.parse(active);
-      const done = Object.keys(data).length;
+    // Check active proposal — NiraProject first, localStorage fallback
+    var activeData = (typeof NiraProject !== 'undefined') ? NiraProject.load('proposal') : null;
+    if (!activeData || Object.keys(activeData).length === 0) {
+      const activeLegacy = localStorage.getItem('nira_proposal');
+      if (activeLegacy) activeData = JSON.parse(activeLegacy);
+    }
+    var activeTopic = (typeof NiraProject !== 'undefined') ? NiraProject.loadTopic() : null;
+    if (!activeTopic || !activeTopic.title_en) {
+      const topicLegacy = localStorage.getItem('nira_selected_topic');
+      if (topicLegacy) activeTopic = JSON.parse(topicLegacy);
+    }
+
+    if (activeData) {
+      const done = Object.keys(activeData).length;
       if (done > 0) {
         document.getElementById('saveBar').style.display = 'flex';
-        const t = topic ? JSON.parse(topic) : {};
+        const t = activeTopic || {};
         document.getElementById('activeProposalMeta').textContent =
           (t.title_en || 'Untitled proposal') + ' · ' + done + ' sections complete';
         if (t.title_en) document.getElementById('proposalNameInput').value = t.title_en.slice(0, 60);
@@ -316,12 +325,18 @@ function showToast(message, type = 'success', duration = 3000) {
     const name = document.getElementById('proposalNameInput').value.trim();
     if (!name) { showToast('Please enter a proposal name.', 'warning'); return; }
 
-    const active = localStorage.getItem('nira_proposal');
-    const topic = localStorage.getItem('nira_selected_topic');
-    if (!active) { showToast('No active proposal found.', 'warning'); return; }
+    var data = (typeof NiraProject !== 'undefined') ? NiraProject.load('proposal') : null;
+    if (!data || Object.keys(data).length === 0) {
+      const activeLegacy = localStorage.getItem('nira_proposal');
+      if (activeLegacy) data = JSON.parse(activeLegacy);
+    }
+    var t = (typeof NiraProject !== 'undefined') ? NiraProject.loadTopic() : null;
+    if (!t || !t.title_en) {
+      const topicLegacy = localStorage.getItem('nira_selected_topic');
+      t = topicLegacy ? JSON.parse(topicLegacy) : {};
+    }
 
-    const data = JSON.parse(active);
-    const t = topic ? JSON.parse(topic) : {};
+    if (!data || Object.keys(data).length === 0) { showToast('No active proposal found.', 'warning'); return; }
 
     const proposal = {
       id: Date.now(),
@@ -433,7 +448,14 @@ function showToast(message, type = 'success', duration = 3000) {
   function loadAndOpen(id) {
     const p = proposals.find(x => x.id === id);
     if (!p) return;
-    localStorage.setItem('nira_proposal', JSON.stringify(p.sections));
+    if (typeof NiraProject !== 'undefined') {
+      NiraProject.save('proposal', p.sections);
+      if (p.topic) {
+        NiraProject.saveTopic({ title_en: p.topic, field: p.field, research_type: p.researchType });
+      }
+    } else {
+      localStorage.setItem('nira_proposal', JSON.stringify(p.sections));
+    }
     window.location.href = 'proposal.html';
   }
 
