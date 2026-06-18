@@ -615,77 +615,25 @@ function showToast(message, type, duration) {
     badge.textContent = labels[state] || state;
   }
 
-  function showRateLimitBanner(seconds) {
-    var banner = document.getElementById('rateLimitBanner');
-    if (!banner) {
-      banner = document.createElement('div');
-      banner.id = 'rateLimitBanner';
-      banner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#d97706;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2);white-space:nowrap;';
-      document.body.appendChild(banner);
-    }
-    banner.innerHTML = '⏳ Rate limit — retrying in <strong style="font-size:15px;margin:0 4px">' + seconds + '</strong>s...';
-    return banner;
-  }
-
-  function hideRateLimitBanner() {
-    var banner = document.getElementById('rateLimitBanner');
-    if (banner) banner.remove();
-  }
-
   async function callAPI(systemPrompt, userPrompt) {
-    var delays = [5000, 10000, 20000, 40000];
-
-    for (var attempt = 0; attempt <= delays.length; attempt++) {
+    return NiraAPI.callWithRetry(async function() {
       var res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ systemPrompt, userPrompt })
+        body: JSON.stringify({ systemPrompt: systemPrompt, userPrompt: userPrompt })
       });
-
-      // ── Only retry on 429 (rate limit) ──
-      if (res.status === 429) {
-        if (attempt < delays.length) {
-          var wait = delays[attempt];
-          var stepsEl = document.getElementById('stepsOverall');
-
-          // Show visible banner
-          // Show visible banner with countdown
-          var remaining = wait / 1000;
-          showRateLimitBanner(remaining);
-          var stepsEl = document.getElementById('stepsOverall');
-          if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
-
-          var countdown = setInterval(function() {
-            remaining--;
-            if (remaining > 0) {
-              showRateLimitBanner(remaining);
-              if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
-            } else { clearInterval(countdown); }
-          }, 1000);
-
-          await new Promise(function(r){ setTimeout(r, wait); });
-          clearInterval(countdown);
-          hideRateLimitBanner();
-          if (stepsEl) stepsEl.textContent = 'Continuing analysis...';
-          continue;
-        }
-        throw new Error('Rate limit exceeded after ' + delays.length + ' retries. Please try again in a minute.');
-      }
-
-      // ── Do NOT retry on these — permanent errors ──
-      if (res.status === 400) throw new Error('Bad request — check prompt format (400)');
+      if (res.status === 429) throw new Error('429 rate limit');
+      if (res.status === 400) throw new Error('Bad request (400)');
       if (res.status === 401) throw new Error('Invalid API key (401)');
       if (res.status === 403) throw new Error('Access forbidden (403)');
       if (res.status === 500) {
-        var errData = await res.json().catch(function(){ return {}; });
-        throw new Error(errData.error || 'Server error (500) — do not retry');
+        var e = await res.json().catch(function(){ return {}; });
+        throw new Error(e.error || 'Server error (500)');
       }
-
-      // ── Success ──
       var data = await res.json();
       if (!res.ok) throw new Error(data.error || 'API error ' + res.status);
       return data.result;
-    }
+    });
   }
 
   function addBlock(id, title, content, score) {
@@ -789,63 +737,33 @@ function showToast(message, type, duration) {
         'Section: ' + chunks[i].section + ' · Est. remaining: ' + remaining + 's · ' +
         NiraKB.estimateTokens(chunks[i].text) + ' tokens';
 
-      // Call API with retry
       var success = false;
-      var attempt = 0;
-      while (!success && attempt < 5) {
-        try {
-          var prompt = NiraKB.buildChunkPrompt(chunks[i]);
+      try {
+        var prompt = NiraKB.buildChunkPrompt(chunks[i]);
+        var chunkData = await NiraAPI.callWithRetry(async function() {
           var res = await fetch('/api/chunk', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: prompt })
           });
-
-          // Check 429 BEFORE parsing body
-          if (res.status === 429) {
-            var wait = NiraKB.getBackoffMs(attempt);
-            var rem = wait / 1000;
-            showRateLimitBanner(rem);
-            document.getElementById('chunkDetail').textContent =
-              'Rate limited — retrying in ' + rem + 's (attempt ' + (attempt+1) + '/5)';
-            var cd = setInterval(function() {
-              rem--;
-              if (rem > 0) {
-                showRateLimitBanner(rem);
-                document.getElementById('chunkDetail').textContent = 'Rate limited — retrying in ' + rem + 's...';
-              } else { clearInterval(cd); }
-            }, 1000);
-            await new Promise(function(r){ setTimeout(r, wait); });
-            clearInterval(cd);
-            hideRateLimitBanner();
-            attempt++;
-            continue;
+          if (res.status === 429) throw new Error('429 rate limit');
+          if (!res.ok) {
+            var e = await res.json().catch(function(){ return {}; });
+            throw new Error(e.error || 'API error ' + res.status);
           }
+          return await res.json();
+        });
 
-          var data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'API error ' + res.status);
+        chunks[i].status = 'done';
+        chunks[i].summary = chunkData.result || '';
+        kb.chunkSummaries.push({ section: chunks[i].section, summary: chunks[i].summary });
+        kb.stats.completedChunks++;
+        NiraKB.saveQueue({ fileName: fileNameStr, chunks: chunks, kb: kb, currentChunk: i+1 });
+        success = true;
 
-          chunks[i].status = 'done';
-          chunks[i].summary = data.result || '';
-          kb.chunkSummaries.push({ section: chunks[i].section, summary: chunks[i].summary });
-          kb.stats.completedChunks++;
-
-          // Save progress
-          NiraKB.saveQueue({ fileName: fileNameStr, chunks: chunks, kb: kb, currentChunk: i+1 });
-          success = true;
-
-        } catch(err) {
-          attempt++;
-          var errWait = NiraKB.getBackoffMs(attempt);
-          document.getElementById('chunkDetail').textContent =
-            'Error: ' + err.message + ' — retrying in ' + (errWait/1000) + 's (' + attempt + '/5)';
-          if (attempt < 5) {
-            await new Promise(function(r){ setTimeout(r, errWait); });
-          } else {
-            chunks[i].status = 'error';
-            document.getElementById('chunkDetail').textContent = 'Chunk ' + (i+1) + ' failed after 5 attempts — skipping';
-          }
-        }
+      } catch(err) {
+        chunks[i].status = 'error';
+        document.getElementById('chunkDetail').textContent = 'Chunk ' + (i+1) + ' failed: ' + err.message;
       }
     }
 
