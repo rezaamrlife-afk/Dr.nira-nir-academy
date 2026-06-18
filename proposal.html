@@ -115,6 +115,60 @@
   .workspace-card { grid-column: 1 / -1; }
 
   /* WORKSPACE PANEL */
+  /* SUPERVISOR REVIEW PANEL */
+  .sup-overlay { position: fixed; inset: 0; background: rgba(15,27,51,0.45); z-index: 9000; display: none; }
+  .sup-overlay.open { display: block; }
+  .sup-panel { position: fixed; top: 0; right: -480px; width: 460px; max-width: 92vw; height: 100vh; background: #fff; z-index: 9001; box-shadow: -8px 0 32px rgba(0,0,0,0.18); transition: right 0.3s cubic-bezier(0.32,0.72,0,1); display: flex; flex-direction: column; }
+  .sup-panel.open { right: 0; }
+  .sup-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .sup-header h3 { font-size: 15px; font-weight: 600; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+  .sup-close { background: none; border: none; cursor: pointer; color: var(--text-mid); padding: 4px; border-radius: 6px; display: flex; }
+  .sup-close:hover { background: #f0f4ff; color: var(--text-dark); }
+  .sup-body { flex: 1; overflow-y: auto; padding: 22px; }
+
+  .sup-loading { padding: 20px 0; }
+  .sup-loading-step { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 13px; color: var(--text-mid); opacity: 0.4; transition: opacity 0.3s; }
+  .sup-loading-step.active { opacity: 1; color: var(--text-dark); font-weight: 500; }
+  .sup-loading-step.done { opacity: 0.7; color: #16a34a; }
+  .sup-loading-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sup-loading-step.active .sup-loading-dot { border-color: var(--blue); border-top-color: transparent; animation: spin 0.8s linear infinite; }
+  .sup-loading-step.done .sup-loading-dot { border-color: #16a34a; background: #16a34a; }
+  .sup-loading-step.done .sup-loading-dot::after { content: '✓'; color: #fff; font-size: 10px; }
+
+  .sup-score-hero { text-align: center; padding: 16px 0 24px; }
+  .sup-score-num { font-size: 44px; font-weight: 700; color: var(--navy); font-family: 'Playfair Display', serif; line-height: 1; }
+  .sup-score-max { font-size: 18px; color: var(--text-mid); }
+  .sup-score-label { display: inline-block; margin-top: 8px; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .sup-score-label.excellent { background: #dcfce7; color: #16a34a; }
+  .sup-score-label.strong { background: #dbeafe; color: #2563EB; }
+  .sup-score-label.acceptable { background: #fef3c7; color: #d97706; }
+  .sup-score-label.needs-improvement { background: #fed7aa; color: #ea580c; }
+  .sup-score-label.major-revision { background: #fecaca; color: #dc2626; }
+
+  .sup-readiness { background: #f8faff; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+  .sup-readiness-label { font-size: 12px; color: var(--text-mid); font-weight: 500; }
+  .sup-readiness-val { font-size: 16px; font-weight: 700; color: var(--blue); }
+
+  .sup-section-title { font-size: 11px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 0 10px; }
+  .sup-cat-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .sup-cat-name { font-size: 12px; color: var(--text-dark); flex: 0 0 150px; }
+  .sup-cat-bar-track { flex: 1; height: 7px; background: #f0f4ff; border-radius: 4px; overflow: hidden; }
+  .sup-cat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .sup-cat-score { font-size: 11px; font-weight: 600; color: var(--text-mid); flex: 0 0 36px; text-align: right; }
+
+  .sup-issue-item, .sup-rec-item { display: flex; gap: 10px; padding: 10px 0; font-size: 13px; color: var(--text-dark); line-height: 1.6; border-bottom: 1px solid #f0f4ff; }
+  .sup-issue-item:last-child, .sup-rec-item:last-child { border-bottom: none; }
+  .sup-icon-bullet { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; margin-top: 1px; }
+  .sup-icon-bullet.issue { background: #fef2f2; color: #dc2626; }
+  .sup-icon-bullet.rec { background: #f0fdf4; color: #16a34a; }
+
+  .sup-footer { padding: 16px 22px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .sup-rerun-btn { width: 100%; padding: 10px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .sup-rerun-btn:hover { background: var(--navy-dark); }
+  .sup-rerun-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .sup-empty { text-align: center; padding: 40px 20px; color: var(--text-mid); font-size: 13px; }
+
   .workspace-panel { border-top: 1px solid #e0f2ff; background: #f0f9ff; padding: 14px 20px; margin-top: 0; }
   .workspace-panel-header { font-size: 11px; font-weight: 600; color: #0891b2; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
   .workspace-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
@@ -387,6 +441,7 @@ function showToast(message, type = 'success', duration = 3000) {
       <span class="topbar-title">Proposal builder</span>
       <div class="topbar-actions">
         <button class="btn-sm-outline" onclick="window.location.href='topic.html'">← Topics</button>
+        <button class="btn-sm-outline" id="supervisorBtn" onclick="runSupervisorReview()" disabled style="opacity:0.45;cursor:not-allowed;">Supervisor Review</button>
         <button class="btn-sm" onclick="window.location.href='export.html'">Export proposal →</button>
       </div>
     </div>
@@ -1456,6 +1511,226 @@ ${text}`;
     document.getElementById('navProgressFill').style.width = pct + '%';
     document.getElementById('navProgressLabel').textContent = `${done} of ${total} sections complete`;
     if (done === total) document.getElementById('exportBar').style.display = 'flex';
+    updateSupervisorButton(done, total);
+  }
+
+  // ── SUPERVISOR REVIEW: button state ──
+  function updateSupervisorButton(done, total) {
+    var btn = document.getElementById('supervisorBtn');
+    if (!btn) return;
+    if (done === 0) {
+      btn.textContent = 'Supervisor Review';
+      btn.disabled = true;
+      btn.style.opacity = '0.45';
+      btn.style.cursor = 'not-allowed';
+    } else if (done < 2) {
+      btn.textContent = 'Supervisor Review (' + done + '/' + total + ')';
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'not-allowed';
+    } else {
+      btn.textContent = 'Supervisor Review (Ready)';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }
+  }
+
+  // ── SUPERVISOR REVIEW ──
+  var SUP_LOADING_STEPS = [
+    'Analyzing research problem & gap...',
+    'Evaluating objectives & questions...',
+    'Reviewing literature & methodology...',
+    'Checking academic coherence...',
+    'Finalizing recommendations...'
+  ];
+  var supRunning = false;
+
+  function openSupervisorPanel() {
+    document.getElementById('supOverlay').classList.add('open');
+    document.getElementById('supPanel').classList.add('open');
+  }
+
+  function closeSupervisorPanel() {
+    document.getElementById('supOverlay').classList.remove('open');
+    document.getElementById('supPanel').classList.remove('open');
+  }
+
+  async function runSupervisorReview() {
+    if (supRunning) return;
+    var doneCount = Object.keys(generated).length;
+    if (doneCount < 2) {
+      showToast('Generate at least 2 sections before running a review.', 'warning');
+      return;
+    }
+    supRunning = true;
+    openSupervisorPanel();
+    showSupervisorLoading();
+
+    var rerunBtn = document.getElementById('supRerunBtn');
+    if (rerunBtn) rerunBtn.disabled = true;
+    document.getElementById('supFooter').style.display = 'none';
+
+    try {
+      var prompt = buildSupervisorPrompt();
+      var data = await NiraAPI.callWithRetry(async function() {
+        var res = await fetch('/api/proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt })
+        });
+        if (res.status === 429) throw new Error('429 rate limit');
+        if (!res.ok) {
+          var e = await res.json().catch(function(){ return {}; });
+          throw new Error(e.error || 'API error ' + res.status);
+        }
+        return await res.json();
+      });
+
+      var review = parseSupervisorResponse(data.result);
+      renderSupervisorReview(review);
+
+    } catch(err) {
+      document.getElementById('supBody').innerHTML =
+        '<div class="sup-empty" style="color:#dc2626">Review failed: ' + err.message + '</div>';
+    } finally {
+      supRunning = false;
+      if (rerunBtn) rerunBtn.disabled = false;
+      document.getElementById('supFooter').style.display = 'block';
+    }
+  }
+
+  function showSupervisorLoading() {
+    var html = '<div class="sup-loading" id="supLoadingSteps">';
+    SUP_LOADING_STEPS.forEach(function(step, i) {
+      html += '<div class="sup-loading-step" id="sup-step-' + i + '"><div class="sup-loading-dot"></div>' + step + '</div>';
+    });
+    html += '</div>';
+    document.getElementById('supBody').innerHTML = html;
+
+    // Simulated progressive steps (single API call underneath)
+    var idx = 0;
+    var iv = setInterval(function() {
+      if (idx > 0) {
+        var prev = document.getElementById('sup-step-' + (idx - 1));
+        if (prev) prev.className = 'sup-loading-step done';
+      }
+      var cur = document.getElementById('sup-step-' + idx);
+      if (cur) cur.className = 'sup-loading-step active';
+      idx++;
+      if (idx >= SUP_LOADING_STEPS.length) clearInterval(iv);
+    }, 900);
+  }
+
+  function buildSupervisorPrompt() {
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var kbContext = '';
+    if (kb && kb.status === 'complete') {
+      kbContext = kb.masterSummary ? '\nKnowledge Base context: ' + kb.masterSummary.slice(0, 500) : '';
+    }
+
+    var sectionsText = SECTIONS.map(function(s) {
+      var content = generated[s.id];
+      return content ? '[' + s.label + ']\n' + content.slice(0, 600) : null;
+    }).filter(Boolean).join('\n\n');
+
+    return 'You are an academic supervisor conducting a final quality review of a PhD research proposal before submission.\n\n' +
+      'Evaluate the following proposal sections:\n\n' + sectionsText + kbContext + '\n\n' +
+      'Respond in this EXACT JSON format (no markdown, no extra text):\n' +
+      '{\n' +
+      '  "overallScore": 84,\n' +
+      '  "submissionReadiness": 78,\n' +
+      '  "categories": {\n' +
+      '    "researchProblem": 88,\n' +
+      '    "objectives": 82,\n' +
+      '    "literature": 79,\n' +
+      '    "methodology": 85,\n' +
+      '    "coherence": 91,\n' +
+      '    "writingQuality": 87,\n' +
+      '    "citations": 72\n' +
+      '  },\n' +
+      '  "criticalIssues": ["issue 1", "issue 2", "issue 3"],\n' +
+      '  "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"]\n' +
+      '}\n\n' +
+      'Scoring weights: Research Problem & Gap 20%, Objectives & Questions 15%, Literature 15%, Methodology 20%, Coherence 15%, Writing Quality 10%, Citations 5%.\n' +
+      'Be a rigorous but fair academic supervisor. Output only valid JSON.';
+  }
+
+  function parseSupervisorResponse(raw) {
+    var text = (raw || '').trim().replace(/```json|```/g, '').trim();
+    try {
+      return JSON.parse(text);
+    } catch(e) {
+      var match = text.match(/\{[\s\S]*\}/);
+      if (match) { try { return JSON.parse(match[0]); } catch(e2) {} }
+      throw new Error('Could not parse review response.');
+    }
+  }
+
+  function getRatingLabel(score) {
+    if (score >= 90) return { text: 'Excellent', cls: 'excellent' };
+    if (score >= 80) return { text: 'Strong', cls: 'strong' };
+    if (score >= 70) return { text: 'Acceptable', cls: 'acceptable' };
+    if (score >= 60) return { text: 'Needs Improvement', cls: 'needs-improvement' };
+    return { text: 'Major Revision Required', cls: 'major-revision' };
+  }
+
+  function scoreColor(score) {
+    if (score >= 80) return '#16a34a';
+    if (score >= 70) return '#2563EB';
+    if (score >= 60) return '#d97706';
+    return '#dc2626';
+  }
+
+  var CATEGORY_LABELS = {
+    researchProblem: 'Research Problem & Gap',
+    objectives: 'Objectives & Questions',
+    literature: 'Literature Review',
+    methodology: 'Methodology Design',
+    coherence: 'Academic Coherence',
+    writingQuality: 'Writing Quality',
+    citations: 'Citation Support'
+  };
+
+  function renderSupervisorReview(review) {
+    var rating = getRatingLabel(review.overallScore);
+    var html = '';
+
+    html += '<div class="sup-score-hero">' +
+      '<div><span class="sup-score-num">' + review.overallScore + '</span><span class="sup-score-max">/100</span></div>' +
+      '<div class="sup-score-label ' + rating.cls + '">' + rating.text + '</div>' +
+      '</div>';
+
+    html += '<div class="sup-readiness">' +
+      '<span class="sup-readiness-label">Submission Readiness</span>' +
+      '<span class="sup-readiness-val">' + review.submissionReadiness + '%</span>' +
+      '</div>';
+
+    html += '<div class="sup-section-title">Category breakdown</div>';
+    Object.keys(CATEGORY_LABELS).forEach(function(key) {
+      var score = (review.categories && review.categories[key]) || 0;
+      html += '<div class="sup-cat-row">' +
+        '<span class="sup-cat-name">' + CATEGORY_LABELS[key] + '</span>' +
+        '<div class="sup-cat-bar-track"><div class="sup-cat-bar-fill" style="width:' + score + '%;background:' + scoreColor(score) + '"></div></div>' +
+        '<span class="sup-cat-score">' + score + '</span>' +
+        '</div>';
+    });
+
+    if (review.criticalIssues && review.criticalIssues.length) {
+      html += '<div class="sup-section-title">Critical issues</div>';
+      review.criticalIssues.slice(0, 3).forEach(function(issue) {
+        html += '<div class="sup-issue-item"><span class="sup-icon-bullet issue">!</span>' + issue + '</div>';
+      });
+    }
+
+    if (review.recommendations && review.recommendations.length) {
+      html += '<div class="sup-section-title">Recommendations</div>';
+      review.recommendations.slice(0, 5).forEach(function(rec) {
+        html += '<div class="sup-rec-item"><span class="sup-icon-bullet rec">✓</span>' + rec + '</div>';
+      });
+    }
+
+    document.getElementById('supBody').innerHTML = html;
   }
 
   // ── EDITOR: auto-save timers per section ──
@@ -1739,5 +2014,26 @@ if (drawer) {
   });
 }
 </script>
+
+<!-- SUPERVISOR REVIEW PANEL -->
+<div class="sup-overlay" id="supOverlay" onclick="closeSupervisorPanel()"></div>
+<div class="sup-panel" id="supPanel">
+  <div class="sup-header">
+    <h3>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Supervisor Review
+    </h3>
+    <button class="sup-close" onclick="closeSupervisorPanel()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="sup-body" id="supBody">
+    <div class="sup-empty">Click "Supervisor Review" to evaluate your proposal.</div>
+  </div>
+  <div class="sup-footer" id="supFooter" style="display:none">
+    <button class="sup-rerun-btn" id="supRerunBtn" onclick="runSupervisorReview()">Re-run Review</button>
+  </div>
+</div>
+
 </body>
 </html>
