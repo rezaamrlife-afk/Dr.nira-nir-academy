@@ -1,8 +1,17 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+  const { prompt, messages } = req.body;
+  if (!prompt && !messages) return res.status(400).json({ error: 'Prompt or messages required' });
+
+  // Build messages array — support both single prompt and multi-turn messages
+  const chatMessages = messages || [
+    {
+      role: 'system',
+      content: 'You are Dr. NIRA, an expert academic research advisor specializing in PhD proposals. Write in formal, precise academic English. Be thorough, scholarly, and structured. Never use placeholder text — always write complete, real academic content.'
+    },
+    { role: 'user', content: prompt }
+  ];
 
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -15,16 +24,7 @@ export default async function handler(req, res) {
         model: 'llama-3.1-8b-instant',
         max_tokens: 2000,
         temperature: 0.65,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are Dr. NIRA, an expert academic research advisor specializing in PhD proposals. Write in formal, precise academic English. Be thorough, scholarly, and structured. Never use placeholder text — always write complete, real academic content.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
+        messages: chatMessages
       })
     });
 
