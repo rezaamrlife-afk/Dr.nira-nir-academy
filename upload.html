@@ -615,6 +615,23 @@ function showToast(message, type, duration) {
     badge.textContent = labels[state] || state;
   }
 
+  function showRateLimitBanner(seconds) {
+    var banner = document.getElementById('rateLimitBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'rateLimitBanner';
+      banner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#d97706;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2);white-space:nowrap;';
+      document.body.appendChild(banner);
+    }
+    banner.innerHTML = '⏳ Rate limit — retrying in <strong style="font-size:15px;margin:0 4px">' + seconds + '</strong>s...';
+    return banner;
+  }
+
+  function hideRateLimitBanner() {
+    var banner = document.getElementById('rateLimitBanner');
+    if (banner) banner.remove();
+  }
+
   async function callAPI(systemPrompt, userPrompt) {
     var delays = [5000, 10000, 20000, 40000];
 
@@ -632,35 +649,25 @@ function showToast(message, type, duration) {
           var stepsEl = document.getElementById('stepsOverall');
 
           // Show visible banner
-          var banner = document.getElementById('rateLimitBanner');
-          if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'rateLimitBanner';
-            banner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#d97706;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2);';
-            document.body.appendChild(banner);
-          }
-
-          // Countdown timer
+          // Show visible banner with countdown
           var remaining = wait / 1000;
-          var updateBanner = function() {
-            if (banner) banner.innerHTML = '⏳ Rate limit — retrying in <strong style="font-size:15px;margin:0 4px">' + remaining + '</strong>s...';
-            if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
-          };
-          updateBanner();
+          showRateLimitBanner(remaining);
+          var stepsEl = document.getElementById('stepsOverall');
+          if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
 
           var countdown = setInterval(function() {
             remaining--;
-            if (remaining > 0) { updateBanner(); }
-            else { clearInterval(countdown); }
+            if (remaining > 0) {
+              showRateLimitBanner(remaining);
+              if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
+            } else { clearInterval(countdown); }
           }, 1000);
 
           await new Promise(function(r){ setTimeout(r, wait); });
           clearInterval(countdown);
-
-          // Remove banner
-          if (banner) { banner.remove(); }
+          hideRateLimitBanner();
           if (stepsEl) stepsEl.textContent = 'Continuing analysis...';
-          continue; // retry
+          continue;
         }
         throw new Error('Rate limit exceeded after ' + delays.length + ' retries. Please try again in a minute.');
       }
@@ -797,9 +804,20 @@ function showToast(message, type, duration) {
           // Check 429 BEFORE parsing body
           if (res.status === 429) {
             var wait = NiraKB.getBackoffMs(attempt);
+            var rem = wait / 1000;
+            showRateLimitBanner(rem);
             document.getElementById('chunkDetail').textContent =
-              'Rate limited — retrying in ' + (wait/1000) + 's (attempt ' + (attempt+1) + '/5)';
+              'Rate limited — retrying in ' + rem + 's (attempt ' + (attempt+1) + '/5)';
+            var cd = setInterval(function() {
+              rem--;
+              if (rem > 0) {
+                showRateLimitBanner(rem);
+                document.getElementById('chunkDetail').textContent = 'Rate limited — retrying in ' + rem + 's...';
+              } else { clearInterval(cd); }
+            }, 1000);
             await new Promise(function(r){ setTimeout(r, wait); });
+            clearInterval(cd);
+            hideRateLimitBanner();
             attempt++;
             continue;
           }
