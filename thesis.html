@@ -436,7 +436,15 @@ function buildChapterContext(chapterId) {
       if (typeof NiraKB === 'undefined') return '';
       var kb = NiraKB.load();
       if (!kb || kb.status !== 'complete') return '';
-      return kb.masterSummary ? kb.masterSummary.slice(0, 600) : '';
+      var parts = [];
+      if (kb.masterSummary) parts.push(kb.masterSummary.slice(0, 500));
+      var ext = kb.extracted || {};
+      if (ext.keywords    && ext.keywords.length)    parts.push('Keywords: '          + ext.keywords.slice(0,6).join(', '));
+      if (ext.variables   && ext.variables.length)   parts.push('Variables: '         + ext.variables.slice(0,5).join(', '));
+      if (ext.researchQuestions && ext.researchQuestions.length) parts.push('Research questions: ' + ext.researchQuestions.slice(0,2).join(' | '));
+      if (ext.findings    && ext.findings.length)    parts.push('Key findings: '       + ext.findings.slice(0,3).join(' | '));
+      if (ext.methodology && ext.methodology.length) parts.push('Methodology notes: '  + ext.methodology.slice(0,2).join(' | '));
+      return parts.join('\n');
     })()
   };
 }
@@ -530,6 +538,9 @@ async function generateSection(chapterId, sectionId) {
       : '') +
     (context.proposalSummary.problem
       ? 'Proposal problem: ' + context.proposalSummary.problem + '\n'
+      : '') +
+    (context.knowledgeBase
+      ? '\nDocument Knowledge Base (from uploaded research):\n' + context.knowledgeBase + '\n'
       : '') +
     '\nRequirements:\n' +
     '- Write 350-500 words of formal academic English\n' +
