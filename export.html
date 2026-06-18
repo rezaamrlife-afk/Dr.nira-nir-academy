@@ -375,8 +375,23 @@ function showToast(message, type = 'success', duration = 3000) {
     const st = localStorage.getItem('nira_selected_topic');
     if (st) topic = JSON.parse(st);
 
-    // Load proposal — NiraProject first, localStorage fallback
-    var projProposal = (typeof NiraProject !== 'undefined') ? NiraProject.load('proposal') : null;
+    // Load proposal — NiraProject first, then scan all projects, then localStorage fallback
+    var projProposal = null;
+    if (typeof NiraProject !== 'undefined') {
+      projProposal = NiraProject.load('proposal');
+      // If active project empty, scan all projects for proposal data
+      if (!projProposal || Object.keys(projProposal).length === 0) {
+        var allProjects = NiraProject.list();
+        for (var i = 0; i < allProjects.length; i++) {
+          var p = allProjects[i];
+          if (p.completedModules && p.completedModules.indexOf('proposal') !== -1) {
+            NiraProject.switch(p.id);
+            projProposal = NiraProject.load('proposal');
+            if (projProposal && Object.keys(projProposal).length > 0) break;
+          }
+        }
+      }
+    }
     if (projProposal && Object.keys(projProposal).length > 0) {
       proposal = projProposal;
     } else {
