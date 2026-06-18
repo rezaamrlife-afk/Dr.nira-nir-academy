@@ -110,7 +110,31 @@
   .mode-choice-badge.ai { background: var(--blue-pale); color: var(--blue); }
   .mode-choice-badge.manual { background: #dcfce7; color: #16a34a; }
 
-  .mode-choice-icon.guided { background: #d97706; }
+  .mode-choice-icon.workspace { background: #0891b2; }
+  .mode-choice-badge.workspace { background: #e0f2fe; color: #0891b2; }
+  .workspace-card { grid-column: 1 / -1; }
+
+  /* WORKSPACE PANEL */
+  .workspace-panel { border-top: 1px solid #e0f2ff; background: #f0f9ff; padding: 14px 20px; margin-top: 0; }
+  .workspace-panel-header { font-size: 11px; font-weight: 600; color: #0891b2; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .workspace-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .ws-action-btn { border: 1px solid #bae6fd; background: #fff; color: #0369a1; font-size: 11px; font-weight: 500; padding: 5px 11px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+  .ws-action-btn:hover { background: #0891b2; color: #fff; border-color: #0891b2; }
+  .ws-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ws-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .ws-input { flex: 1; padding: 8px 12px; border: 1px solid #bae6fd; border-radius: 7px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-dark); outline: none; background: #fff; }
+  .ws-input:focus { border-color: #0891b2; }
+  .ws-send-btn { background: #0891b2; color: #fff; border: none; padding: 8px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+  .ws-send-btn:hover { background: #0e7490; }
+  .ws-send-btn:disabled { background: #7dd3fc; cursor: not-allowed; }
+  .ws-history { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .ws-history-item { font-size: 12px; padding: 6px 10px; border-radius: 6px; line-height: 1.5; }
+  .ws-history-item.user { background: #fff; border: 1px solid #bae6fd; color: #0369a1; }
+  .ws-history-item.assistant { background: #f0f9ff; border: 1px solid #e0f2fe; color: var(--text-dark); }
+  .ws-version-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .ws-version-btn { font-size: 10px; padding: 2px 8px; border: 1px solid #bae6fd; border-radius: 10px; background: #fff; color: #0369a1; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .ws-version-btn:hover { background: #e0f2fe; }
+  .ws-spinner { width: 14px; height: 14px; border: 2px solid #bae6fd; border-top-color: #0891b2; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
   .mode-choice-badge.guided { background: #fef3c7; color: #92400e; }
   .mode-choice-card.selected-guided { border-color: #d97706; background: #fffbeb; }
 
@@ -441,6 +465,29 @@ function showToast(message, type = 'success', duration = 3000) {
           </div>
 
         </div>
+
+        <!-- MODE 5 — Full width -->
+        <div class="mode-choice-card workspace-card" onclick="selectMode('workspace')" style="border-color:#0891b2;background:linear-gradient(135deg,#f0f9ff 0%,#fff 100%);">
+          <div style="display:flex;align-items:flex-start;gap:16px;">
+            <div class="mode-choice-icon workspace" style="flex-shrink:0">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/><path d="M15 5l3 3"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <h3 class="mode-choice-title" style="margin:0">AI Writing Workspace</h3>
+                <span style="font-size:10px;background:#e0f2fe;color:#0891b2;padding:2px 8px;border-radius:10px;font-weight:600;">New</span>
+              </div>
+              <p class="mode-choice-desc">Every section becomes an interactive AI workspace. Generate a first draft, then refine iteratively — improve tone, expand, shorten, add citations, or give custom instructions. Each section remembers its editing history.</p>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;">
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">Iterative editing</span>
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">7 AI actions</span>
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">KB integration</span>
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">Version history</span>
+              </div>
+            </div>
+          </div>
+          <div class="mode-choice-badge" style="background:#e0f2fe;color:#0891b2;margin-top:12px;">Recommended for quality writing</div>
+        </div>
       </div>
 
       <!-- TITLE INPUT SCREEN (Fast Track) -->
@@ -632,6 +679,219 @@ function showToast(message, type = 'success', duration = 3000) {
   let generating = false;
   let authoringMode = localStorage.getItem('nira_authoring_mode') || 'ai';
 
+  // ── WORKSPACE STATE (Mode 5) ──
+  var LIMITS = { aiHistory: 10, versions: 3 };
+  var isRunningAction = false;
+
+  var WorkspaceState = {
+    sections: {},
+    activeSectionId: null,
+    version: 1
+  };
+
+  function getSection(id) {
+    if (!WorkspaceState.sections[id]) {
+      WorkspaceState.sections[id] = {
+        content: generated[id] || '',
+        aiHistory: [],
+        versions: []
+      };
+    }
+    return WorkspaceState.sections[id];
+  }
+
+  function updateSection(id, patch) {
+    var section = getSection(id);
+    Object.assign(section, patch);
+    if (patch.content !== undefined) {
+      generated[id] = patch.content;
+      NiraProject.save('proposal', generated);
+    }
+    saveWorkspaceState();
+  }
+
+  function pushHistory(id, message) {
+    var section = getSection(id);
+    section.aiHistory.push(message);
+    if (section.aiHistory.length > LIMITS.aiHistory) {
+      section.aiHistory = section.aiHistory.slice(-LIMITS.aiHistory);
+    }
+    saveWorkspaceState();
+  }
+
+  function pushVersion(id, text) {
+    var section = getSection(id);
+    section.versions.unshift({ text: text, savedAt: new Date().toLocaleTimeString() });
+    if (section.versions.length > LIMITS.versions) {
+      section.versions = section.versions.slice(0, LIMITS.versions);
+    }
+    saveWorkspaceState();
+  }
+
+  function saveWorkspaceState() {
+    try { localStorage.setItem('nira_workspace_state', JSON.stringify(WorkspaceState)); } catch(e) {}
+  }
+
+  function loadWorkspaceState() {
+    try {
+      var raw = localStorage.getItem('nira_workspace_state');
+      if (raw) WorkspaceState = JSON.parse(raw);
+    } catch(e) {}
+  }
+
+  // ── PROMPT SYSTEM ──
+  var BASE_SYSTEM = 'You are an academic writing assistant for a single section of a research proposal.\n' +
+    'Rules:\n' +
+    '- Only modify the provided section. Do not rewrite other sections.\n' +
+    '- Maintain formal academic tone throughout.\n' +
+    '- Preserve structure unless explicitly asked to change it.\n' +
+    '- If Knowledge Base context is provided, use it for consistency.\n' +
+    '- Output only the final improved section text. No labels, no headings, no explanation.';
+
+  var ACTION_PROMPTS = {
+    improve:   'Task: Improve academic tone and clarity.\nFocus: Make text more formal, improve sentence structure, remove informal expressions, increase academic precision.\nDo NOT change meaning or add new ideas.',
+    expand:    'Task: Expand the section with relevant academic detail.\nRules: Add supporting explanations and theoretical depth. Do not introduce unrelated concepts. If Knowledge Base exists, use relevant concepts.',
+    shorten:   'Task: Shorten the section while preserving meaning.\nRules: Remove redundancy, keep key academic points, maintain coherence, preserve citations if present.',
+    citations: 'Task: Improve academic credibility by adding citations.\nRules: Insert placeholder citations like (Author, Year). Do not invent real papers. Align with existing concepts. Use Knowledge Base keywords if available.',
+    align_kb:  'Task: Align this section with the Knowledge Base context provided.\nRules: Ensure consistency with KB, adjust terminology to match KB, add missing conceptual alignment.',
+    rewrite:   'Task: Completely rewrite this section.\nRules: Keep original intent, improve structure, use academic style, use KB if available. Output clean final version.',
+    custom:    'Task: Follow the user instruction precisely.\nRules: Apply only requested changes, keep academic tone, do not rewrite unrelated parts.'
+  };
+
+  function buildWorkspacePrompt(action, sectionLabel, content, userInput, kb) {
+    var kbContext = '';
+    if (kb && kb.status === 'complete') {
+      kbContext = kb.masterSummary ? '\n[KNOWLEDGE BASE]\n' + kb.masterSummary.slice(0, 600) : '';
+      if (kb.extracted && kb.extracted.keywords && kb.extracted.keywords.length > 0) {
+        kbContext += '\nKeywords: ' + kb.extracted.keywords.join(', ');
+      }
+    }
+
+    return BASE_SYSTEM + '\n\n' +
+      '[SECTION]\n' + sectionLabel + '\n\n' +
+      '[CURRENT CONTENT]\n' + content + '\n\n' +
+      (kbContext || '') + '\n\n' +
+      '[ACTION]\n' + (ACTION_PROMPTS[action] || ACTION_PROMPTS.custom) +
+      (userInput ? '\n\nUser instruction: ' + userInput : '');
+  }
+
+  // ── ACTION ROUTER ──
+  async function runAction(action, sectionId, userInput) {
+    if (isRunningAction) { showToast('Please wait for current action to complete.', 'warning'); return; }
+    isRunningAction = true;
+
+    var sectionDef = SECTIONS.find(function(s){ return s.id === sectionId; });
+    var sectionLabel = sectionDef ? sectionDef.label : sectionId;
+    var section = getSection(sectionId);
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+
+    // Show loading in workspace
+    var wsLoading = document.getElementById('ws-loading-' + sectionId);
+    var wsInput = document.getElementById('ws-input-' + sectionId);
+    if (wsLoading) wsLoading.style.display = 'inline-block';
+    document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = true; });
+
+    try {
+      var prompt = buildWorkspacePrompt(action, sectionLabel, section.content || generated[sectionId] || '', userInput, kb);
+      var res = await fetch('/api/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt })
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error');
+
+      var result = (data.result || '').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'').trim();
+
+      // Save version before updating
+      pushVersion(sectionId, section.content || generated[sectionId] || '');
+      updateSection(sectionId, { content: result });
+
+      // Push history
+      var actionLabel = { improve:'Improve style', expand:'Expand', shorten:'Shorten', citations:'Add citations', align_kb:'Align with KB', rewrite:'Rewrite', custom: userInput || 'Custom' };
+      pushHistory(sectionId, { role: 'user', text: actionLabel[action] || action });
+      pushHistory(sectionId, { role: 'assistant', text: result.slice(0, 120) + (result.length > 120 ? '...' : '') });
+
+      // Update content display
+      var contentEl = document.getElementById('content-' + sectionId);
+      if (contentEl) contentEl.innerText = result;
+
+      // Update workspace UI
+      renderWorkspaceHistory(sectionId);
+      renderWorkspaceVersions(sectionId);
+
+      showToast('Section updated!', 'success');
+      if (wsInput) wsInput.value = '';
+
+    } catch(err) {
+      showToast('Error: ' + err.message, 'error');
+    } finally {
+      isRunningAction = false;
+      if (wsLoading) wsLoading.style.display = 'none';
+      document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = false; });
+    }
+  }
+
+  function renderWorkspaceHistory(sectionId) {
+    var el = document.getElementById('ws-history-' + sectionId);
+    if (!el) return;
+    var section = getSection(sectionId);
+    if (section.aiHistory.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = section.aiHistory.slice(-6).map(function(h) {
+      return '<div class="ws-history-item ' + h.role + '">' +
+        (h.role === 'user' ? '→ ' : '✓ ') + h.text + '</div>';
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function renderWorkspaceVersions(sectionId) {
+    var el = document.getElementById('ws-versions-' + sectionId);
+    if (!el) return;
+    var section = getSection(sectionId);
+    if (section.versions.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = '<span style="font-size:10px;color:#0891b2;font-weight:600;">Versions: </span>' +
+      section.versions.map(function(v, i) {
+        return '<button class="ws-version-btn" onclick="restoreVersion(\'' + sectionId + '\',' + i + ')">v' + (section.versions.length - i) + ' · ' + v.savedAt + '</button>';
+      }).join('');
+  }
+
+  function restoreVersion(sectionId, idx) {
+    var section = getSection(sectionId);
+    var ver = section.versions[idx];
+    if (!ver) return;
+    if (!confirm('Restore this version? Current content will be saved as a new version.')) return;
+    pushVersion(sectionId, section.content);
+    updateSection(sectionId, { content: ver.text });
+    var contentEl = document.getElementById('content-' + sectionId);
+    if (contentEl) contentEl.innerText = ver.text;
+    renderWorkspaceVersions(sectionId);
+    showToast('Version restored', 'success');
+  }
+
+  function buildWorkspacePanel(sectionId) {
+    return '<div class="workspace-panel" id="workspace-' + sectionId + '">' +
+      '<div class="workspace-panel-header">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
+        'AI Writing Workspace' +
+        '<span id="ws-loading-' + sectionId + '" style="display:none" class="ws-spinner"></span>' +
+      '</div>' +
+      '<div class="workspace-actions">' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'improve\',\'' + sectionId + '\',\'\')">✦ Improve style</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'expand\',\'' + sectionId + '\',\'\')">⊕ Expand</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'shorten\',\'' + sectionId + '\',\'\')">⊖ Shorten</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'citations\',\'' + sectionId + '\',\'\')">📚 Add citations</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'align_kb\',\'' + sectionId + '\',\'\')">🔗 Align with KB</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'rewrite\',\'' + sectionId + '\',\'\')">↺ Rewrite</button>' +
+      '</div>' +
+      '<div class="ws-input-row">' +
+        '<input type="text" class="ws-input" id="ws-input-' + sectionId + '" placeholder="Custom instruction (e.g. more academic, focus on EFL teachers...)" onkeydown="if(event.key===\'Enter\'){var v=this.value.trim();if(v)runAction(\'custom\',\'' + sectionId + '\',v);}">' +
+        '<button class="ws-send-btn" data-section="' + sectionId + '" onclick="var v=document.getElementById(\'ws-input-' + sectionId + '\').value.trim();if(v)runAction(\'custom\',\'' + sectionId + '\',v);">Send</button>' +
+      '</div>' +
+      '<div class="ws-history" id="ws-history-' + sectionId + '"></div>' +
+      '<div class="ws-version-bar" id="ws-versions-' + sectionId + '"></div>' +
+    '</div>';
+  }
+
   function changeTopic() {
     var hasSections = Object.keys(generated).length > 0;
     if (hasSections) {
@@ -656,6 +916,51 @@ function showToast(message, type = 'success', duration = 3000) {
   function selectMode(mode) {
     authoringMode = mode;
     localStorage.setItem('nira_authoring_mode', mode);
+    document.getElementById('modeSelectionScreen').style.display = 'none';
+    document.getElementById('titleInputScreen').style.display = 'none';
+
+    if (mode === 'fast') {
+      document.getElementById('titleInputScreen').style.display = 'block';
+      document.getElementById('modeIndicator').style.display = 'none';
+      document.getElementById('topicChip').style.display = 'none';
+      var pl2 = document.getElementById('proposalLayout');
+      if (pl2) pl2.style.display = 'none';
+      document.getElementById('sectionCards').style.display = 'none';
+      document.getElementById('generateAllBar').style.display = 'none';
+      var hasPrev = Object.keys(generated).length > 0;
+      if (hasPrev) {
+        var warn = document.getElementById('ftPrevWarn');
+        if (warn) warn.style.display = 'block';
+      }
+      return;
+    }
+
+    var modeColors = { ai:'var(--blue)', manual:'var(--green)', guided:'#d97706', workspace:'#0891b2' };
+    var modeLabels = { ai:'AI-Assisted Drafting', manual:'Independent Authoring', guided:'Guided Writing', workspace:'AI Writing Workspace' };
+    var modeInd = document.getElementById('modeIndicator');
+    if (modeInd) {
+      modeInd.style.display = 'flex';
+      modeInd.style.borderColor = modeColors[mode] || 'var(--blue)';
+      var dot = modeInd.querySelector('.mode-dot');
+      if (dot) dot.style.background = modeColors[mode] || 'var(--blue)';
+      var label = modeInd.querySelector('.mode-label');
+      if (label) label.textContent = modeLabels[mode] || mode;
+    }
+
+    document.getElementById('topicChip').style.display = 'flex';
+    document.getElementById('sectionCards').style.display = 'block';
+    var pl = document.getElementById('proposalLayout');
+    if (pl) pl.style.display = 'grid';
+
+    // Hide Generate All for workspace (section by section)
+    var genBar = document.getElementById('generateAllBar');
+    if (genBar) genBar.style.display = (mode === 'workspace' || mode === 'manual') ? 'none' : 'flex';
+
+    // Load workspace state if mode 5
+    if (mode === 'workspace') loadWorkspaceState();
+
+    renderSectionCards();
+  }
     document.getElementById('modeSelectionScreen').style.display = 'none';
     document.getElementById('titleInputScreen').style.display = 'none';
 
@@ -864,6 +1169,9 @@ function showToast(message, type = 'success', duration = 3000) {
         document.getElementById('sidebarAvatar').textContent = profile.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       }
     }
+    // Load workspace state
+    loadWorkspaceState();
+
     // Load KB context if available
     var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
     var kbContext = '';
@@ -930,6 +1238,7 @@ function showToast(message, type = 'success', duration = 3000) {
     const isAI = authoringMode === 'ai';
     const isManual = authoringMode === 'manual';
     const isGuided = authoringMode === 'guided';
+    const isWorkspace = authoringMode === 'workspace';
 
     container.innerHTML = SECTIONS.map((s, i) => {
       const isDone = !!generated[s.id];
@@ -943,6 +1252,13 @@ function showToast(message, type = 'success', duration = 3000) {
         actionsHtml = isDone
           ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
           : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')">
+              <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate draft
+             </button>`;
+      } else if (isWorkspace) {
+        actionsHtml = isDone
+          ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
+          : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')" style="background:#0891b2">
               <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               Generate draft
              </button>`;
@@ -968,12 +1284,22 @@ function showToast(message, type = 'success', duration = 3000) {
                onpaste="onContentPaste(event)"
                title="Click to edit">${content}</div>`
           : `<div class="section-empty"><p>Click "Generate draft" to create this section with AI assistance.</p></div>`;
+      } else if (isWorkspace) {
+        bodyHtml = isDone
+          ? `<div class="section-content" contenteditable="true" id="content-${s.id}"
+               oninput="onContentInput('${s.id}')"
+               onblur="onContentBlur('${s.id}')"
+               onpaste="onContentPaste(event)"
+               title="Click to edit">${content}</div>
+             ${buildWorkspacePanel(s.id)}`
+          : `<div class="section-empty" style="border-color:#bae6fd">
+               <p>Click "Generate draft" to create this section, then use the AI Workspace to refine it iteratively.</p>
+             </div>`;
       } else if (isManual) {
         bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
             placeholder="Write the ${s.label} section here. Maintain formal academic register and discipline-appropriate terminology..."
             oninput="saveEdits('${s.id}')">${content}</textarea>`;
       } else {
-        // Guided
         bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
             placeholder="Write the ${s.label} section here. When ready, click 'Get AI Feedback' to receive critique and improvement suggestions..."
             oninput="saveEdits('${s.id}')">${content}</textarea>
@@ -988,7 +1314,14 @@ function showToast(message, type = 'success', duration = 3000) {
 
       // ── FOOTER ──
       let footerHtml;
-      if (isAI) {
+      if (isWorkspace) {
+        footerHtml = isDone
+          ? `<div class="section-footer">
+              <span class="word-count">${wordCount} words · AI Writing Workspace</span>
+              <span class="edit-hint" style="color:#0891b2">Click text to edit directly</span>
+             </div>`
+          : '';
+      } else if (isAI) {
         footerHtml = isDone
           ? `<div class="section-footer">
               <span class="word-count">${wordCount} words · AI-drafted</span>
@@ -1282,19 +1615,35 @@ Keywords: ${keywords}
       const idx = SECTIONS.findIndex(s => s.id === sectionId);
       card.querySelector('.section-card-num').textContent = '✓';
       card.querySelector('.section-card-num').classList.add('done');
-      card.querySelector('.section-card-actions').innerHTML = `<button class="btn-regen" onclick="generateSection('${sectionId}')">Regenerate</button>`;
-      body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}"
-        oninput="onContentInput('${sectionId}')"
-        onblur="onContentBlur('${sectionId}')"
-        onpaste="onContentPaste(event)"
-        title="Click to edit">${cleaned}</div>`;
+      card.querySelector('.section-card-actions').innerHTML = `<button class="btn-regen" onclick="generateSection('${sectionId}')" style="${authoringMode==='workspace'?'background:#0891b2;border-color:#0891b2':''}">Regenerate</button>`;
+
+      if (authoringMode === 'workspace') {
+        body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}"
+          oninput="onContentInput('${sectionId}')"
+          onblur="onContentBlur('${sectionId}')"
+          onpaste="onContentPaste(event)"
+          title="Click to edit">${cleaned}</div>
+          ${buildWorkspacePanel(sectionId)}`;
+        // Init workspace state for this section
+        updateSection(sectionId, { content: cleaned });
+      } else {
+        body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}"
+          oninput="onContentInput('${sectionId}')"
+          onblur="onContentBlur('${sectionId}')"
+          onpaste="onContentPaste(event)"
+          title="Click to edit">${cleaned}</div>`;
+      }
 
       // Remove old footer if exists, then add new one
       var oldFooter = card.querySelector('.section-footer');
       if (oldFooter) oldFooter.remove();
       var footer = document.createElement('div');
       footer.className = 'section-footer';
-      footer.innerHTML = '<span class="word-count">' + wordCount + ' words · AI-drafted</span><span class="edit-hint">Click text to edit directly</span>';
+      if (authoringMode === 'workspace') {
+        footer.innerHTML = '<span class="word-count">' + wordCount + ' words · AI Writing Workspace</span><span class="edit-hint" style="color:#0891b2">Click text to edit directly</span>';
+      } else {
+        footer.innerHTML = '<span class="word-count">' + wordCount + ' words · AI-drafted</span><span class="edit-hint">Click text to edit directly</span>';
+      }
       card.appendChild(footer);
 
       renderSectionsNav();
