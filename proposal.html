@@ -1537,6 +1537,18 @@ ${text}`;
   }
 
   // ── SUPERVISOR REVIEW ──
+  var SUP_SECTION_LIMITS = {
+    title:        600,   // light — short by nature
+    problem:      1500,  // critical
+    objectives:   1200,  // default
+    questions:    1200,  // default
+    hypotheses:   1200,  // default
+    literature:   1500,  // critical — usually longest, most info loss risk
+    novelty:      1200,  // default
+    methodology:  1500,  // critical
+    limitations:  800,   // light
+    references:   600    // light — just a list
+  };
   var SUP_LOADING_STEPS = [
     'Analyzing research problem & gap...',
     'Evaluating objectives & questions...',
@@ -1631,7 +1643,9 @@ ${text}`;
 
     var sectionsText = SECTIONS.map(function(s) {
       var content = generated[s.id];
-      return content ? '[' + s.label + ']\n' + content.slice(0, 600) : null;
+      if (!content) return null;
+      var limit = SUP_SECTION_LIMITS[s.id] || 1200;
+      return '[' + s.label + ']\n' + content.slice(0, limit);
     }).filter(Boolean).join('\n\n');
 
     return 'You are an academic supervisor conducting a final quality review of a PhD research proposal before submission.\n\n' +
