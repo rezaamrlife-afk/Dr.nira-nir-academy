@@ -738,8 +738,8 @@ function showToast(message, type, duration) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: prompt })
           });
-          var data = await res.json();
 
+          // Check 429 BEFORE parsing body
           if (res.status === 429) {
             var wait = NiraKB.getBackoffMs(attempt);
             document.getElementById('chunkDetail').textContent =
@@ -749,7 +749,8 @@ function showToast(message, type, duration) {
             continue;
           }
 
-          if (!res.ok) throw new Error(data.error || 'API error');
+          var data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'API error ' + res.status);
 
           chunks[i].status = 'done';
           chunks[i].summary = data.result || '';
@@ -762,7 +763,12 @@ function showToast(message, type, duration) {
 
         } catch(err) {
           attempt++;
-          if (attempt >= 5) {
+          var errWait = NiraKB.getBackoffMs(attempt);
+          document.getElementById('chunkDetail').textContent =
+            'Error: ' + err.message + ' — retrying in ' + (errWait/1000) + 's (' + attempt + '/5)';
+          if (attempt < 5) {
+            await new Promise(function(r){ setTimeout(r, errWait); });
+          } else {
             chunks[i].status = 'error';
             document.getElementById('chunkDetail').textContent = 'Chunk ' + (i+1) + ' failed after 5 attempts — skipping';
           }
