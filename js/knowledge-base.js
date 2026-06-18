@@ -230,7 +230,7 @@ var NiraKB = (function() {
   }
 
   function splitIntoChunks(text, maxTokens) {
-    maxTokens = maxTokens || 2200;
+    maxTokens = maxTokens || 1500; // reduced from 2200 to stay within API limits
     var maxChars = maxTokens * 4;
     var paragraphs = text.split(/\n\n+/);
     var chunks = [];
