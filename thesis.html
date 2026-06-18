@@ -428,7 +428,13 @@ function buildChapterContext(chapterId) {
       methodology: (proposal.methodology || '').slice(0, 200)
     },
     previousChapters: prevChapters,
-    currentChapterGoal: ch.goal
+    currentChapterGoal: ch.goal,
+    knowledgeBase: (function() {
+      if (typeof NiraKB === 'undefined') return '';
+      var kb = NiraKB.load();
+      if (!kb || kb.status !== 'complete') return '';
+      return kb.masterSummary ? kb.masterSummary.slice(0, 600) : '';
+    })()
   };
 }
 
