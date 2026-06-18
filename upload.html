@@ -1059,6 +1059,8 @@ function showToast(message, type, duration) {
     }
     window.location.href = 'proposal.html';
   }
+
+  async function runFull(text, citation) {
     var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
     var kbi = kb && kb.status === 'complete' ? buildKBInput(kb) : null;
     var ctx = function(section) {
