@@ -629,7 +629,7 @@ function renderChapterCard(chId) {
       '</div>' +
       '<div class="section-body" id="sbody-' + chId + '-' + sId + '">' +
         (isDone
-          ? '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')">' + content + '</div>'
+          ? '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')" onpaste="onSectionPaste(event)">' + content + '</div>'
           : '<div style="font-size:13px;color:var(--text-mid);padding:8px">Click Generate to create this section.</div>') +
       '</div>' +
     '</div>';
@@ -668,6 +668,25 @@ function onSectionEdit(chId, sId) {
   renderChapterNav();
 }
 
+function onSectionPaste(e) {
+  // Sanitize paste — plain text only, no HTML injection
+  e.preventDefault();
+  var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  sel.deleteFromDocument();
+  var range = sel.getRangeAt(0);
+  var textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+  range.setStartAfter(textNode);
+  range.setEndAfter(textNode);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  // Trigger save via input event on the contenteditable element
+  var el = e.target.closest('[contenteditable="true"]');
+  if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 async function generateSectionUI(chId, sId) {
   var body = document.getElementById('sbody-' + chId + '-' + sId);
   var dot = document.getElementById('sdot-' + chId + '-' + sId);
@@ -679,7 +698,7 @@ async function generateSectionUI(chId, sId) {
     var wc = result.trim().split(/\s+/).length;
 
     if (body) {
-      body.innerHTML = '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')">' + result + '</div>';
+      body.innerHTML = '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')" onpaste="onSectionPaste(event)">' + result + '</div>';
     }
     if (dot) { dot.className = 'section-dot done'; }
 
