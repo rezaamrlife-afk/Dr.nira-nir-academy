@@ -150,10 +150,10 @@ var NiraProject = (function() {
   function saveModule(moduleName, data) {
     var projects = getAllProjects();
     var id = getActiveId();
-    if (!id) {
+    if (!id || !projects.find(function(p){ return p.id === id; })) {
       // Auto-create project if none exists
-      var p = createProject();
-      id = p.id;
+      var newP = createProject();
+      id = newP.id;
       projects = getAllProjects();
     }
     var idx = projects.findIndex(function(p){ return p.id === id; });
