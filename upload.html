@@ -630,19 +630,35 @@ function showToast(message, type, duration) {
         if (attempt < delays.length) {
           var wait = delays[attempt];
           var stepsEl = document.getElementById('stepsOverall');
+
+          // Show visible banner
+          var banner = document.getElementById('rateLimitBanner');
+          if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'rateLimitBanner';
+            banner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#d97706;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2);';
+            document.body.appendChild(banner);
+          }
+
           // Countdown timer
           var remaining = wait / 1000;
-          if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
+          var updateBanner = function() {
+            if (banner) banner.innerHTML = '⏳ Rate limit — retrying in <strong style="font-size:15px;margin:0 4px">' + remaining + '</strong>s...';
+            if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
+          };
+          updateBanner();
+
           var countdown = setInterval(function() {
             remaining--;
-            if (stepsEl && remaining > 0) {
-              stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
-            } else {
-              clearInterval(countdown);
-            }
+            if (remaining > 0) { updateBanner(); }
+            else { clearInterval(countdown); }
           }, 1000);
+
           await new Promise(function(r){ setTimeout(r, wait); });
           clearInterval(countdown);
+
+          // Remove banner
+          if (banner) { banner.remove(); }
           if (stepsEl) stepsEl.textContent = 'Continuing analysis...';
           continue; // retry
         }
