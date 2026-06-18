@@ -71,7 +71,9 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
 .chart-type{border:1.5px solid var(--border);border-radius:8px;padding:8px 4px;cursor:pointer;text-align:center;transition:all 0.15s;}
 .chart-type:hover{border-color:var(--blue-light);}
 .chart-type.selected{border-color:var(--blue);background:var(--blue-pale);}
-.chart-type-icon{font-size:20px;margin-bottom:3px;}
+.chart-type-icon{width:28px;height:28px;margin:0 auto 5px;color:var(--text-mid);}
+.chart-type-icon svg{width:100%;height:100%;}
+.chart-type.selected .chart-type-icon{color:var(--blue);}
 .chart-type-name{font-size:10px;font-weight:600;color:var(--text-dark);}
 .chart-type.selected .chart-type-name{color:var(--blue);}
 
@@ -205,27 +207,27 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
               <label class="form-label">Chart type</label>
               <div class="chart-types">
                 <div class="chart-type selected" onclick="selectChartType(this,'bar')" data-type="bar">
-                  <div class="chart-type-icon">📊</div>
+                  <div class="chart-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg></div>
                   <div class="chart-type-name">Bar</div>
                 </div>
                 <div class="chart-type" onclick="selectChartType(this,'horizontalBar')" data-type="horizontalBar">
-                  <div class="chart-type-icon">📉</div>
+                  <div class="chart-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="9" height="4"/><rect x="3" y="10" width="14" height="4"/><rect x="3" y="17" width="18" height="4"/></svg></div>
                   <div class="chart-type-name">H. Bar</div>
                 </div>
                 <div class="chart-type" onclick="selectChartType(this,'line')" data-type="line">
-                  <div class="chart-type-icon">📈</div>
+                  <div class="chart-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 8 11 13 14 19 6"/><circle cx="3" cy="17" r="1.5" fill="currentColor"/><circle cx="8" cy="11" r="1.5" fill="currentColor"/><circle cx="13" cy="14" r="1.5" fill="currentColor"/><circle cx="19" cy="6" r="1.5" fill="currentColor"/></svg></div>
                   <div class="chart-type-name">Line</div>
                 </div>
                 <div class="chart-type" onclick="selectChartType(this,'pie')" data-type="pie">
-                  <div class="chart-type-icon">🥧</div>
+                  <div class="chart-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></div>
                   <div class="chart-type-name">Pie</div>
                 </div>
                 <div class="chart-type" onclick="selectChartType(this,'doughnut')" data-type="doughnut">
-                  <div class="chart-type-icon">🍩</div>
+                  <div class="chart-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
                   <div class="chart-type-name">Doughnut</div>
                 </div>
                 <div class="chart-type" onclick="selectChartType(this,'scatter')" data-type="scatter">
-                  <div class="chart-type-icon">🔵</div>
+                  <div class="chart-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2" fill="currentColor"/><circle cx="14" cy="10" r="2" fill="currentColor"/><circle cx="18" cy="5" r="2" fill="currentColor"/><circle cx="5" cy="8" r="2" fill="currentColor"/><circle cx="17" cy="16" r="2" fill="currentColor"/></svg></div>
                   <div class="chart-type-name">Scatter</div>
                 </div>
               </div>
@@ -330,10 +332,13 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
 <div class="more-drawer" id="moreDrawer">
   <div class="more-drawer-handle"></div>
   <div class="more-drawer-title">More</div>
-  <a class="more-item" href="questionnaire.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div><div><div class="more-item-label">Questionnaire</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="enhance.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="more-item-label">Writing enhancer</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div><div class="more-item-label">Citations</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div><div class="more-item-label">Export</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="charts.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="more-item-label">Charts &amp; tables</div><div class="more-item-sub">Visualize your data</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="conceptual-model.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><div><div class="more-item-label">Conceptual model</div><div class="more-item-sub">Research diagram</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="questionnaire.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div><div><div class="more-item-label">Questionnaire</div><div class="more-item-sub">Survey generator</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="more-item-label">Academic writer</div><div class="more-item-sub">Write & edit documents</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE & more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div><div class="more-item-label">My proposals</div><div class="more-item-sub">Saved proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div><div class="more-item-label">Export</div><div class="more-item-sub">Download your work</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
 </div>
 
 <script>
