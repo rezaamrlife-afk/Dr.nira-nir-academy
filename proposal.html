@@ -761,18 +761,34 @@ function showToast(message, type = 'success', duration = 3000) {
   function buildWorkspacePrompt(action, sectionLabel, content, userInput, kb) {
     var kbContext = '';
     if (kb && kb.status === 'complete') {
-      kbContext = kb.masterSummary ? '\n[KNOWLEDGE BASE]\n' + kb.masterSummary.slice(0, 600) : '';
-      if (kb.extracted && kb.extracted.keywords && kb.extracted.keywords.length > 0) {
-        kbContext += '\nKeywords: ' + kb.extracted.keywords.join(', ');
-      }
+      if (kb.masterSummary) kbContext += '\n[KNOWLEDGE BASE SUMMARY]\n' + kb.masterSummary.slice(0, 500);
+      var ext = kb.extracted || {};
+      if (ext.keywords    && ext.keywords.length)    kbContext += '\nKeywords: '          + ext.keywords.join(', ');
+      if (ext.variables   && ext.variables.length)   kbContext += '\nVariables: '         + ext.variables.join(', ');
+      if (ext.researchQuestions && ext.researchQuestions.length) kbContext += '\nResearch questions: ' + ext.researchQuestions.slice(0,2).join(' | ');
+      if (ext.findings    && ext.findings.length)    kbContext += '\nKey findings: '       + ext.findings.slice(0,3).join(' | ');
     }
 
     return BASE_SYSTEM + '\n\n' +
       '[SECTION]\n' + sectionLabel + '\n\n' +
-      '[CURRENT CONTENT]\n' + content + '\n\n' +
-      (kbContext || '') + '\n\n' +
+      '[CURRENT CONTENT]\n' + content +
+      (kbContext ? '\n\n' + kbContext : '') + '\n\n' +
       '[ACTION]\n' + (ACTION_PROMPTS[action] || ACTION_PROMPTS.custom) +
       (userInput ? '\n\nUser instruction: ' + userInput : '');
+  }
+
+  function buildMessagesWithHistory(sectionId, systemPrompt, userPrompt) {
+    var messages = [{ role: 'system', content: systemPrompt }];
+    // Inject last 5 history turns for real multi-turn chat
+    var section = getSection(sectionId);
+    var history = section.aiHistory || [];
+    var recent = history.slice(-10); // last 5 pairs
+    recent.forEach(function(h) {
+      if (h.role === 'user') messages.push({ role: 'user', content: h.text });
+      else if (h.role === 'assistant' && h.fullText) messages.push({ role: 'assistant', content: h.fullText });
+    });
+    messages.push({ role: 'user', content: userPrompt });
+    return messages;
   }
 
   // ── ACTION ROUTER ──
@@ -792,11 +808,13 @@ function showToast(message, type = 'success', duration = 3000) {
     document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = true; });
 
     try {
-      var prompt = buildWorkspacePrompt(action, sectionLabel, section.content || generated[sectionId] || '', userInput, kb);
+      var userPrompt = buildWorkspacePrompt(action, sectionLabel, section.content || generated[sectionId] || '', userInput, kb);
+      var messages = buildMessagesWithHistory(sectionId, BASE_SYSTEM, userPrompt);
+
       var res = await fetch('/api/proposal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt })
+        body: JSON.stringify({ messages: messages })
       });
       var data = await res.json();
       if (!res.ok) throw new Error(data.error || 'API error');
@@ -807,10 +825,10 @@ function showToast(message, type = 'success', duration = 3000) {
       pushVersion(sectionId, section.content || generated[sectionId] || '');
       updateSection(sectionId, { content: result });
 
-      // Push history
+      // Push history with fullText for multi-turn
       var actionLabel = { improve:'Improve style', expand:'Expand', shorten:'Shorten', citations:'Add citations', align_kb:'Align with KB', rewrite:'Rewrite', custom: userInput || 'Custom' };
-      pushHistory(sectionId, { role: 'user', text: actionLabel[action] || action });
-      pushHistory(sectionId, { role: 'assistant', text: result.slice(0, 120) + (result.length > 120 ? '...' : '') });
+      pushHistory(sectionId, { role: 'user', text: actionLabel[action] || userInput || action });
+      pushHistory(sectionId, { role: 'assistant', text: result.slice(0, 120) + (result.length > 120 ? '...' : ''), fullText: result });
 
       // Update content display
       var contentEl = document.getElementById('content-' + sectionId);
@@ -868,12 +886,36 @@ function showToast(message, type = 'success', duration = 3000) {
     showToast('Version restored', 'success');
   }
 
+  function exportSectionPDF(sectionId) {
+    var sectionDef = SECTIONS.find(function(s){ return s.id === sectionId; });
+    var label = sectionDef ? sectionDef.label : sectionId;
+    var content = getSection(sectionId).content || generated[sectionId] || '';
+    if (!content) { showToast('No content to export.', 'warning'); return; }
+
+    var topicTitle = topic.title_en || 'Research Proposal';
+    var win = window.open('', '_blank');
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + label + '</title>' +
+      '<style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.8;color:#111;max-width:700px;margin:2cm auto;padding:0 1cm}' +
+      'h1{font-size:16pt;border-bottom:2px solid #1B2A4A;padding-bottom:8px;margin-bottom:4px}' +
+      '.meta{font-size:10pt;color:#555;margin-bottom:24px}' +
+      'p{margin-bottom:12px;text-align:justify}' +
+      '@media print{body{margin:1cm}}' +
+      '</style></head><body>' +
+      '<h1>' + label + '</h1>' +
+      '<div class="meta">' + topicTitle + ' · Generated by Dr. NIRA</div>' +
+      '<div>' + content.split('\n').map(function(p){ return p.trim() ? '<p>' + p + '</p>' : ''; }).join('') + '</div>' +
+      '</body></html>');
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 400);
+  }
+
   function buildWorkspacePanel(sectionId) {
     return '<div class="workspace-panel" id="workspace-' + sectionId + '">' +
       '<div class="workspace-panel-header">' +
         '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
         'AI Writing Workspace' +
         '<span id="ws-loading-' + sectionId + '" style="display:none" class="ws-spinner"></span>' +
+        '<button onclick="exportSectionPDF(\'' + sectionId + '\')" style="margin-left:auto;font-size:10px;padding:3px 10px;border:1px solid #bae6fd;border-radius:5px;background:#fff;color:#0369a1;cursor:pointer;font-family:Inter,sans-serif;">⬇ Export PDF</button>' +
       '</div>' +
       '<div class="workspace-actions">' +
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'improve\',\'' + sectionId + '\',\'\')">✦ Improve style</button>' +
