@@ -599,7 +599,7 @@ function showToast(message, type, duration) {
     localStorage.setItem('nira_upload_text', getDocumentText().slice(0, 8000));
     localStorage.setItem('nira_upload_filename', fileNameStr);
     localStorage.setItem('nira_build_from_upload', '1');
-    window.location.href = 'proposal.html';
+    buildProposalFromKB();
   }
 
   function setStep(id, state) {
@@ -956,7 +956,7 @@ function showToast(message, type, duration) {
     });
 
     html += '<div style="padding:12px 18px;display:flex;gap:8px;">';
-    html += '<button onclick="window.location.href=\'proposal.html\'" style="background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Build proposal from this</button>';
+    html += '<button onclick="buildProposalFromKB()" style="background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Build proposal from this</button>';
     html += '<button onclick="NiraKB.clear();showToast(\'Knowledge base cleared\',\'success\')" style="background:transparent;color:var(--text-mid);border:1px solid var(--border);padding:8px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:Inter,sans-serif;">Clear</button>';
     html += '</div></div>';
     el.innerHTML = html;
@@ -1036,7 +1036,29 @@ function showToast(message, type, duration) {
       findings:    ((kb.extracted || {}).findings || []).slice(0, 2).join(' | ')
     };
   }
-  async function runFull(text, citation) {
+  function buildProposalFromKB() {
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    if (!kb || kb.status !== 'complete') {
+      showToast('Please complete document analysis first.', 'warning');
+      return;
+    }
+    // Store auto-generate flags
+    localStorage.setItem('nira_auto_generate', 'workspace');
+    // Store KB-derived topic if no topic selected
+    var existingTopic = localStorage.getItem('nira_selected_topic');
+    if (!existingTopic && kb.masterSummary) {
+      var autoTopic = {
+        title_en: kb.fileName ? kb.fileName.replace('.pdf','').replace('.docx','') : 'Research Proposal',
+        field: (kb.extracted && kb.extracted.keywords) ? kb.extracted.keywords.slice(0,3).join(', ') : '',
+        keywords: (kb.extracted && kb.extracted.keywords) ? kb.extracted.keywords : [],
+        research_type: (kb.extracted && kb.extracted.methodology) ? kb.extracted.methodology[0] : 'Mixed Methods',
+        from_kb: true
+      };
+      localStorage.setItem('nira_selected_topic', JSON.stringify(autoTopic));
+      if (typeof NiraProject !== 'undefined') NiraProject.saveTopic(autoTopic);
+    }
+    window.location.href = 'proposal.html';
+  }
     var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
     var kbi = kb && kb.status === 'complete' ? buildKBInput(kb) : null;
     var ctx = function(section) {
