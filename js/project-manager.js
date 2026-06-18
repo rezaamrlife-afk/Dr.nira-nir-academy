@@ -1,5 +1,78 @@
 // ════════════════════════════════════════
-// Dr. NIRA — Project Manager
+// Shared API retry utility
+// Used by: proposal.html, upload.html, thesis.html
+// ════════════════════════════════════════
+
+var NiraAPI = (function() {
+
+  var RETRY_DELAYS = [5000, 10000, 20000, 40000, 80000];
+
+  function showRateLimitBanner(seconds) {
+    var banner = document.getElementById('nira-rate-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'nira-rate-banner';
+      banner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);' +
+        'background:#d97706;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;' +
+        'font-weight:500;font-family:Inter,sans-serif;z-index:9999;display:flex;align-items:center;' +
+        'gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2);white-space:nowrap;';
+      document.body.appendChild(banner);
+    }
+    banner.innerHTML = '⏳ Rate limit — retrying in <strong style="font-size:15px;margin:0 4px">' + seconds + '</strong>s...';
+    return banner;
+  }
+
+  function hideRateLimitBanner() {
+    var banner = document.getElementById('nira-rate-banner');
+    if (banner) banner.remove();
+  }
+
+  async function countdown(ms) {
+    var remaining = Math.round(ms / 1000);
+    showRateLimitBanner(remaining);
+    return new Promise(function(resolve) {
+      var iv = setInterval(function() {
+        remaining--;
+        if (remaining > 0) {
+          showRateLimitBanner(remaining);
+        } else {
+          clearInterval(iv);
+          hideRateLimitBanner();
+          resolve();
+        }
+      }, 1000);
+    });
+  }
+
+  async function callWithRetry(fn, maxRetries) {
+    maxRetries = maxRetries || 5;
+    for (var attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        var result = await fn();
+        return result;
+      } catch(err) {
+        var is429 = err.message && (
+          err.message.includes('429') ||
+          err.message.toLowerCase().includes('rate limit') ||
+          err.message.toLowerCase().includes('tpm')
+        );
+        if (!is429) throw err; // non-rate-limit → don't retry
+        if (attempt === maxRetries - 1) throw new Error('Rate limit: max retries reached. Please wait a minute and try again.');
+        await countdown(RETRY_DELAYS[Math.min(attempt, RETRY_DELAYS.length - 1)]);
+      }
+    }
+  }
+
+  return {
+    callWithRetry:      callWithRetry,
+    showRateLimitBanner: showRateLimitBanner,
+    hideRateLimitBanner: hideRateLimitBanner,
+    countdown:          countdown
+  };
+
+})();
+
+window.NiraAPI = NiraAPI;
 // Centralized project-based state management
 // Replaces module-based localStorage keys
 // ════════════════════════════════════════
