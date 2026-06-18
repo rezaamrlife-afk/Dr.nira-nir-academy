@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="js/project-manager.js">
+<script src="js/project-manager.js"></script>
+<script src="js/knowledge-base.js"></script>
+<script>
 function showToast(message, type, duration) {
   type = type || 'info'; duration = duration || 3000;
   if (!document.getElementById('nira-toast-container')) {
@@ -663,12 +665,217 @@ function showToast(message, type, duration) {
 
   const SYS = 'You are Dr. NIRA, an expert PhD research proposal analyst. Analyze academic documents with precision and scholarly rigor. Provide specific, actionable feedback referencing actual content from the document.';
 
+  // ── CHUNKING PIPELINE ──
+  async function runChunkingPipeline(smartText) {
+    if (window.analysisRunning) return;
+    window.analysisRunning = true;
+    var resultsInner = document.getElementById('resultsInner');
+    var stepsOverall = document.getElementById('stepsOverall');
+
+    // Check for existing queue (resume after refresh)
+    var existingQueue = NiraKB.loadQueue();
+    var chunks, kb;
+
+    if (existingQueue && existingQueue.fileName === fileNameStr && existingQueue.chunks) {
+      chunks = existingQueue.chunks;
+      kb = existingQueue.kb || NiraKB.createEmpty(fileNameStr);
+      stepsOverall.textContent = 'Resuming from chunk ' + (existingQueue.currentChunk || 0) + '...';
+    } else {
+      chunks = NiraKB.splitIntoChunks(smartText);
+      kb = NiraKB.createEmpty(fileNameStr);
+      kb.stats.totalChunks = chunks.length;
+      NiraKB.saveQueue({ fileName: fileNameStr, chunks: chunks, kb: kb, currentChunk: 0 });
+    }
+
+    var total = chunks.length;
+    var startTime = Date.now();
+
+    // Show progress UI
+    resultsInner.innerHTML =
+      '<div style="background:#f8faff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:12px;">Processing document...</h4>' +
+        '<div style="background:var(--border);border-radius:4px;height:8px;margin-bottom:10px;overflow:hidden;">' +
+          '<div id="chunkProgress" style="height:100%;background:var(--blue);border-radius:4px;transition:width 0.4s;width:0%"></div>' +
+        '</div>' +
+        '<div id="chunkStatus" style="font-size:12px;color:var(--text-mid);">Starting...</div>' +
+        '<div id="chunkDetail" style="font-size:11px;color:var(--text-mid);margin-top:4px;"></div>' +
+      '</div>' +
+      '<div id="kbResults"></div>';
+
+    // Process each chunk
+    for (var i = 0; i < chunks.length; i++) {
+      if (chunks[i].status === 'done') continue; // resume
+
+      var pct = Math.round((i / total) * 100);
+      var elapsed = (Date.now() - startTime) / 1000;
+      var rate = i > 0 ? elapsed / i : 3;
+      var remaining = Math.round(rate * (total - i));
+
+      document.getElementById('chunkProgress').style.width = pct + '%';
+      document.getElementById('chunkStatus').textContent =
+        'Chunk ' + (i+1) + ' of ' + total + ' · ' + pct + '% complete';
+      document.getElementById('chunkDetail').textContent =
+        'Section: ' + chunks[i].section + ' · Est. remaining: ' + remaining + 's · ' +
+        NiraKB.estimateTokens(chunks[i].text) + ' tokens';
+
+      // Call API with retry
+      var success = false;
+      var attempt = 0;
+      while (!success && attempt < 5) {
+        try {
+          var prompt = NiraKB.buildChunkPrompt(chunks[i]);
+          var res = await fetch('/api/proposal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: prompt })
+          });
+          var data = await res.json();
+
+          if (res.status === 429) {
+            var wait = NiraKB.getBackoffMs(attempt);
+            document.getElementById('chunkDetail').textContent =
+              'Rate limited — retrying in ' + (wait/1000) + 's (attempt ' + (attempt+1) + '/5)';
+            await new Promise(function(r){ setTimeout(r, wait); });
+            attempt++;
+            continue;
+          }
+
+          if (!res.ok) throw new Error(data.error || 'API error');
+
+          chunks[i].status = 'done';
+          chunks[i].summary = data.result || '';
+          kb.chunkSummaries.push({ section: chunks[i].section, summary: chunks[i].summary });
+          kb.stats.completedChunks++;
+
+          // Save progress
+          NiraKB.saveQueue({ fileName: fileNameStr, chunks: chunks, kb: kb, currentChunk: i+1 });
+          success = true;
+
+        } catch(err) {
+          attempt++;
+          if (attempt >= 5) {
+            chunks[i].status = 'error';
+            document.getElementById('chunkDetail').textContent = 'Chunk ' + (i+1) + ' failed after 5 attempts — skipping';
+          }
+        }
+      }
+    }
+
+    // All chunks done — extract Knowledge Base
+    document.getElementById('chunkProgress').style.width = '95%';
+    document.getElementById('chunkStatus').textContent = 'Building knowledge base...';
+
+    var allSummaries = kb.chunkSummaries.map(function(c, i) {
+      return '[' + c.section + ']: ' + c.summary;
+    }).join('\n\n');
+
+    try {
+      var extractPrompt = NiraKB.buildExtractionPrompt(allSummaries, fileNameStr);
+      var extractRes = await fetch('/api/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: extractPrompt })
+      });
+      var extractData = await extractRes.json();
+      var extracted = JSON.parse(extractData.result.replace(/```json|```/g,'').trim());
+
+      kb.masterSummary = extracted.masterSummary || '';
+      kb.extracted.keywords = extracted.keywords || [];
+      kb.extracted.researchQuestions = extracted.researchQuestions || [];
+      kb.extracted.hypotheses = extracted.hypotheses || [];
+      kb.extracted.variables = extracted.variables || [];
+      kb.extracted.methodology = extracted.methodology || [];
+      kb.extracted.findings = extracted.findings || [];
+    } catch(e) {
+      kb.masterSummary = kb.chunkSummaries.slice(0,3).map(function(c){ return c.summary; }).join(' ');
+    }
+
+    kb.processedAt = new Date().toISOString();
+    kb.status = 'complete';
+    kb.stats.processingMs = Date.now() - startTime;
+    NiraKB.save(kb);
+    NiraKB.clearQueue();
+
+    // Store for proposal builder
+    localStorage.setItem('nira_upload_context', kb.masterSummary);
+    localStorage.setItem('nira_upload_text', kb.chunkSummaries.map(function(c){ return c.summary; }).join('\n\n').slice(0, 8000));
+
+    // Render Knowledge Base
+    document.getElementById('chunkProgress').style.width = '100%';
+    document.getElementById('chunkStatus').textContent = '✓ Document processed — ' + kb.stats.completedChunks + ' chunks · ' + Math.round(kb.stats.processingMs/1000) + 's';
+    renderKnowledgeBase(kb);
+
+    var analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.disabled = false;
+    analyzeBtn.innerHTML = '<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Analyze again';
+    window.analysisRunning = false;
+  }
+
+  function renderKnowledgeBase(kb) {
+    var el = document.getElementById('kbResults');
+    if (!el) return;
+    var html = '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;">';
+    html += '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">';
+    html += '<h4 style="font-size:13px;font-weight:600;color:var(--text-dark);">Knowledge Base</h4>';
+    html += '<span style="font-size:11px;color:var(--text-mid);">' + kb.fileName + ' · ' + kb.chunkSummaries.length + ' chunks</span>';
+    html += '</div>';
+
+    if (kb.masterSummary) {
+      html += '<div style="padding:14px 18px;border-bottom:1px solid var(--border);">';
+      html += '<div style="font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Master Summary</div>';
+      html += '<p style="font-size:13px;color:var(--text-dark);line-height:1.7">' + kb.masterSummary + '</p>';
+      html += '</div>';
+    }
+
+    var extracted = kb.extracted;
+    var fields = [
+      { key: 'keywords', label: 'Keywords' },
+      { key: 'variables', label: 'Variables' },
+      { key: 'researchQuestions', label: 'Research Questions' },
+      { key: 'hypotheses', label: 'Hypotheses' },
+      { key: 'methodology', label: 'Methodology' },
+      { key: 'findings', label: 'Key Findings' }
+    ];
+
+    fields.forEach(function(f) {
+      var items = extracted[f.key] || [];
+      if (items.length === 0) return;
+      html += '<div style="padding:12px 18px;border-bottom:1px solid #f0f4ff;">';
+      html += '<div style="font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">' + f.label + '</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      items.forEach(function(item) {
+        html += '<span style="background:var(--blue-pale);color:var(--blue);font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px">' + item + '</span>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '<div style="padding:12px 18px;display:flex;gap:8px;">';
+    html += '<button onclick="window.location.href=\'proposal.html\'" style="background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Build proposal from this</button>';
+    html += '<button onclick="NiraKB.clear();showToast(\'Knowledge base cleared\',\'success\')" style="background:transparent;color:var(--text-mid);border:1px solid var(--border);padding:8px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:Inter,sans-serif;">Clear</button>';
+    html += '</div></div>';
+    el.innerHTML = html;
+  }
+
   async function startAnalysis() {
     if (!fileText) { showToast('Please upload a document first.', 'warning'); return; }
+    if (window.analysisRunning) { showToast('Analysis already in progress.', 'warning'); return; }
+    window.analysisRunning = true;
     const btn = document.getElementById('analyzeBtn');
     btn.disabled = true; btn.textContent = 'Analyzing...';
     document.getElementById('analysisResults').innerHTML = '<div class="analysis-results" id="resultsInner"></div>';
-    const text = fileText.slice(0, 6000);
+
+    // Smart extraction — remove refs/appendices, prioritize key sections
+    const smartText = NiraKB.extractSmartText(fileText);
+    const totalTokens = NiraKB.estimateTokens(smartText);
+
+    // If document is large (>3000 tokens), use chunking pipeline
+    if (totalTokens > 3000) {
+      await runChunkingPipeline(smartText);
+      return;
+    }
+
+    // Small document — direct analysis (still use smart extraction)
+    const text = smartText.slice(0, 8000);
     const profile = JSON.parse(localStorage.getItem('nira_profile') || '{}');
     const citation = profile.citation || 'APA 7';
     document.getElementById('stepsOverall').textContent = 'Analyzing ' + STEPS[analysisType].length + ' aspects...';
@@ -685,6 +892,7 @@ function showToast(message, type, duration) {
 
     btn.disabled = false;
     btn.innerHTML = '<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Analyze again';
+    window.analysisRunning = false;
   }
 
   async function runFull(text, citation) {
