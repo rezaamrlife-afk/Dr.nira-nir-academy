@@ -810,22 +810,22 @@
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-card-label">Proposals</div>
-          <div class="stat-card-num">0</div>
+          <div class="stat-card-num" id="statProposals">0</div>
           <div class="stat-card-sub">Created so far</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-label">Topics explored</div>
-          <div class="stat-card-num">0</div>
+          <div class="stat-card-num" id="statTopics">0</div>
           <div class="stat-card-sub">From generator</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-label">Files analyzed</div>
-          <div class="stat-card-num">0</div>
+          <div class="stat-card-num" id="statFiles">0</div>
           <div class="stat-card-sub">PDF & Word</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-label">Citations saved</div>
-          <div class="stat-card-num">0</div>
+          <div class="stat-card-num" id="statCitations">0</div>
           <div class="stat-card-sub">In your library</div>
         </div>
       </div>
@@ -867,14 +867,16 @@
       <div class="recent-section">
         <div class="recent-header">
           <h3>All proposals</h3>
-          <a href="proposal.html">View all</a>
+          <a href="proposals.html">View all</a>
         </div>
-        <div class="recent-empty">
-          <div class="recent-empty-icon">
-            <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div id="recentProposalsBody">
+          <div class="recent-empty">
+            <div class="recent-empty-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <h4>No proposals yet</h4>
+            <p>Start by generating a research topic or building your first proposal directly.</p>
           </div>
-          <h4>No proposals yet</h4>
-          <p>Start by generating a research topic or building your first proposal directly.</p>
         </div>
       </div>
 
@@ -927,6 +929,102 @@ function resetAllData() {
   if (!confirm('This will clear ALL your research data including proposals, thesis, and questionnaires. This cannot be undone. Continue?')) return;
   NiraProject.hardReset();
   window.location.reload();
+}
+
+window.addEventListener('load', function() {
+  // Profile
+  var sp = localStorage.getItem('nira_profile');
+  if (sp) {
+    var p = JSON.parse(sp);
+    var nameEl = document.getElementById('sidebarName');
+    var roleEl = document.getElementById('sidebarRole');
+    var avEl = document.getElementById('sidebarAvatar');
+    if (nameEl) nameEl.textContent = p.fullName || 'Dr. Researcher';
+    if (roleEl) roleEl.textContent = (p.degree || 'PhD') + ' Candidate';
+    if (avEl && p.fullName) avEl.textContent = p.fullName.split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
+  }
+
+  // ── STATS ──
+  var savedProposals = JSON.parse(localStorage.getItem('nira_proposals') || '[]');
+  var topicsExplored = JSON.parse(localStorage.getItem('nira_topics') || '[]');
+  var citationsLib = JSON.parse(localStorage.getItem('nira_citations') || '[]');
+
+  // Count proposals: saved snapshots + active in-progress proposal
+  var activeProposal = (typeof NiraProject !== 'undefined') ? NiraProject.load('proposal') : null;
+  var hasActiveProposal = activeProposal && Object.keys(activeProposal).length > 0;
+  var totalProposals = savedProposals.length + (hasActiveProposal ? 1 : 0);
+
+  var statP = document.getElementById('statProposals');
+  var statT = document.getElementById('statTopics');
+  var statC = document.getElementById('statCitations');
+  if (statP) statP.textContent = totalProposals;
+  if (statT) statT.textContent = topicsExplored.length;
+  if (statC) statC.textContent = citationsLib.length;
+
+  // Files analyzed — count from KB if exists
+  var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+  var statF = document.getElementById('statFiles');
+  if (statF) statF.textContent = (kb && kb.status === 'complete') ? 1 : 0;
+
+  // ── RECENT PROPOSALS ──
+  renderRecentProposals(savedProposals, activeProposal, hasActiveProposal);
+});
+
+function renderRecentProposals(savedProposals, activeProposal, hasActiveProposal) {
+  var body = document.getElementById('recentProposalsBody');
+  if (!body) return;
+
+  var items = [];
+
+  // Active in-progress proposal first
+  if (hasActiveProposal) {
+    var topic = (typeof NiraProject !== 'undefined') ? NiraProject.loadTopic() : null;
+    if (!topic) {
+      var legacyTopic = localStorage.getItem('nira_selected_topic');
+      topic = legacyTopic ? JSON.parse(legacyTopic) : {};
+    }
+    var doneCount = Object.keys(activeProposal).length;
+    items.push({
+      title: (topic && topic.title_en) || 'Untitled proposal',
+      meta: doneCount + '/10 sections · In progress',
+      isActive: true
+    });
+  }
+
+  // Saved snapshots
+  savedProposals.slice(0, 4).forEach(function(p) {
+    items.push({
+      title: p.name || p.topic || 'Untitled proposal',
+      meta: (p.sectionCount || 0) + '/10 sections · ' + (p.savedAt || ''),
+      isActive: false
+    });
+  });
+
+  if (items.length === 0) {
+    body.innerHTML = '<div class="recent-empty">' +
+      '<div class="recent-empty-icon"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>' +
+      '<h4>No proposals yet</h4>' +
+      '<p>Start by generating a research topic or building your first proposal directly.</p>' +
+      '</div>';
+    return;
+  }
+
+  var html = '<div style="display:flex;flex-direction:column;">';
+  items.forEach(function(item, i) {
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;' +
+      (i < items.length - 1 ? 'border-bottom:1px solid #f0f4ff;' : '') +
+      'cursor:pointer;" onclick="window.location.href=\'proposals.html\'">' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:600;color:#1B2A4A;margin-bottom:2px;">' + item.title +
+        (item.isActive ? ' <span style="font-size:10px;background:#dbeafe;color:#2563EB;padding:1px 7px;border-radius:10px;font-weight:600;">Active</span>' : '') +
+        '</div>' +
+        '<div style="font-size:11px;color:#6B7FA3;">' + item.meta + '</div>' +
+      '</div>' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9baec8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>' +
+      '</div>';
+  });
+  html += '</div>';
+  body.innerHTML = html;
 }
 
 function toggleMoreDrawer() {
