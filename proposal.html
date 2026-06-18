@@ -127,10 +127,11 @@
   .ws-send-btn { background: #0891b2; color: #fff; border: none; padding: 8px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
   .ws-send-btn:hover { background: #0e7490; }
   .ws-send-btn:disabled { background: #7dd3fc; cursor: not-allowed; }
-  .ws-history { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-  .ws-history-item { font-size: 12px; padding: 6px 10px; border-radius: 6px; line-height: 1.5; }
-  .ws-history-item.user { background: #fff; border: 1px solid #bae6fd; color: #0369a1; }
-  .ws-history-item.assistant { background: #f0f9ff; border: 1px solid #e0f2fe; color: var(--text-dark); }
+  .ws-history { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+  .ws-history-item { font-size: 12px; padding: 8px 12px; border-radius: 10px; line-height: 1.6; max-width: 92%; word-break: break-word; }
+  .ws-history-item.user { background: #0891b2; color: #fff; border-radius: 10px 10px 4px 10px; align-self: flex-end; }
+  .ws-history-item.assistant { background: #f0f9ff; border: 1px solid #e0f2fe; color: var(--text-dark); border-radius: 10px 10px 10px 4px; align-self: flex-start; }
+  .ws-history-label { font-size: 10px; font-weight: 600; margin-bottom: 2px; opacity: 0.75; }
   .ws-version-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
   .ws-version-btn { font-size: 10px; padding: 2px 8px; border: 1px solid #bae6fd; border-radius: 10px; background: #fff; color: #0369a1; cursor: pointer; font-family: 'Inter', sans-serif; }
   .ws-version-btn:hover { background: #e0f2fe; }
@@ -855,9 +856,12 @@ function showToast(message, type = 'success', duration = 3000) {
     if (!el) return;
     var section = getSection(sectionId);
     if (section.aiHistory.length === 0) { el.innerHTML = ''; return; }
-    el.innerHTML = section.aiHistory.slice(-6).map(function(h) {
+    el.innerHTML = section.aiHistory.slice(-8).map(function(h) {
+      var isUser = h.role === 'user';
       return '<div class="ws-history-item ' + h.role + '">' +
-        (h.role === 'user' ? '→ ' : '✓ ') + h.text + '</div>';
+        '<div class="ws-history-label">' + (isUser ? 'You' : 'Dr. NIRA') + '</div>' +
+        h.text +
+        '</div>';
     }).join('');
     el.scrollTop = el.scrollHeight;
   }
