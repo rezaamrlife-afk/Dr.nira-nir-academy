@@ -667,10 +667,10 @@ function showToast(message, type, duration) {
 
   // ── CHUNKING PIPELINE ──
   async function runChunkingPipeline(smartText) {
-    if (window.analysisRunning) return;
-    window.analysisRunning = true;
+    // Note: analysisRunning already set by startAnalysis — don't check here
     var resultsInner = document.getElementById('resultsInner');
     var stepsOverall = document.getElementById('stepsOverall');
+    if (stepsOverall) stepsOverall.textContent = 'Processing document...';
 
     // Check for existing queue (resume after refresh)
     var existingQueue = NiraKB.loadQueue();
@@ -690,7 +690,16 @@ function showToast(message, type, duration) {
     var total = chunks.length;
     var startTime = Date.now();
 
-    // Show progress UI
+    // Show progress UI — re-fetch resultsInner in case it was just created
+    var analysisResultsEl = document.getElementById('analysisResults');
+    if (!resultsInner || !document.body.contains(resultsInner)) {
+      if (analysisResultsEl) {
+        analysisResultsEl.innerHTML = '<div class="analysis-results" id="resultsInner"></div>';
+        resultsInner = document.getElementById('resultsInner');
+      }
+    }
+    if (!resultsInner) { window.analysisRunning = false; return; }
+
     resultsInner.innerHTML =
       '<div style="background:#f8faff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">' +
         '<h4 style="font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:12px;">Processing document...</h4>' +
@@ -870,7 +879,13 @@ function showToast(message, type, duration) {
 
     // If document is large (>3000 tokens), use chunking pipeline
     if (totalTokens > 3000) {
-      await runChunkingPipeline(smartText);
+      try {
+        await runChunkingPipeline(smartText);
+      } finally {
+        window.analysisRunning = false;
+        btn.disabled = false;
+        btn.innerHTML = '<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Analyze again';
+      }
       return;
     }
 
