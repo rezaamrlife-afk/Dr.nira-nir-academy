@@ -733,7 +733,7 @@ function showToast(message, type, duration) {
       while (!success && attempt < 5) {
         try {
           var prompt = NiraKB.buildChunkPrompt(chunks[i]);
-          var res = await fetch('/api/proposal', {
+          var res = await fetch('/api/chunk', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: prompt })
