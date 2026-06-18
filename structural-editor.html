@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Structural Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="js/project-manager.js"></script>
+<script src="js/knowledge-base.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B2A4A;--navy-dark:#0F1B33;--blue:#2563EB;
+  --blue-light:#60A5FA;--blue-pale:#EEF4FF;
+  --muted:#a0b0cc;--text-dark:#1B2A4A;--text-mid:#6B7FA3;
+  --border:#dde6f5;--sidebar-w:240px;
+  --green:#16a34a;--green-pale:#f0fdf4;
+  --purple:#7c3aed;--amber:#d97706;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:var(--text-dark);}
+.app-shell{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:var(--sidebar-w);background:var(--navy-dark);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.sidebar-logo-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sidebar-logo-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;}
+.sidebar-section{padding:20px 12px 8px;}
+.sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding:0 8px;margin-bottom:6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.06);}
+.nav-item.active{background:var(--blue);}
+.nav-item svg{width:17px;height:17px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.nav-item.active svg,.nav-item:hover svg{stroke:#fff;}
+.nav-item span{font-size:13px;color:var(--muted);}
+.nav-item.active span,.nav-item:hover span{color:#fff;}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06);}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;color:#fff;}
+.user-role{font-size:11px;color:var(--muted);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:600;}
+.topbar-actions{display:flex;gap:8px;}
+.btn-sm{background:var(--blue);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:background 0.2s;}
+.btn-sm:hover{background:#1d4ed8;}
+.btn-sm-outline{background:transparent;color:var(--text-dark);border:1px solid var(--border);padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.2s;}
+.btn-sm-outline:hover{background:var(--blue-pale);}
+.content{flex:1;overflow-y:auto;padding:28px;}
+
+/* LAYOUT */
+.se-layout{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start;}
+
+/* TOC PANEL */
+.toc-panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;position:sticky;top:0;}
+.toc-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.toc-header h3{font-size:13px;font-weight:600;}
+.toc-stats{font-size:11px;color:var(--text-mid);}
+.toc-body{padding:8px;}
+.toc-chapter{margin-bottom:4px;}
+.toc-chapter-header{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background 0.15s;}
+.toc-chapter-header:hover{background:#f8faff;}
+.toc-chapter-header.active{background:var(--blue-pale);}
+.toc-chapter-num{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.toc-chapter-num.done{background:var(--green);}
+.toc-chapter-title{font-size:12px;font-weight:600;color:var(--text-dark);flex:1;}
+.toc-chapter-count{font-size:10px;color:var(--text-mid);}
+.toc-sections{padding:2px 0 4px 32px;display:none;}
+.toc-sections.open{display:block;}
+.toc-section-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;color:var(--text-mid);transition:all 0.15s;}
+.toc-section-item:hover{background:#f0f4ff;color:var(--text-dark);}
+.toc-section-item.active{color:var(--blue);font-weight:500;}
+.toc-section-item.done{color:var(--green);}
+.toc-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.toc-section-item.done .toc-dot{background:var(--green);}
+.toc-section-item.active .toc-dot{background:var(--blue);}
+
+/* EDITOR AREA */
+.editor-panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.editor-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.editor-breadcrumb{font-size:12px;color:var(--text-mid);}
+.editor-breadcrumb strong{color:var(--text-dark);}
+.editor-actions{margin-left:auto;display:flex;gap:6px;}
+.editor-empty{padding:60px 40px;text-align:center;}
+.editor-empty-icon{width:56px;height:56px;background:var(--blue-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.editor-empty-icon svg{width:28px;height:28px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* SECTION EDITOR */
+.section-block{border-bottom:1px solid var(--border);}
+.section-block:last-child{border-bottom:none;}
+.section-block-header{padding:12px 20px;display:flex;align-items:center;gap:10px;background:#fafcff;cursor:pointer;}
+.section-block-header:hover{background:#f0f4ff;}
+.section-num{font-size:11px;font-weight:700;color:var(--text-mid);min-width:32px;}
+.section-title{font-size:13px;font-weight:600;color:var(--text-dark);flex:1;}
+.section-wc{font-size:10px;color:var(--text-mid);}
+.section-status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.section-status.done{background:#dcfce7;color:var(--green);}
+.section-status.empty{background:#f0f4ff;color:var(--text-mid);}
+.section-body{padding:16px 20px;display:none;}
+.section-body.open{display:block;}
+.section-content-editor{width:100%;min-height:120px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);line-height:1.8;outline:none;resize:vertical;transition:border-color 0.2s;}
+.section-content-editor:focus{border-color:var(--blue);}
+.section-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.section-wc-live{font-size:11px;color:var(--text-mid);}
+.section-actions{display:flex;gap:6px;}
+.sec-btn{font-size:11px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.sec-btn:hover{color:var(--blue);border-color:var(--blue-light);}
+.sec-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.sec-btn.primary:hover{background:#1d4ed8;}
+
+/* TOC PREVIEW */
+.toc-preview{background:#f8faff;border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+.toc-preview-title{font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;}
+.toc-entry{display:flex;align-items:baseline;gap:4px;padding:3px 0;font-size:12px;}
+.toc-entry-chapter{font-weight:700;color:var(--text-dark);}
+.toc-entry-section{color:var(--text-mid);padding-left:16px;}
+.toc-dots{flex:1;border-bottom:1px dotted var(--border);margin:0 6px;min-width:20px;}
+.toc-page{font-size:11px;color:var(--text-mid);}
+
+/* MOBILE */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy-dark);border-top:1px solid rgba(255,255,255,0.08);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;}
+.mobile-nav-items{display:flex;justify-content:space-around;}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;padding:4px 8px;background:none;border:none;cursor:pointer;font-family:inherit;}
+.mobile-nav-item svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.mobile-nav-item span{font-size:9px;color:var(--muted);font-weight:500;}
+.mobile-nav-item.active svg{stroke:var(--blue-light);}
+.mobile-nav-item.active span{color:var(--blue-light);}
+.more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;}
+.more-overlay.open{display:block;}
+.more-drawer{position:fixed;bottom:-100%;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:200;padding:12px 0 max(20px,env(safe-area-inset-bottom));transition:bottom 0.3s cubic-bezier(0.32,0.72,0,1);}
+.more-drawer.open{bottom:0;}
+.more-drawer-handle{width:36px;height:4px;background:#dde6f5;border-radius:2px;margin:0 auto 16px;}
+.more-drawer-title{font-size:11px;font-weight:600;color:var(--text-mid);letter-spacing:0.08em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;}
+.more-item{display:flex;align-items:center;gap:14px;padding:14px 20px;text-decoration:none;}
+.more-item-icon{width:40px;height:40px;background:var(--blue-pale);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.more-item-icon svg{width:20px;height:20px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.more-item-label{font-size:14px;font-weight:500;color:var(--text-dark);}
+.more-item-sub{font-size:12px;color:var(--text-mid);}
+.more-item-arrow{width:16px;height:16px;fill:none;stroke:var(--text-mid);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-left:auto;}
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .mobile-nav{display:block;}
+  .se-layout{grid-template-columns:1fr;}
+  .toc-panel{position:static;}
+  .content{padding:16px;padding-bottom:80px;}
+  .topbar{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+      <a class="nav-item" href="proposals.html"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg><span>My proposals</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis builder</span></a>
+      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item active" href="structural-editor.html"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg><span>Structural editor</span></a>
+      <a class="nav-item" href="charts.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Charts & tables</span></a>
+      <a class="nav-item" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
+      <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
+      <a class="nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">DR</div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Structural editor</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="exportTOC()">Export TOC</button>
+        <button class="btn-sm-outline" onclick="window.location.href='thesis.html'">← Thesis builder</button>
+        <button class="btn-sm" onclick="exportPDF()">Export PDF</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="se-layout">
+
+        <!-- TOC SIDEBAR -->
+        <div class="toc-panel">
+          <div class="toc-header">
+            <h3>Table of contents</h3>
+            <span class="toc-stats" id="tocStats">0 / 0 sections</span>
+          </div>
+          <div class="toc-body" id="tocBody"></div>
+        </div>
+
+        <!-- EDITOR -->
+        <div>
+          <!-- TOC PREVIEW -->
+          <div class="toc-preview">
+            <div class="toc-preview-title">Table of contents preview</div>
+            <div id="tocPreview"></div>
+          </div>
+
+          <!-- CHAPTER EDITOR -->
+          <div class="editor-panel" id="editorPanel">
+            <div class="editor-empty">
+              <div class="editor-empty-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+              </div>
+              <h4 style="font-size:14px;font-weight:600;margin-bottom:6px">Select a chapter</h4>
+              <p style="font-size:13px;color:var(--text-mid);max-width:280px;margin:0 auto;line-height:1.6">Click any chapter in the table of contents to view and edit its sections.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-items">
+    <a class="mobile-nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Home</span></a>
+    <a class="mobile-nav-item" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis</span></a>
+    <a class="mobile-nav-item active" href="structural-editor.html"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg><span>Structure</span></a>
+    <a class="mobile-nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    <button class="mobile-nav-item" onclick="toggleMoreDrawer()"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>More</span></button>
+  </div>
+</nav>
+<div class="more-overlay" id="moreOverlay" onclick="closeMoreDrawer()"></div>
+<div class="more-drawer" id="moreDrawer">
+  <div class="more-drawer-handle"></div>
+  <div class="more-drawer-title">More</div>
+  <a class="more-item" href="charts.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="more-item-label">Charts & tables</div><div class="more-item-sub">Visualize your data</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="conceptual-model.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3"/></svg></div><div><div class="more-item-label">Conceptual model</div><div class="more-item-sub">Research diagram</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="questionnaire.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div><div><div class="more-item-label">Questionnaire</div><div class="more-item-sub">Survey generator</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="more-item-label">Academic writer</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div><div class="more-item-label">Citations</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div><div class="more-item-label">My proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div><div class="more-item-label">Export</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+</div>
+
+<script>
+// ── CHAPTER SCHEMA (mirrors thesis.html) ──
+var CHAPTERS = {
+  chapter1: { num:1, title:'Introduction', sections:{ intro:'Introduction & Background', problem:'Statement of the Problem', objectives:'Research Objectives', questions:'Research Questions', hypotheses:'Hypotheses', scope:'Scope & Limitations', definitions:'Definitions of Key Terms' } },
+  chapter2: { num:2, title:'Literature Review', sections:{ overview:'Overview', theory:'Theoretical Framework', framework:'Conceptual Framework', domestic:'Domestic Studies', international:'International Studies', summary:'Summary & Research Gap' } },
+  chapter3: { num:3, title:'Methodology', sections:{ methodology:'Research Design & Approach', sample:'Population & Sampling', tools:'Data Collection Instruments', validity:'Validity & Reliability', procedure:'Data Collection Procedure', analysis:'Data Analysis Method' } },
+  chapter4: { num:4, title:'Data Analysis & Results', sections:{ descriptive:'Descriptive Statistics', testing:'Hypothesis Testing', results:'Results & Findings', interpretation:'Interpretation of Results' } },
+  chapter5: { num:5, title:'Conclusion & Discussion', sections:{ summary:'Summary of Findings', discussion:'Discussion', implications:'Practical Implications', limitations:'Limitations of the Study', future:'Recommendations for Future Research', conclusion:'Conclusion' } }
+};
+var CHAPTER_IDS = ['chapter1','chapter2','chapter3','chapter4','chapter5'];
+
+var thesisData = {};
+var activeChapter = null;
+
+function showToast(msg, type) {
+  type = type || 'info';
+  var colors = {success:'#16a34a',error:'#dc2626',info:'#2563EB',warning:'#d97706'};
+  var icons = {success:'✓',error:'✕',info:'ℹ',warning:'⚠'};
+  if (!document.getElementById('nira-toast-c')) {
+    var c = document.createElement('div'); c.id = 'nira-toast-c';
+    c.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(c);
+  }
+  var t = document.createElement('div');
+  t.style.cssText = 'background:'+(colors[type]||colors.info)+';color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;';
+  t.innerHTML = '<span>'+(icons[type]||'ℹ')+'</span>'+msg;
+  document.getElementById('nira-toast-c').appendChild(t);
+  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(function(){ t.remove(); },300); }, 3000);
+}
+
+window.addEventListener('load', function() {
+  // Load profile
+  var sp = localStorage.getItem('nira_profile');
+  if (sp) {
+    var p = JSON.parse(sp);
+    document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
+    document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
+    if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
+  }
+
+  // Load thesis data from NiraProject
+  thesisData = NiraProject.load('thesis') || {};
+
+  renderTOC();
+  renderTOCPreview();
+  updateStats();
+});
+
+// ── STATS ──
+function countSections() {
+  var total = 0, done = 0;
+  CHAPTER_IDS.forEach(function(cid) {
+    var secs = CHAPTERS[cid].sections;
+    Object.keys(secs).forEach(function(sid) {
+      total++;
+      if (thesisData[cid] && thesisData[cid][sid] && thesisData[cid][sid].trim()) done++;
+    });
+  });
+  return { total: total, done: done };
+}
+
+function updateStats() {
+  var s = countSections();
+  document.getElementById('tocStats').textContent = s.done + ' / ' + s.total + ' sections';
+}
+
+// ── TOC SIDEBAR ──
+function renderTOC() {
+  var html = '';
+  CHAPTER_IDS.forEach(function(cid) {
+    var ch = CHAPTERS[cid];
+    var secs = ch.sections;
+    var secKeys = Object.keys(secs);
+    var doneSecs = secKeys.filter(function(sid) {
+      return thesisData[cid] && thesisData[cid][sid] && thesisData[cid][sid].trim();
+    });
+    var allDone = doneSecs.length === secKeys.length;
+    var isActive = activeChapter === cid;
+
+    html += '<div class="toc-chapter">' +
+      '<div class="toc-chapter-header' + (isActive ? ' active' : '') + '" onclick="selectChapter(\'' + cid + '\')">' +
+        '<div class="toc-chapter-num' + (allDone ? ' done' : '') + '">' + ch.num + '</div>' +
+        '<div class="toc-chapter-title">' + ch.title + '</div>' +
+        '<div class="toc-chapter-count">' + doneSecs.length + '/' + secKeys.length + '</div>' +
+      '</div>' +
+      '<div class="toc-sections' + (isActive ? ' open' : '') + '">';
+
+    secKeys.forEach(function(sid) {
+      var hasCon = thesisData[cid] && thesisData[cid][sid] && thesisData[cid][sid].trim();
+      html += '<div class="toc-section-item' + (hasCon ? ' done' : '') + '" onclick="selectChapter(\'' + cid + '\'); scrollToSection(\'' + cid + '_' + sid + '\')">' +
+        '<div class="toc-dot"></div>' + secs[sid] +
+        '</div>';
+    });
+
+    html += '</div></div>';
+  });
+  document.getElementById('tocBody').innerHTML = html;
+}
+
+// ── TOC PREVIEW ──
+function renderTOCPreview() {
+  var html = '';
+  var pageNum = 1;
+  CHAPTER_IDS.forEach(function(cid) {
+    var ch = CHAPTERS[cid];
+    html += '<div class="toc-entry">' +
+      '<span class="toc-entry-chapter">Chapter ' + ch.num + ': ' + ch.title + '</span>' +
+      '<span class="toc-dots"></span>' +
+      '<span class="toc-page">' + pageNum + '</span>' +
+      '</div>';
+    pageNum += 2;
+    Object.keys(ch.sections).forEach(function(sid) {
+      html += '<div class="toc-entry">' +
+        '<span class="toc-entry-section">' + ch.num + '.' + (Object.keys(ch.sections).indexOf(sid)+1) + ' ' + ch.sections[sid] + '</span>' +
+        '<span class="toc-dots"></span>' +
+        '<span class="toc-page">' + pageNum + '</span>' +
+        '</div>';
+      pageNum++;
+    });
+  });
+  document.getElementById('tocPreview').innerHTML = html;
+}
+
+// ── SELECT CHAPTER ──
+function selectChapter(cid) {
+  activeChapter = cid;
+  renderTOC();
+  renderChapterEditor(cid);
+}
+
+function scrollToSection(sectionKey) {
+  setTimeout(function() {
+    var el = document.getElementById('sec-' + sectionKey);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+// ── CHAPTER EDITOR ──
+function renderChapterEditor(cid) {
+  var ch = CHAPTERS[cid];
+  var secs = ch.sections;
+  var secKeys = Object.keys(secs);
+
+  var html = '<div class="editor-header">' +
+    '<div class="editor-breadcrumb">Thesis &rsaquo; <strong>Chapter ' + ch.num + ': ' + ch.title + '</strong></div>' +
+    '<div class="editor-actions">' +
+      '<button class="sec-btn" onclick="exportChapterPDF(\'' + cid + '\')">Export chapter PDF</button>' +
+    '</div>' +
+    '</div>';
+
+  secKeys.forEach(function(sid, idx) {
+    var label = secs[sid];
+    var content = (thesisData[cid] && thesisData[cid][sid]) || '';
+    var wc = content.trim() ? content.trim().split(/\s+/).length : 0;
+    var isDone = content.trim().length > 0;
+    var sectionKey = cid + '_' + sid;
+
+    html += '<div class="section-block" id="sec-' + sectionKey + '">' +
+      '<div class="section-block-header" onclick="toggleSection(\'' + sectionKey + '\')">' +
+        '<span class="section-num">' + ch.num + '.' + (idx+1) + '</span>' +
+        '<span class="section-title">' + label + '</span>' +
+        (isDone ? '<span class="section-wc">' + wc + ' words</span>' : '') +
+        '<span class="section-status ' + (isDone ? 'done' : 'empty') + '">' + (isDone ? 'Written' : 'Empty') + '</span>' +
+      '</div>' +
+      '<div class="section-body" id="body-' + sectionKey + '">' +
+        '<textarea class="section-content-editor" id="editor-' + sectionKey + '" ' +
+          'placeholder="Write ' + label + ' here..." ' +
+          'oninput="onSectionInput(\'' + cid + '\',\'' + sid + '\',\'' + sectionKey + '\')">' + content + '</textarea>' +
+        '<div class="section-footer">' +
+          '<span class="section-wc-live" id="wc-' + sectionKey + '">' + (wc ? wc + ' words' : 'Start writing...') + '</span>' +
+          '<div class="section-actions">' +
+            '<button class="sec-btn" onclick="clearSection(\'' + cid + '\',\'' + sid + '\',\'' + sectionKey + '\')">Clear</button>' +
+            '<button class="sec-btn primary" onclick="copySection(\'' + sectionKey + '\')">Copy</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+
+  document.getElementById('editorPanel').innerHTML = html;
+
+  // Auto-open first section
+  var firstBody = document.getElementById('body-' + cid + '_' + secKeys[0]);
+  if (firstBody) firstBody.classList.add('open');
+}
+
+function toggleSection(sectionKey) {
+  var body = document.getElementById('body-' + sectionKey);
+  if (body) body.classList.toggle('open');
+}
+
+function onSectionInput(cid, sid, sectionKey) {
+  var el = document.getElementById('editor-' + sectionKey);
+  if (!el) return;
+  var text = el.value;
+
+  // Update thesisData
+  if (!thesisData[cid]) thesisData[cid] = {};
+  thesisData[cid][sid] = text;
+  NiraProject.save('thesis', thesisData);
+
+  // Update word count
+  var wc = text.trim() ? text.trim().split(/\s+/).length : 0;
+  var wcEl = document.getElementById('wc-' + sectionKey);
+  if (wcEl) wcEl.textContent = wc ? wc + ' words' : 'Start writing...';
+
+  // Update TOC
+  updateStats();
+  renderTOC();
+  renderTOCPreview();
+}
+
+function clearSection(cid, sid, sectionKey) {
+  if (!confirm('Clear this section?')) return;
+  if (thesisData[cid]) thesisData[cid][sid] = '';
+  NiraProject.save('thesis', thesisData);
+  var el = document.getElementById('editor-' + sectionKey);
+  if (el) { el.value = ''; el.dispatchEvent(new Event('input')); }
+  showToast('Section cleared', 'info');
+}
+
+function copySection(sectionKey) {
+  var el = document.getElementById('editor-' + sectionKey);
+  if (!el || !el.value.trim()) { showToast('Nothing to copy', 'warning'); return; }
+  navigator.clipboard.writeText(el.value).then(function() { showToast('Copied!', 'success'); });
+}
+
+// ── EXPORT ──
+function exportTOC() {
+  var lines = ['TABLE OF CONTENTS\n' + '='.repeat(50) + '\n'];
+  var page = 1;
+  CHAPTER_IDS.forEach(function(cid) {
+    var ch = CHAPTERS[cid];
+    lines.push('Chapter ' + ch.num + ': ' + ch.title + ' ............ ' + page);
+    page += 2;
+    Object.keys(ch.sections).forEach(function(sid, idx) {
+      lines.push('  ' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sid] + ' ............ ' + page);
+      page++;
+    });
+    lines.push('');
+  });
+  var blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'table-of-contents.txt';
+  a.click();
+  showToast('TOC exported', 'success');
+}
+
+function exportChapterPDF(cid) {
+  var ch = CHAPTERS[cid];
+  var topic = JSON.parse(localStorage.getItem('nira_selected_topic') || '{}');
+  var win = window.open('', '_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Chapter ' + ch.num + '</title>' +
+    '<style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.8;color:#111;max-width:700px;margin:2cm auto;padding:0 1cm}' +
+    'h1{font-size:18pt;border-bottom:2px solid #1B2A4A;padding-bottom:8px;margin-bottom:4px}' +
+    'h2{font-size:14pt;margin:20px 0 8px;color:#1B2A4A}' +
+    '.meta{font-size:10pt;color:#555;margin-bottom:24px}' +
+    'p{margin-bottom:12px;text-align:justify}' +
+    '@media print{body{margin:1cm}}' +
+    '</style></head><body>' +
+    '<h1>Chapter ' + ch.num + ': ' + ch.title + '</h1>' +
+    '<div class="meta">' + (topic.title_en || 'Research Thesis') + ' · Generated by Dr. NIRA</div>');
+
+  Object.keys(ch.sections).forEach(function(sid, idx) {
+    var content = (thesisData[cid] && thesisData[cid][sid]) || '';
+    win.document.write('<h2>' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sid] + '</h2>');
+    if (content.trim()) {
+      content.split('\n').forEach(function(p) {
+        if (p.trim()) win.document.write('<p>' + p + '</p>');
+      });
+    } else {
+      win.document.write('<p style="color:#999;font-style:italic">[Not written yet]</p>');
+    }
+  });
+
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 400);
+}
+
+function exportPDF() {
+  var topic = JSON.parse(localStorage.getItem('nira_selected_topic') || '{}');
+  var win = window.open('', '_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Thesis Structure</title>' +
+    '<style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.8;color:#111;max-width:700px;margin:2cm auto;padding:0 1cm}' +
+    'h1{font-size:20pt;text-align:center;margin-bottom:8px}' +
+    '.sub{text-align:center;font-size:11pt;color:#555;margin-bottom:32px}' +
+    'h2{font-size:14pt;color:#1B2A4A;margin:20px 0 6px;border-bottom:1px solid #dde6f5;padding-bottom:4px}' +
+    'h3{font-size:12pt;color:#2563EB;margin:14px 0 4px}' +
+    'p{margin-bottom:10px;text-align:justify}' +
+    '.empty{color:#aaa;font-style:italic}' +
+    '@media print{body{margin:1cm}}' +
+    '</style></head><body>' +
+    '<h1>' + (topic.title_en || 'Research Thesis') + '</h1>' +
+    '<div class="sub">Generated by Dr. NIRA · ' + new Date().toLocaleDateString() + '</div>');
+
+  CHAPTER_IDS.forEach(function(cid) {
+    var ch = CHAPTERS[cid];
+    win.document.write('<h2>Chapter ' + ch.num + ': ' + ch.title + '</h2>');
+    Object.keys(ch.sections).forEach(function(sid, idx) {
+      var content = (thesisData[cid] && thesisData[cid][sid]) || '';
+      win.document.write('<h3>' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sid] + '</h3>');
+      if (content.trim()) {
+        content.split('\n').forEach(function(p){ if (p.trim()) win.document.write('<p>' + p + '</p>'); });
+      } else {
+        win.document.write('<p class="empty">[Not written yet]</p>');
+      }
+    });
+  });
+
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 400);
+}
+
+function toggleMoreDrawer() {
+  document.getElementById('moreDrawer').classList.toggle('open');
+  document.getElementById('moreOverlay').classList.toggle('open');
+}
+function closeMoreDrawer() {
+  document.getElementById('moreDrawer').classList.remove('open');
+  document.getElementById('moreOverlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
