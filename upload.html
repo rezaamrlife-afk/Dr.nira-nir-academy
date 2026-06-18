@@ -934,103 +934,155 @@ function showToast(message, type, duration) {
     window.analysisRunning = false;
   }
 
+  // ── KB SECTION HELPER (future-ready) ──
+  function getKBSection(kb, sectionType) {
+    // Future: if kb.sections populated, use directly
+    if (kb.sections && kb.sections[sectionType]) {
+      return kb.sections[sectionType];
+    }
+    // Current: filter chunkSummaries by section label
+    var matches = (kb.chunkSummaries || [])
+      .filter(function(c){ return c.section === sectionType; })
+      .map(function(c){ return c.summary; });
+    if (matches.length) return matches.join('\n');
+    // Fallback: masterSummary
+    return (kb.masterSummary || '').slice(0, 400);
+  }
+
+  function buildKBInput(kb) {
+    return {
+      abstract:    getKBSection(kb, 'abstract'),
+      introduction:getKBSection(kb, 'introduction'),
+      literature:  getKBSection(kb, 'literature'),
+      methodology: getKBSection(kb, 'methodology'),
+      results:     getKBSection(kb, 'results'),
+      conclusion:  getKBSection(kb, 'conclusion'),
+      master:      (kb.masterSummary || '').slice(0, 600),
+      keywords:    ((kb.extracted || {}).keywords || []).join(', '),
+      variables:   ((kb.extracted || {}).variables || []).join(', '),
+      findings:    ((kb.extracted || {}).findings || []).slice(0,3).join(' | ')
+    };
+  }
   async function runFull(text, citation) {
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var kbi = kb && kb.status === 'complete' ? buildKBInput(kb) : null;
+    var ctx = function(section) {
+      if (kbi && kbi[section]) return kbi[section];
+      return (text || '').slice(0, 1200);
+    };
+    var full = kbi ? kbi.master : (text || '').slice(0, 1500);
+
     setStep('structure','active');
-    const s1 = await callAPI(SYS, `Analyze the STRUCTURE of this document. List all sections present, their order, and what important sections are missing.\n\nDocument:\n${text}`);
+    const s1 = await callAPI(SYS, `Analyze the STRUCTURE of this research document. List all sections present and what important sections are missing.\n\nDocument overview:\n${full}`);
     setStep('structure','done'); addBlock('structure','1. Structure detection', s1);
 
     setStep('problem','active');
-    const s2 = await callAPI(SYS, `Evaluate the PROBLEM STATEMENT: clarity, importance, research gap, necessity. Give a score X/10 and specific feedback.\n\nDocument:\n${text}`);
+    const s2 = await callAPI(SYS, `Evaluate the PROBLEM STATEMENT: clarity, importance, research gap, necessity. Score X/10.\n\nAbstract & Introduction:\n${ctx('abstract')}\n${ctx('introduction')}`);
     setStep('problem','done'); addBlock('problem','2. Problem statement review', s2, extractScore(s2));
 
     setStep('objectives','active');
-    const s3 = await callAPI(SYS, `Evaluate the OBJECTIVES: are they SMART? properly structured (general/specific/applied)? aligned with the gap? Score X/10.\n\nDocument:\n${text}`);
+    const s3 = await callAPI(SYS, `Evaluate the OBJECTIVES: SMART criteria, structure, alignment with gap. Score X/10.\n\nIntroduction:\n${ctx('introduction')}`);
     setStep('objectives','done'); addBlock('objectives','3. Objectives analysis', s3, extractScore(s3));
 
     setStep('literature','active');
-    const s4 = await callAPI(SYS, `Audit the LITERATURE REVIEW: number/quality of sources, recency, domestic vs international balance, ${citation} format usage. Score X/10.\n\nDocument:\n${text}`);
+    const s4 = await callAPI(SYS, `Audit the LITERATURE REVIEW: sources quality, recency, balance, ${citation} format. Score X/10.\n\nLiterature section:\n${ctx('literature')}`);
     setStep('literature','done'); addBlock('literature','4. Literature review audit', s4, extractScore(s4));
 
     setStep('methodology','active');
-    const s5 = await callAPI(SYS, `Evaluate the METHODOLOGY: research type, population, sampling, instruments, validity/reliability, analysis plan. Score X/10.\n\nDocument:\n${text}`);
+    const s5 = await callAPI(SYS, `Evaluate the METHODOLOGY: research type, sampling, instruments, validity, analysis plan. Score X/10.\n\nMethodology section:\n${ctx('methodology')}`);
     setStep('methodology','done'); addBlock('methodology','5. Methodology evaluation', s5, extractScore(s5));
 
     setStep('gap','active');
-    const s6 = await callAPI(SYS, `Identify all RESEARCH GAPS: what is unexplored, what questions are unanswered, what methodological/theoretical gaps exist.\n\nDocument:\n${text}`);
+    const s6 = await callAPI(SYS, `Identify all RESEARCH GAPS: unexplored areas, unanswered questions, theoretical gaps.\n\nLiterature & Results:\n${ctx('literature')}\n${ctx('results')}`);
     setStep('gap','done'); addBlock('gap','6. Research gap analysis', s6);
 
     setStep('quality','active');
-    const s7 = await callAPI(SYS, `Score ACADEMIC QUALITY — each dimension X/10:\n- Clarity of writing\n- Coherence and flow\n- Academic language\n- Argumentation strength\n- Citation quality\n- Overall score\n\nDocument:\n${text}`);
+    const s7 = await callAPI(SYS, `Score ACADEMIC QUALITY — each X/10: Clarity, Coherence, Academic language, Argumentation, Citations, Overall.\n\nOverview:\n${full}\nKeywords: ${kbi ? kbi.keywords : ''}`);
     setStep('quality','done'); addBlock('quality','7. Academic quality scoring', s7, extractScore(s7));
 
     setStep('suggestions','active');
-    const s8 = await callAPI(SYS, `Provide SPECIFIC ACTIONABLE IMPROVEMENTS for each weak section. Be concrete with exact rewrite suggestions.\n\nDocument:\n${text}`);
+    const s8 = await callAPI(SYS, `Provide SPECIFIC ACTIONABLE IMPROVEMENTS for each weak section.\n\nConclusion & Findings:\n${ctx('conclusion')}\n${ctx('results')}`);
     setStep('suggestions','done'); addBlock('suggestions','8. Improvement suggestions', s8);
   }
 
   async function runGap(text) {
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var kbi = kb && kb.status === 'complete' ? buildKBInput(kb) : null;
+    var full = kbi ? kbi.master : (text || '').slice(0, 1500);
+    var lit  = kbi ? kbi.literature  : (text || '').slice(0, 1200);
+    var res  = kbi ? kbi.results     : (text || '').slice(0, 1200);
+
     setStep('scan','active');
-    const s1 = await callAPI(SYS, `Provide a brief content overview of this document.\n\nDocument:\n${text}`);
+    const s1 = await callAPI(SYS, `Provide a brief content overview.\n\nDocument:\n${full}`);
     setStep('scan','done'); addBlock('scan','1. Document overview', s1);
 
     setStep('gap','active');
-    const s2 = await callAPI(SYS, `Identify all RESEARCH GAPS very specifically.\n\nDocument:\n${text}`);
+    const s2 = await callAPI(SYS, `Identify all RESEARCH GAPS very specifically.\n\nLiterature & Findings:\n${lit}\n${res}`);
     setStep('gap','done'); addBlock('gap','2. Research gaps identified', s2);
 
     setStep('missing','active');
-    const s3 = await callAPI(SYS, `What KEY ELEMENTS are MISSING from this proposal that a strong PhD proposal must have?\n\nDocument:\n${text}`);
+    const s3 = await callAPI(SYS, `What KEY ELEMENTS are MISSING from this proposal?\n\nOverview:\n${full}`);
     setStep('missing','done'); addBlock('missing','3. Missing elements', s3);
 
     setStep('suggestions','active');
-    const s4 = await callAPI(SYS, `For each gap and missing element, give SPECIFIC SUGGESTIONS on how to address them.\n\nDocument:\n${text}`);
+    const s4 = await callAPI(SYS, `For each gap and missing element, give SPECIFIC SUGGESTIONS.\n\nGaps context:\n${lit}`);
     setStep('suggestions','done'); addBlock('suggestions','4. Gap-filling suggestions', s4);
   }
 
   async function runMethodology(text) {
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var kbi = kb && kb.status === 'complete' ? buildKBInput(kb) : null;
+    var meth = kbi ? kbi.methodology : (text || '').slice(0, 1500);
+
     setStep('scan','active');
-    const s1 = await callAPI(SYS, `Extract and summarize the METHODOLOGY section.\n\nDocument:\n${text}`);
+    const s1 = await callAPI(SYS, `Extract and summarize the METHODOLOGY section.\n\nMethodology:\n${meth}`);
     setStep('scan','done'); addBlock('scan','1. Methodology overview', s1);
 
     setStep('design','active');
-    const s2 = await callAPI(SYS, `Evaluate RESEARCH DESIGN: type, philosophical approach, justification. Score X/10.\n\nDocument:\n${text}`);
+    const s2 = await callAPI(SYS, `Evaluate RESEARCH DESIGN: type, philosophical approach, justification. Score X/10.\n\nMethodology:\n${meth}`);
     setStep('design','done'); addBlock('design','2. Research design', s2, extractScore(s2));
 
     setStep('sampling','active');
-    const s3 = await callAPI(SYS, `Evaluate SAMPLING: population, size, method and appropriateness. Score X/10.\n\nDocument:\n${text}`);
+    const s3 = await callAPI(SYS, `Evaluate SAMPLING: population, size, method and appropriateness. Score X/10.\n\nMethodology:\n${meth}`);
     setStep('sampling','done'); addBlock('sampling','3. Sampling evaluation', s3, extractScore(s3));
 
     setStep('tools','active');
-    const s4 = await callAPI(SYS, `Evaluate DATA COLLECTION TOOLS: instruments, validity, reliability. Score X/10.\n\nDocument:\n${text}`);
+    const s4 = await callAPI(SYS, `Evaluate DATA COLLECTION TOOLS: instruments, validity, reliability. Score X/10.\n\nMethodology:\n${meth}`);
     setStep('tools','done'); addBlock('tools','4. Data collection tools', s4, extractScore(s4));
 
     setStep('analysis','active');
-    const s5 = await callAPI(SYS, `Evaluate DATA ANALYSIS METHOD: statistical/qualitative methods, software, appropriateness. Score X/10.\n\nDocument:\n${text}`);
+    const s5 = await callAPI(SYS, `Evaluate DATA ANALYSIS METHOD: statistical/qualitative methods, software, appropriateness. Score X/10.\n\nMethodology:\n${meth}`);
     setStep('analysis','done'); addBlock('analysis','5. Analysis method', s5, extractScore(s5));
 
     setStep('suggestions','active');
-    const s6 = await callAPI(SYS, `Provide specific METHODOLOGY IMPROVEMENTS — precise and actionable.\n\nDocument:\n${text}`);
+    const s6 = await callAPI(SYS, `Provide specific METHODOLOGY IMPROVEMENTS — precise and actionable.\n\nMethodology:\n${meth}`);
     setStep('suggestions','done'); addBlock('suggestions','6. Methodology suggestions', s6);
   }
 
   async function runQuality(text) {
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var kbi = kb && kb.status === 'complete' ? buildKBInput(kb) : null;
+    var full = kbi ? kbi.master : (text || '').slice(0, 1500);
+    var lit  = kbi ? kbi.literature  : (text || '').slice(0, 1000);
+
     setStep('scan','active');
-    const s1 = await callAPI(SYS, `Brief content summary of this document.\n\nDocument:\n${text}`);
+    const s1 = await callAPI(SYS, `Brief content summary.\n\nDocument:\n${full}`);
     setStep('scan','done'); addBlock('scan','1. Document summary', s1);
 
     setStep('clarity','active');
-    const s2 = await callAPI(SYS, `Evaluate CLARITY AND COHERENCE: writing quality, sentence structure, academic language, readability. Score X/10.\n\nDocument:\n${text}`);
+    const s2 = await callAPI(SYS, `Evaluate CLARITY AND COHERENCE: writing quality, sentence structure, academic language. Score X/10.\n\nDocument:\n${full}`);
     setStep('clarity','done'); addBlock('clarity','2. Clarity & coherence', s2, extractScore(s2));
 
     setStep('citations','active');
-    const s3 = await callAPI(SYS, `Evaluate CITATION ADEQUACY: number, recency, diversity, format quality. Score X/10.\n\nDocument:\n${text}`);
+    const s3 = await callAPI(SYS, `Evaluate CITATION ADEQUACY: number, recency, diversity, format quality. Score X/10.\n\nLiterature:\n${lit}`);
     setStep('citations','done'); addBlock('citations','3. Citation adequacy', s3, extractScore(s3));
 
     setStep('logic','active');
-    const s4 = await callAPI(SYS, `Evaluate LOGICAL CONSISTENCY: argument flow, evidence, connection between all sections. Score X/10.\n\nDocument:\n${text}`);
+    const s4 = await callAPI(SYS, `Evaluate LOGICAL CONSISTENCY: argument flow, evidence, connection between sections. Score X/10.\n\nDocument:\n${full}`);
     setStep('logic','done'); addBlock('logic','4. Logical consistency', s4, extractScore(s4));
 
     setStep('quality','active');
-    const s5 = await callAPI(SYS, `OVERALL ACADEMIC QUALITY ASSESSMENT with final score X/10. Summarize strengths, weaknesses, and top priorities.\n\nDocument:\n${text}`);
+    const s5 = await callAPI(SYS, `OVERALL ACADEMIC QUALITY with final score X/10. Strengths, weaknesses, top priorities.\n\nDocument:\n${full}\nKeywords: ${kbi ? kbi.keywords : ''}`);
     setStep('quality','done'); addBlock('quality','5. Overall quality score', s5, extractScore(s5));
   }
 </script>
