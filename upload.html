@@ -616,14 +616,41 @@ function showToast(message, type, duration) {
   }
 
   async function callAPI(systemPrompt, userPrompt) {
-    const res = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemPrompt, userPrompt })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'API error');
-    return data.result;
+    var delays = [5000, 10000, 20000, 40000];
+
+    for (var attempt = 0; attempt <= delays.length; attempt++) {
+      var res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ systemPrompt, userPrompt })
+      });
+
+      // ── Only retry on 429 (rate limit) ──
+      if (res.status === 429) {
+        if (attempt < delays.length) {
+          var wait = delays[attempt];
+          var stepsEl = document.getElementById('stepsOverall');
+          if (stepsEl) stepsEl.textContent = 'Rate limit reached. Waiting ' + (wait/1000) + 's before continuing...';
+          await new Promise(function(r){ setTimeout(r, wait); });
+          continue; // retry
+        }
+        throw new Error('Rate limit exceeded after ' + delays.length + ' retries. Please try again in a minute.');
+      }
+
+      // ── Do NOT retry on these — permanent errors ──
+      if (res.status === 400) throw new Error('Bad request — check prompt format (400)');
+      if (res.status === 401) throw new Error('Invalid API key (401)');
+      if (res.status === 403) throw new Error('Access forbidden (403)');
+      if (res.status === 500) {
+        var errData = await res.json().catch(function(){ return {}; });
+        throw new Error(errData.error || 'Server error (500) — do not retry');
+      }
+
+      // ── Success ──
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error ' + res.status);
+      return data.result;
+    }
   }
 
   function addBlock(id, title, content, score) {
@@ -951,16 +978,16 @@ function showToast(message, type, duration) {
 
   function buildKBInput(kb) {
     return {
-      abstract:    getKBSection(kb, 'abstract'),
-      introduction:getKBSection(kb, 'introduction'),
-      literature:  getKBSection(kb, 'literature'),
-      methodology: getKBSection(kb, 'methodology'),
-      results:     getKBSection(kb, 'results'),
-      conclusion:  getKBSection(kb, 'conclusion'),
-      master:      (kb.masterSummary || '').slice(0, 600),
-      keywords:    ((kb.extracted || {}).keywords || []).join(', '),
-      variables:   ((kb.extracted || {}).variables || []).join(', '),
-      findings:    ((kb.extracted || {}).findings || []).slice(0,3).join(' | ')
+      abstract:    getKBSection(kb, 'abstract').slice(0, 300),
+      introduction:getKBSection(kb, 'introduction').slice(0, 300),
+      literature:  getKBSection(kb, 'literature').slice(0, 400),
+      methodology: getKBSection(kb, 'methodology').slice(0, 400),
+      results:     getKBSection(kb, 'results').slice(0, 300),
+      conclusion:  getKBSection(kb, 'conclusion').slice(0, 300),
+      master:      (kb.masterSummary || '').slice(0, 400),
+      keywords:    ((kb.extracted || {}).keywords || []).slice(0, 5).join(', '),
+      variables:   ((kb.extracted || {}).variables || []).slice(0, 4).join(', '),
+      findings:    ((kb.extracted || {}).findings || []).slice(0, 2).join(' | ')
     };
   }
   async function runFull(text, citation) {
