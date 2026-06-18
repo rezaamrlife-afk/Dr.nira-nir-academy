@@ -1154,6 +1154,16 @@ function showToast(message, type = 'success', duration = 3000) {
     // Load workspace state
     loadWorkspaceState();
 
+    // Auto-generate from KB (triggered by "Build proposal from this")
+    var autoMode = localStorage.getItem('nira_auto_generate');
+    if (autoMode) {
+      localStorage.removeItem('nira_auto_generate');
+      setTimeout(function() {
+        selectMode(autoMode);
+        showToast('Knowledge Base loaded — select a section and click Generate draft', 'success');
+      }, 400);
+    }
+
     // Load KB context if available
     var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
     var kbContext = '';
