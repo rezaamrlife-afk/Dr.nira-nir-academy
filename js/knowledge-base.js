@@ -230,7 +230,7 @@ var NiraKB = (function() {
   }
 
   function splitIntoChunks(text, maxTokens) {
-    maxTokens = maxTokens || 1500; // reduced from 2200 to stay within API limits
+    maxTokens = maxTokens || 800; // reduced to prevent 413 payload errors
     var maxChars = maxTokens * 4;
     var paragraphs = text.split(/\n\n+/);
     var chunks = [];
@@ -273,15 +273,9 @@ var NiraKB = (function() {
 
   // ── CHUNK PROMPT ──
   function buildChunkPrompt(chunk) {
-    return 'You are an academic document analyzer. Summarize the following section of a research document.\n\n' +
-      'Section type: ' + chunk.section + '\n\n' +
-      'Extract and summarize in 80-120 words. Focus on:\n' +
-      '- Key concepts and findings\n' +
-      '- Research variables or constructs mentioned\n' +
-      '- Methodological details\n' +
-      '- Research questions or hypotheses\n\n' +
-      'Text:\n' + chunk.text + '\n\n' +
-      'Output: Only the summary paragraph. No labels or headings.';
+    // Keep prompt minimal to avoid 413 errors
+    var truncated = chunk.text.slice(0, 2000); // max ~500 tokens of text
+    return 'Summarize this academic text in 60-80 words. Focus on key concepts, variables, and findings only.\n\nText:\n' + truncated;
   }
 
   function buildExtractionPrompt(allSummaries, fileName) {
