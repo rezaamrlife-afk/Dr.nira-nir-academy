@@ -630,8 +630,20 @@ function showToast(message, type, duration) {
         if (attempt < delays.length) {
           var wait = delays[attempt];
           var stepsEl = document.getElementById('stepsOverall');
-          if (stepsEl) stepsEl.textContent = 'Rate limit reached. Waiting ' + (wait/1000) + 's before continuing...';
+          // Countdown timer
+          var remaining = wait / 1000;
+          if (stepsEl) stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
+          var countdown = setInterval(function() {
+            remaining--;
+            if (stepsEl && remaining > 0) {
+              stepsEl.textContent = 'Rate limit — retrying in ' + remaining + 's...';
+            } else {
+              clearInterval(countdown);
+            }
+          }, 1000);
           await new Promise(function(r){ setTimeout(r, wait); });
+          clearInterval(countdown);
+          if (stepsEl) stepsEl.textContent = 'Continuing analysis...';
           continue; // retry
         }
         throw new Error('Rate limit exceeded after ' + delays.length + ' retries. Please try again in a minute.');
