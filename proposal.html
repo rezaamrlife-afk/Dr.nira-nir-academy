@@ -811,21 +811,42 @@ function showToast(message, type = 'success', duration = 3000) {
     expand:    'Task: Expand the section with relevant academic detail.\nRules: Add supporting explanations and theoretical depth. Do not introduce unrelated concepts. If Knowledge Base exists, use relevant concepts.',
     shorten:   'Task: Shorten the section while preserving meaning.\nRules: Remove redundancy, keep key academic points, maintain coherence, preserve citations if present.',
     citations: 'Task: Improve academic credibility by adding citations.\nRules: Insert placeholder citations like (Author, Year). Do not invent real papers. Align with existing concepts. Use Knowledge Base keywords if available.',
-    align_kb:  'Task: Align this section with the Knowledge Base context provided.\nRules: Ensure consistency with KB, adjust terminology to match KB, add missing conceptual alignment.',
+    align_kb:  'Task: Align this section with the Knowledge Base research context.\nRules:\n- Update terminology to match KB concepts\n- Ensure consistency with KB findings and variables\n- Strengthen conceptual alignment\n- Do NOT append KB content verbatim\n- Output a refined version of the section only',
     rewrite:   'Task: Completely rewrite this section.\nRules: Keep original intent, improve structure, use academic style, use KB if available. Output clean final version.',
     custom:    'Task: Follow the user instruction precisely.\nRules: Apply only requested changes, keep academic tone, do not rewrite unrelated parts.'
   };
 
-  function buildWorkspacePrompt(action, sectionLabel, content, userInput, kb) {
-    var kbContext = '';
-    if (kb && kb.status === 'complete') {
-      if (kb.masterSummary) kbContext += '\n[KNOWLEDGE BASE SUMMARY]\n' + kb.masterSummary.slice(0, 500);
-      var ext = kb.extracted || {};
-      if (ext.keywords    && ext.keywords.length)    kbContext += '\nKeywords: '          + ext.keywords.join(', ');
-      if (ext.variables   && ext.variables.length)   kbContext += '\nVariables: '         + ext.variables.join(', ');
-      if (ext.researchQuestions && ext.researchQuestions.length) kbContext += '\nResearch questions: ' + ext.researchQuestions.slice(0,2).join(' | ');
-      if (ext.findings    && ext.findings.length)    kbContext += '\nKey findings: '       + ext.findings.slice(0,3).join(' | ');
+  function buildKBContextForAction(kb, action) {
+    if (!kb || kb.status !== 'complete') return '';
+    var ext = kb.extracted || {};
+
+    // Standard context for most actions
+    var ctx = '';
+    if (kb.masterSummary) ctx += '\n[KNOWLEDGE BASE]\n' + kb.masterSummary.slice(0, 400);
+    if (ext.keywords   && ext.keywords.length)   ctx += '\nKeywords: ' + ext.keywords.slice(0,6).join(', ');
+    if (ext.variables  && ext.variables.length)  ctx += '\nVariables: ' + ext.variables.slice(0,4).join(', ');
+    if (ext.findings   && ext.findings.length)   ctx += '\nFindings: ' + ext.findings.slice(0,3).join(' | ');
+
+    // Enriched context only for align_kb
+    if (action === 'align_kb') {
+      if (ext.researchQuestions && ext.researchQuestions.length)
+        ctx += '\nResearch questions: ' + ext.researchQuestions.slice(0,2).join(' | ');
+      if (ext.methodology && ext.methodology.length)
+        ctx += '\nMethodology: ' + ext.methodology.slice(0,2).join(' | ');
+      // Top 3 most relevant chunk summaries
+      var chunks = (kb.chunkSummaries || []).slice(0, 3);
+      if (chunks.length) {
+        ctx += '\n[KEY INSIGHTS FROM DOCUMENT]';
+        chunks.forEach(function(c, i) {
+          ctx += '\n' + (i+1) + '. ' + (c.summary || '').slice(0, 200);
+        });
+      }
     }
+    return ctx;
+  }
+
+  function buildWorkspacePrompt(action, sectionLabel, content, userInput, kb) {
+    var kbContext = buildKBContextForAction(kb, action);
 
     return BASE_SYSTEM + '\n\n' +
       '[SECTION]\n' + sectionLabel + '\n\n' +
@@ -991,6 +1012,7 @@ function showToast(message, type = 'success', duration = 3000) {
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'citations\',\'' + sectionId + '\',\'\')">📚 Add citations</button>' +
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'align_kb\',\'' + sectionId + '\',\'\')">🔗 Align with KB</button>' +
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'rewrite\',\'' + sectionId + '\',\'\')">↺ Rewrite</button>' +
+        '<button class="ws-action-btn" onclick="goToUpload()">📄 Upload PDF</button>' +
       '</div>' +
       '<div class="ws-input-row">' +
         '<input type="text" class="ws-input" id="ws-input-' + sectionId + '" placeholder="Custom instruction (e.g. more academic, focus on EFL teachers...)" onkeydown="if(event.key===\'Enter\'){var v=this.value.trim();if(v)runAction(\'custom\',\'' + sectionId + '\',v);}">' +
@@ -1535,6 +1557,12 @@ ${text}`;
       btn.style.opacity = '1';
       btn.style.cursor = 'pointer';
     }
+  }
+
+  function goToUpload() {
+    localStorage.setItem('nira_return_context', 'kb_flow');
+    showToast('After analysis, come back to Proposal Builder to use your Knowledge Base.', 'info', 5000);
+    setTimeout(function() { window.location.href = 'upload.html'; }, 1500);
   }
 
   // ── SUPERVISOR REVIEW ──
