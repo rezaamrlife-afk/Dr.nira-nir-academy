@@ -82,28 +82,22 @@ function extractIntent(query) {
 
 // ── CONTROLLED QUERY EXPANSION ──
 function buildExpandedQuery(query, intent) {
-  // Stay within domain — no general drift
+  // OpenAlex uses simple keyword search — no boolean operators
   if (intent.domain === 'language_learning') {
-    const domainAnchor = '(second language acquisition OR EFL OR ESL OR SLA OR language learning)';
     if (intent.focus.includes('motivation')) {
-      return domainAnchor + ' AND (motivation OR engagement OR attitude OR affective OR willingness to communicate OR learner psychology)';
+      return query + ' second language acquisition EFL ESL motivation engagement affective learner';
     }
     if (intent.focus.includes('technology')) {
-      return domainAnchor + ' AND (technology OR digital OR computer-assisted OR e-learning OR mobile)';
+      return query + ' language learning technology digital computer-assisted';
     }
-    if (intent.focus.includes('skills')) {
-      return domainAnchor + ' AND ' + query;
-    }
-    return domainAnchor + ' AND ' + query;
+    return query + ' second language acquisition EFL ESL language education';
   }
-
   if (intent.domain === 'education') {
     if (intent.focus.includes('motivation')) {
-      return '(education OR classroom OR learning) AND (motivation OR engagement OR attitude OR affective factors)';
+      return query + ' motivation engagement affective learning education';
     }
     return query;
   }
-
   return query;
 }
 
