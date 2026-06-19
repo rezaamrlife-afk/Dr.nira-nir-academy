@@ -737,17 +737,28 @@ function showConfirm(message, onConfirm, options) {
     btn.disabled = true; btn.textContent = 'Generating...';
 
     const fieldStr = Object.entries(vals).filter(([,v]) => v).map(([k,v]) => `${k}: ${v}`).join('\n');
-    const prompt = `Generate a single citation in ${citationFormat} format for this ${sourceType} source:\n\n${fieldStr}\n\nReturn ONLY the formatted citation text. No explanation, no label, no markdown. Just the citation.`;
+    const prompt = `Generate a single citation in ${citationFormat} format for this ${sourceType} source:\n\n${fieldStr}\n\nReturn ONLY the formatted citation text. No explanation, no label, no JSON, no markdown. Just the plain citation string.`;
 
     try {
-      const res = await fetch('/api/topic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+      const data = await NiraAPI.callWithRetry(async function() {
+        const res = await fetch('/api/proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        if (res.status === 429) throw new Error('429 rate limit');
+        if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || 'API error'); }
+        return await res.json();
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      lastGenerated = data.result.trim();
+
+      // Parse JSON if model returned it anyway
+      var raw = (data.result || '').trim();
+      try {
+        var parsed = JSON.parse(raw);
+        raw = parsed.text || parsed.citation || parsed.result || raw;
+      } catch(e) { /* plain text — good */ }
+
+      lastGenerated = raw;
       showGenerated(lastGenerated);
     } catch(err) {
       showToast('Error: ' + err.message, 'error');
@@ -798,14 +809,18 @@ function showConfirm(message, onConfirm, options) {
     const prompt = `Convert this reference to ${fmt} format:\n\n${text}\n\nReturn ONLY the reformatted citation. No explanation.`;
 
     try {
-      const res = await fetch('/api/topic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+      const data = await NiraAPI.callWithRetry(async function() {
+        const res = await fetch('/api/proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        if (res.status === 429) throw new Error('429 rate limit');
+        if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || 'API error'); }
+        return await res.json();
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      const converted = data.result.trim();
+      var converted = (data.result || '').trim();
+      try { var p = JSON.parse(converted); converted = p.text || p.citation || p.result || converted; } catch(e) {}
       lastGenerated = converted;
       const result = document.getElementById('quickResult');
       result.style.display = 'block';
