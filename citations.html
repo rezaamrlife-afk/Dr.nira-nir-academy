@@ -857,34 +857,43 @@ function showConfirm(message, onConfirm, options) {
     setTimeout(() => { btn.textContent = 'Save to library'; }, 2000);
   }
 
-  function renderLibrary(filter = '') {
+  function renderLibrary(filter) {
     filter = (filter || '').trim();
-    const filtered = filter ? library.filter(c => c.text.toLowerCase().includes(filter.toLowerCase())) : library;
+    const filtered = filter
+      ? library.filter(function(c) {
+          var txt = c.text || c.citation || '';
+          return txt.toLowerCase().includes(filter.toLowerCase());
+        })
+      : library;
+
     document.getElementById('libCount').textContent = library.length + ' reference' + (library.length !== 1 ? 's' : '');
     document.getElementById('exportLabel').textContent = library.length + ' citation' + (library.length !== 1 ? 's' : '') + ' saved';
 
     if (filtered.length === 0) {
-      document.getElementById('libraryList').innerHTML = `
-        <div class="library-empty">
-          <h4>${filter ? 'No results found' : 'No citations yet'}</h4>
-          <p>${filter ? 'Try a different search term.' : 'Generate a citation on the left and save it to your library.'}</p>
-        </div>`;
+      document.getElementById('libraryList').innerHTML =
+        '<div class="library-empty">' +
+        '<h4>' + (filter ? 'No results found' : 'No citations yet') + '</h4>' +
+        '<p>' + (filter ? 'Try a different search term.' : 'Generate a citation on the left and click "Save to library" to build your reference list.') + '</p>' +
+        '</div>';
       return;
     }
 
-    document.getElementById('libraryList').innerHTML = filtered.map((c, i) => `
-      <div class="citation-item" id="citem-${c.id}">
-        <div class="citation-item-header">
-          <span class="citation-item-type type-${c.type}">${c.type}</span>
-          <span class="citation-item-format">${c.format}</span>
-        </div>
-        <div class="citation-item-text">${c.text}</div>
-        <div class="citation-item-actions">
-          <button class="btn-icon" onclick="copyText('${escJs(c.text)}')">Copy</button>
-          <button class="btn-icon danger" onclick="deleteItem(${c.id})">Delete</button>
-        </div>
-      </div>
-    `).join('');
+    document.getElementById('libraryList').innerHTML = filtered.map(function(c) {
+      var text = c.text || c.citation || '';
+      var type = c.type || 'journal';
+      var fmt = c.format || '';
+      return '<div class="citation-item" id="citem-' + c.id + '">' +
+        '<div class="citation-item-header">' +
+          '<span class="citation-item-type type-' + type + '">' + type + '</span>' +
+          '<span class="citation-item-format">' + fmt + '</span>' +
+        '</div>' +
+        '<div class="citation-item-text">' + text + '</div>' +
+        '<div class="citation-item-actions">' +
+          '<button class="btn-icon" onclick="copyText(\'' + escJs(text) + '\')">Copy</button>' +
+          '<button class="btn-icon danger" onclick="deleteItem(' + c.id + ')">Delete</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
   }
 
   function deleteItem(id) {
