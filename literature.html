@@ -361,7 +361,7 @@ async function doSearch() {
 
 // ── SEMANTIC SCHOLAR ──
 async function searchSemantic(query) {
-  var url = '/api/semantic?query=' + encodeURIComponent(query) + '&start=0';
+  var url = '/api/semantic?query=' + encodeURIComponent(query) + '&start=0&sort=' + sortBy;
   var res = await fetch(url);
   if (!res.ok) throw new Error('Semantic Scholar API error');
   var data = await res.json();
