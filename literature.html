@@ -472,6 +472,7 @@ function renderResults() {
         '<button class="pab primary" onclick="analyzePaper('+idx+')">Analyze</button>' +
         '<button class="pab success" onclick="sendToKB('+idx+')">Send to KB</button>' +
         '<button class="pab" onclick="createProposal('+idx+')">Create Proposal</button>' +
+        '<button class="pab" onclick="exportToCitations('+idx+')" style="color:#7c3aed;border-color:#e9d5ff;">Export citation</button>' +
         '<button class="pab related" onclick="findRelated('+idx+')">Related Papers</button>' +
         '<button class="pab cmp'+(isSel?' active':'')+'" id="cmp-'+idx+'" onclick="toggleCompare('+idx+')">'+(isSel?'✓ Selected':'Compare')+'</button>' +
         (p.link ? '<a class="paper-link" href="'+escHtml(p.link)+'" target="_blank">View →</a>' : '') +
@@ -596,6 +597,7 @@ function showAnalysisModal(paper, analysis) {
   var footer = document.createElement('div');
   footer.style.cssText = 'padding:16px 24px;border-top:1px solid #dde6f5;display:flex;gap:8px;';
   footer.innerHTML = '<button onclick="sendToKBFromModal(' + papers.indexOf(paper) + ')" style="background:#16a34a;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Send to KB</button>' +
+    '<button onclick="exportToCitations(' + papers.indexOf(paper) + ')" style="background:#f5f3ff;color:#7c3aed;border:1px solid #e9d5ff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Export citation</button>' +
     '<button onclick="createProposal(' + papers.indexOf(paper) + ')" style="background:#2563EB;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Create Proposal</button>' +
     (paper.link ? '<a href="' + escHtml(paper.link) + '" target="_blank" style="background:#fff;color:#2563EB;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;text-decoration:none;display:inline-flex;align-items:center;">View paper →</a>' : '') +
     '<button onclick="document.getElementById(\'analysisModal\').remove()" style="margin-left:auto;background:none;color:#6B7FA3;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;">Close</button>';
@@ -609,10 +611,72 @@ function showAnalysisModal(paper, analysis) {
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 }
 
-function sendToKBFromModal(idx) {
-  sendToKB(idx);
-  var modal = document.getElementById('analysisModal');
-  if (modal) modal.remove();
+function exportToCitations(idx) {
+  var p = papers[idx];
+  if (!p) return;
+
+  // Load existing citations
+  var existing = [];
+  try { existing = JSON.parse(localStorage.getItem('nira_citations') || '[]'); } catch(e) {}
+  if (!Array.isArray(existing)) existing = [];
+
+  // Deduplicate by DOI or title
+  var doi = p.link && p.link.includes('doi.org') ? p.link : '';
+  var isDuplicate = existing.some(function(c) {
+    if (doi && c.doi && c.doi === doi) return true;
+    return (c.text || '').toLowerCase().includes((p.title || '').toLowerCase().slice(0, 40));
+  });
+
+  if (isDuplicate) {
+    showToast('Already in citations library.', 'warning');
+    return;
+  }
+
+  // Build citation text (APA 7 format)
+  var authors = p.authors.slice(0, 6);
+  var authorStr = '';
+  if (authors.length === 1) {
+    authorStr = formatAPAAuthor(authors[0]);
+  } else if (authors.length <= 6) {
+    authorStr = authors.map(formatAPAAuthor).join(', ');
+  } else {
+    authorStr = authors.slice(0, 6).map(formatAPAAuthor).join(', ') + ', ... ' + formatAPAAuthor(authors[authors.length - 1]);
+  }
+
+  var citationText = authorStr +
+    (p.year && p.year !== '—' ? ' (' + p.year + ').' : '.') +
+    ' ' + (p.title || '') + '.' +
+    (p.venue ? ' ' + p.venue + '.' : '') +
+    (doi ? ' ' + doi : '');
+
+  // Save to library
+  var newCitation = {
+    id: Date.now(),
+    type: 'journal',
+    format: 'APA 7',
+    text: citationText.trim(),
+    doi: doi,
+    title: p.title || '',
+    authors: p.authors,
+    year: p.year || '',
+    venue: p.venue || '',
+    link: p.link || '',
+    source: 'literature_search',
+    savedAt: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+  };
+
+  existing.push(newCitation);
+  localStorage.setItem('nira_citations', JSON.stringify(existing));
+  showToast('Citation saved ✓', 'success');
+}
+
+function formatAPAAuthor(name) {
+  if (!name) return '';
+  var parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0];
+  var last = parts[parts.length - 1];
+  var initials = parts.slice(0, -1).map(function(n){ return n[0] + '.'; }).join(' ');
+  return last + ', ' + initials;
 }
 
 function sendToKB(idx) {
