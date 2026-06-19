@@ -8,14 +8,18 @@ export default async function handler(req, res) {
 
   try {
     const offset = start || '0';
-    const fields = 'title,abstract,year,citationCount,influentialCitationCount,venue,authors,tldr,externalIds';
+    // tldr removed — requires API key on free tier
+    const fields = 'title,abstract,year,citationCount,influentialCitationCount,venue,authors';
     const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=10&offset=${offset}&fields=${fields}`;
 
     const response = await fetch(url, {
       headers: { 'User-Agent': 'Dr-NIRA-Academic-App/1.0' }
     });
 
-    if (!response.ok) throw new Error('Semantic Scholar API error: ' + response.status);
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error('Semantic Scholar ' + response.status + ': ' + errText.slice(0, 200));
+    }
     const data = await response.json();
     res.status(200).json(data);
   } catch (err) {
