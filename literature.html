@@ -216,6 +216,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
       <span class="topbar-title">Literature search</span>
       <div class="topbar-actions">
         <button class="btn-sm-outline" onclick="window.location.href='upload.html'">Upload PDF</button>
+        <button class="btn-sm-outline" id="readingListBtn" onclick="window.location.href='reading-list.html'" style="display:none;">Reading List <span id="readingListCount" style="background:var(--blue);color:#fff;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;margin-left:4px;">0</span></button>
         <button class="btn-sm" onclick="window.location.href='proposal.html'">Proposal builder →</button>
       </div>
     </div>
@@ -341,6 +342,7 @@ window.addEventListener('load', function() {
     document.getElementById('sidebarRole').textContent = (p.degree||'PhD')+' Candidate';
     if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
   }
+  updateReadingListBadge();
 });
 
 function setFocus(val) {
@@ -473,6 +475,7 @@ function renderResults() {
         '<button class="pab success" onclick="sendToKB('+idx+')">Send to KB</button>' +
         '<button class="pab" onclick="createProposal('+idx+')">Create Proposal</button>' +
         '<button class="pab" onclick="exportToCitations('+idx+')" style="color:#7c3aed;border-color:#e9d5ff;">Export citation</button>' +
+        '<button class="pab" id="rl-'+idx+'" onclick="saveToReadingList('+idx+')" '+(isInReadingList(p)?'disabled style="color:#16a34a;border-color:#16a34a;"':'')+'>'+(isInReadingList(p)?'✓ Saved':'Save')+'</button>' +
         '<button class="pab related" onclick="findRelated('+idx+')">Related Papers</button>' +
         '<button class="pab cmp'+(isSel?' active':'')+'" id="cmp-'+idx+'" onclick="toggleCompare('+idx+')">'+(isSel?'✓ Selected':'Compare')+'</button>' +
         (p.link ? '<a class="paper-link" href="'+escHtml(p.link)+'" target="_blank">View →</a>' : '') +
@@ -609,6 +612,58 @@ function showAnalysisModal(paper, analysis) {
   document.body.appendChild(overlay);
 
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
+
+// ── READING LIST ──
+function getReadingList() {
+  try { return JSON.parse(localStorage.getItem('nira_reading_list') || '[]'); } catch(e) { return []; }
+}
+
+function updateReadingListBadge() {
+  var list = getReadingList();
+  var btn = document.getElementById('readingListBtn');
+  var count = document.getElementById('readingListCount');
+  if (btn) btn.style.display = list.length > 0 ? 'inline-flex' : 'none';
+  if (count) count.textContent = list.length;
+}
+
+function isInReadingList(p) {
+  var list = getReadingList();
+  var doi = p.link && p.link.includes('doi.org') ? p.link : '';
+  return list.some(function(item) {
+    if (doi && item.doi && item.doi === doi) return true;
+    return (item.title || '').toLowerCase() === (p.title || '').toLowerCase();
+  });
+}
+
+function saveToReadingList(idx) {
+  var p = papers[idx];
+  if (!p) return;
+  if (isInReadingList(p)) { showToast('Already in Reading List.', 'warning'); return; }
+
+  var list = getReadingList();
+  var doi = p.link && p.link.includes('doi.org') ? p.link : '';
+  list.push({
+    id: Date.now(),
+    title: p.title || '',
+    authors: p.authors || [],
+    year: p.year || '',
+    abstract: (p.abstract || '').slice(0, 600),
+    doi: doi,
+    venue: p.venue || '',
+    link: p.link || '',
+    citationCount: p.citationCount || 0,
+    concepts: p.concepts || [],
+    source: p.source || 'openalex',
+    addedAt: new Date().toISOString()
+  });
+
+  localStorage.setItem('nira_reading_list', JSON.stringify(list));
+  updateReadingListBadge();
+  showToast('Saved to Reading List ✓', 'success');
+
+  var btn = document.getElementById('rl-' + idx);
+  if (btn) { btn.textContent = '✓ Saved'; btn.style.color = '#16a34a'; btn.style.borderColor = '#16a34a'; btn.disabled = true; }
 }
 
 function exportToCitations(idx) {
