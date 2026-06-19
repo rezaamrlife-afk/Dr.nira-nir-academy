@@ -82,21 +82,15 @@ function extractIntent(query) {
 
 // ── CONTROLLED QUERY EXPANSION ──
 function buildExpandedQuery(query, intent) {
-  // OpenAlex uses simple keyword search — no boolean operators
-  if (intent.domain === 'language_learning') {
-    if (intent.focus.includes('motivation')) {
-      return query + ' second language acquisition EFL ESL motivation engagement affective learner';
-    }
-    if (intent.focus.includes('technology')) {
-      return query + ' language learning technology digital computer-assisted';
-    }
-    return query + ' second language acquisition EFL ESL language education';
+  // Keep expansion minimal — OpenAlex 500s on long queries
+  if (intent.domain === 'language_learning' && intent.focus.includes('motivation')) {
+    return query + ' motivation language learning';
   }
-  if (intent.domain === 'education') {
-    if (intent.focus.includes('motivation')) {
-      return query + ' motivation engagement affective learning education';
-    }
-    return query;
+  if (intent.domain === 'language_learning') {
+    return query + ' language learning';
+  }
+  if (intent.domain === 'education' && intent.focus.includes('motivation')) {
+    return query + ' motivation learning';
   }
   return query;
 }
