@@ -141,6 +141,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
 }
 </style>
 <script src="js/project-manager.js"></script>
+<script src="js/knowledge-base.js"></script>
 <script>function showToast(message, type, duration) {
   type = type || 'info'; duration = duration || 3000;
   if (!document.getElementById('nira-toast-container')) {
@@ -424,8 +425,17 @@ async function enhance() {
     if (stepIdx >= steps.length) clearInterval(stepInterval);
   }, 800);
 
+  // KB context — lightweight, intentionally small
+  var kbContext = '';
+  if (typeof NiraKB !== 'undefined') {
+    var kb = NiraKB.load();
+    if (kb && kb.status === 'complete' && kb.masterSummary) {
+      kbContext = '\nResearch Context:\n' + kb.masterSummary.slice(0, 400);
+    }
+  }
+
   var prompt = mode.prompt + '\n\n' +
-    'Field of study: ' + field + '\n\n' +
+    'Field of study: ' + field + kbContext + '\n\n' +
     'Original text:\n' + input + '\n\n' +
     'Output: Only the enhanced text. No explanation, no preamble, no labels.';
 
@@ -472,10 +482,7 @@ function copyOutput() {
   var text = el ? el.innerText : outputText;
   if (!text) { showToast('No enhanced text to copy.', 'warning'); return; }
   navigator.clipboard.writeText(text).then(function() {
-    var btn = event.target;
-    var orig = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    setTimeout(function(){ btn.textContent = orig; }, 2000);
+    showToast('Copied ✓ — Paste into any Proposal Builder or Thesis Builder section.', 'success', 4000);
   });
 }
 
