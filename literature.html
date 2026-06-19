@@ -336,9 +336,7 @@ async function doSearch() {
   document.getElementById('resultsHeader').style.display = 'none';
 
   try {
-    var encoded = encodeURIComponent(query);
-    var url = 'https://export.arxiv.org/api/query?search_query=all:' + encoded +
-      '&start=0&max_results=10&sortBy=' + sortBy + '&sortOrder=descending';
+    var url = '/api/arxiv?query=' + encodeURIComponent(query) + '&sortBy=' + sortBy + '&start=0';
 
     var res = await fetch(url);
     if (!res.ok) throw new Error('arXiv API error');
