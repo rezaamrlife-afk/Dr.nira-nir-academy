@@ -451,7 +451,7 @@ function showConfirm(message, onConfirm, options) {
   let citationFormat = 'APA 7';
   // ── DOI / ISBN LOOKUP ──
   var lookupData = null;
-  let library = JSON.parse(localStorage.getItem('nira_citations') || '[]');
+  let library = [];
 
   async function lookupReference() {
     var input = document.getElementById('lookupInput').value.trim();
@@ -677,6 +677,12 @@ function showConfirm(message, onConfirm, options) {
   };
 
   window.addEventListener('load', function() {
+    // Load library fresh on page load
+    try {
+      library = JSON.parse(localStorage.getItem('nira_citations') || '[]');
+      if (!Array.isArray(library)) library = [];
+    } catch(e) { library = []; }
+
     const sp = localStorage.getItem('nira_profile');
     if (sp) {
       const p = JSON.parse(sp);
