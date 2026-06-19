@@ -217,13 +217,13 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
         <div class="search-filters">
           <div style="display:flex;gap:6px;align-items:center;margin-right:8px;">
             <span style="font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.06em;">Source:</span>
-            <span class="filter-chip" id="src-semantic" onclick="setSource('semantic')" style="background:var(--blue);color:#fff;border-color:var(--blue);">Semantic Scholar</span>
+            <span class="filter-chip" id="src-semantic" onclick="setSource('semantic')" style="background:var(--blue);color:#fff;border-color:var(--blue);">CrossRef</span>
             <span class="filter-chip" id="src-arxiv" onclick="setSource('arxiv')">arXiv</span>
           </div>
           <div style="width:1px;background:var(--border);margin:0 4px;"></div>
           <span class="filter-chip active" id="sort-relevance" onclick="setSort(this,'relevance')">Relevance</span>
           <span class="filter-chip" id="sort-latest" onclick="setSort(this,'latest')">Latest</span>
-          <span id="poweredBy" style="margin-left:auto;font-size:12px;color:var(--text-mid);">Powered by Semantic Scholar</span>
+          <span id="poweredBy" style="margin-left:auto;font-size:12px;color:var(--text-mid);">Powered by CrossRef</span>
         </div>
       </div>
 
@@ -326,7 +326,7 @@ function setSource(val) {
   var pwdEl = document.getElementById('poweredBy');
   if (semEl) semEl.className = 'filter-chip' + (val === 'semantic' ? ' active' : '');
   if (arxEl) arxEl.className = 'filter-chip' + (val === 'arxiv' ? ' active' : '');
-  if (pwdEl) pwdEl.textContent = val === 'semantic' ? 'Powered by Semantic Scholar' : 'Powered by arXiv';
+  if (pwdEl) pwdEl.textContent = val === 'semantic' ? 'Powered by CrossRef' : 'Powered by arXiv';
 }
 
 // ── SORT ──
@@ -386,7 +386,7 @@ async function searchSemantic(query) {
       citationCount: p.citationCount || 0,
       influentialCitations: p.influentialCitationCount || 0,
       tldr: p.tldr ? p.tldr.text : '',
-      link: 'https://www.semanticscholar.org/paper/' + (p.paperId||''),
+      link: p.doi ? 'https://doi.org/' + p.doi : 'https://www.semanticscholar.org/paper/' + (p.paperId||''),
       pdfLink: '', source: 'semantic'
     };
   });
