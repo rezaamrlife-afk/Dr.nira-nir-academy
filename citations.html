@@ -852,6 +852,7 @@ function showConfirm(message, onConfirm, options) {
   }
 
   function renderLibrary(filter = '') {
+    filter = (filter || '').trim();
     const filtered = filter ? library.filter(c => c.text.toLowerCase().includes(filter.toLowerCase())) : library;
     document.getElementById('libCount').textContent = library.length + ' reference' + (library.length !== 1 ? 's' : '');
     document.getElementById('exportLabel').textContent = library.length + ' citation' + (library.length !== 1 ? 's' : '') + ' saved';
