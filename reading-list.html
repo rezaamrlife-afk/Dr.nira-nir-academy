@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. NIRA — Reading List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="js/project-manager.js"></script>
+<script src="js/knowledge-base.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B2A4A;--navy-dark:#0F1B33;--blue:#2563EB;
+  --blue-light:#60A5FA;--blue-pale:#EEF4FF;
+  --muted:#a0b0cc;--text-dark:#1B2A4A;--text-mid:#6B7FA3;
+  --border:#dde6f5;--sidebar-w:240px;
+  --green:#16a34a;--green-pale:#f0fdf4;
+  --amber:#d97706;--purple:#7c3aed;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:var(--text-dark);}
+.app-shell{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:var(--sidebar-w);background:var(--navy-dark);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.sidebar-logo-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sidebar-logo-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;}
+.sidebar-section{padding:20px 12px 8px;}
+.sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding:0 8px;margin-bottom:6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.06);}
+.nav-item.active{background:var(--blue);}
+.nav-item svg{width:17px;height:17px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.nav-item.active svg,.nav-item:hover svg{stroke:#fff;}
+.nav-item span{font-size:13px;color:var(--muted);}
+.nav-item.active span,.nav-item:hover span{color:#fff;}
+.nav-badge{font-size:9px;font-weight:700;background:var(--blue);color:#fff;padding:1px 6px;border-radius:8px;margin-left:auto;}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06);}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;color:#fff;}
+.user-role{font-size:11px;color:var(--muted);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:600;}
+.topbar-actions{display:flex;gap:8px;align-items:center;}
+.btn-sm{background:var(--blue);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-sm:hover{background:#1d4ed8;}
+.btn-sm-outline{background:transparent;color:var(--text-dark);border:1px solid var(--border);padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-sm-outline:hover{background:var(--blue-pale);}
+.content{flex:1;overflow-y:auto;padding:28px;}
+.toolbar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.search-box{flex:1;min-width:200px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none;color:var(--text-dark);}
+.search-box:focus{border-color:var(--blue);}
+.sort-select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text-dark);background:#fff;cursor:pointer;outline:none;}
+.count-badge{font-size:12px;color:var(--text-mid);white-space:nowrap;}
+.paper-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;transition:box-shadow 0.2s;}
+.paper-card:hover{box-shadow:0 4px 16px rgba(27,42,74,0.07);}
+.paper-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.paper-year{font-size:11px;font-weight:700;color:var(--blue);background:var(--blue-pale);padding:2px 8px;border-radius:8px;}
+.paper-venue{font-size:11px;color:var(--text-mid);background:#f0f4ff;padding:2px 8px;border-radius:8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.paper-cite{font-size:11px;color:var(--green);background:var(--green-pale);padding:2px 8px;border-radius:8px;font-weight:600;}
+.paper-added{font-size:11px;color:var(--text-mid);margin-left:auto;}
+.paper-title{font-size:14px;font-weight:600;color:var(--text-dark);margin-bottom:5px;line-height:1.45;}
+.paper-authors{font-size:12px;color:var(--text-mid);margin-bottom:10px;}
+.paper-abstract{font-size:12px;color:#374151;line-height:1.7;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.paper-actions{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #f0f4ff;padding-top:10px;}
+.pab{padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--border);background:#fff;color:var(--text-dark);transition:all 0.15s;}
+.pab:hover{border-color:var(--blue);color:var(--blue);}
+.pab.danger{color:#dc2626;border-color:#fecaca;}
+.pab.danger:hover{background:#dc2626;color:#fff;border-color:#dc2626;}
+.pab.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.pab.success{background:var(--green);color:#fff;border-color:var(--green);}
+.paper-link{font-size:12px;color:var(--blue);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;}
+.empty-state{text-align:center;padding:60px 20px;}
+.empty-icon{width:56px;height:56px;background:var(--blue-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.empty-icon svg{width:28px;height:28px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+@media(max-width:900px){.sidebar{display:none;}.content{padding:16px;}.topbar{padding:0 16px;}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <span class="sidebar-logo-name">Dr. NIRA</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
+      <a class="nav-item" href="proposals.html"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg><span>My proposals</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Research</div>
+      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span></a>
+      <a class="nav-item" href="literature.html"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Literature search</span></a>
+      <a class="nav-item active" href="reading-list.html"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg><span>Reading list</span></a>
+      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
+      <a class="nav-item" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis builder</span></a>
+      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Tools</div>
+      <a class="nav-item" href="structural-editor.html"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg><span>Structural editor</span></a>
+      <a class="nav-item" href="charts.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Charts & tables</span></a>
+      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
+      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">DR</div>
+        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Reading list</span>
+      <div class="topbar-actions">
+        <button class="btn-sm-outline" onclick="window.location.href='literature.html'">← Literature search</button>
+        <button class="btn-sm" onclick="window.location.href='citations.html'">View citations →</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="toolbar">
+        <input type="text" class="search-box" id="searchBox" placeholder="Search your reading list..." oninput="renderList()">
+        <select class="sort-select" id="sortSelect" onchange="renderList()">
+          <option value="recent">Recently Saved</option>
+          <option value="year">Publication Year</option>
+          <option value="citations">Citation Count</option>
+        </select>
+        <span class="count-badge" id="countBadge">0 papers</span>
+      </div>
+      <div id="listArea"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var readingList = [];
+
+function showToast(msg, type, dur) {
+  type=type||'info'; dur=dur||3000;
+  var colors={success:'#16a34a',error:'#dc2626',info:'#2563EB',warning:'#d97706'};
+  var icons={success:'✓',error:'✕',info:'ℹ',warning:'⚠'};
+  if(!document.getElementById('ntc')){var c=document.createElement('div');c.id='ntc';c.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';document.body.appendChild(c);}
+  var t=document.createElement('div');
+  t.style.cssText='background:'+(colors[type]||colors.info)+';color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;white-space:nowrap;';
+  t.innerHTML='<span>'+(icons[type]||'ℹ')+'</span>'+msg;
+  document.getElementById('ntc').appendChild(t);
+  setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove();},300);},dur);
+}
+
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+window.addEventListener('load', function() {
+  var sp = localStorage.getItem('nira_profile');
+  if (sp) {
+    var p = JSON.parse(sp);
+    document.getElementById('sidebarName').textContent = p.fullName||'Dr. Researcher';
+    document.getElementById('sidebarRole').textContent = (p.degree||'PhD')+' Candidate';
+    if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  }
+  readingList = loadList();
+  renderList();
+});
+
+function loadList() {
+  try { return JSON.parse(localStorage.getItem('nira_reading_list') || '[]'); } catch(e) { return []; }
+}
+
+function saveList() {
+  localStorage.setItem('nira_reading_list', JSON.stringify(readingList));
+}
+
+function renderList() {
+  var query = (document.getElementById('searchBox').value || '').toLowerCase().trim();
+  var sort = document.getElementById('sortSelect').value;
+
+  var filtered = readingList.filter(function(p) {
+    if (!query) return true;
+    var text = (p.title + ' ' + p.authors.join(' ') + ' ' + (p.venue||'')).toLowerCase();
+    return text.includes(query);
+  });
+
+  // Sort
+  filtered.sort(function(a, b) {
+    if (sort === 'year') return (parseInt(b.year)||0) - (parseInt(a.year)||0);
+    if (sort === 'citations') return (b.citationCount||0) - (a.citationCount||0);
+    return new Date(b.addedAt||0) - new Date(a.addedAt||0); // recent
+  });
+
+  document.getElementById('countBadge').textContent = filtered.length + ' paper' + (filtered.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    document.getElementById('listArea').innerHTML =
+      '<div class="empty-state">' +
+      '<div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg></div>' +
+      '<h4 style="font-size:15px;font-weight:600;margin-bottom:8px;">' + (query ? 'No results found' : 'Reading list is empty') + '</h4>' +
+      '<p style="font-size:13px;color:var(--text-mid);max-width:280px;margin:0 auto;line-height:1.7;">' +
+      (query ? 'Try a different search term.' : 'Save papers from Literature Search to build your reading list.') +
+      '</p>' +
+      (!query ? '<button onclick="window.location.href=\'literature.html\'" style="margin-top:16px;background:var(--blue);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Search literature →</button>' : '') +
+      '</div>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(p) {
+    var addedDate = p.addedAt ? new Date(p.addedAt).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '';
+    html += '<div class="paper-card">' +
+      '<div class="paper-top">' +
+        (p.year ? '<span class="paper-year">'+escHtml(p.year)+'</span>' : '') +
+        (p.venue ? '<span class="paper-venue" title="'+escHtml(p.venue)+'">'+escHtml(p.venue.slice(0,40))+'</span>' : '') +
+        (p.citationCount ? '<span class="paper-cite">📊 '+p.citationCount+'</span>' : '') +
+        (addedDate ? '<span class="paper-added">Saved '+addedDate+'</span>' : '') +
+      '</div>' +
+      '<div class="paper-title">'+escHtml(p.title)+'</div>' +
+      '<div class="paper-authors">'+escHtml(p.authors.slice(0,4).join(', '))+(p.authors.length>4?' et al.':'')+'</div>' +
+      (p.abstract ? '<div class="paper-abstract">'+escHtml(p.abstract)+'</div>' : '') +
+      '<div class="paper-actions">' +
+        '<button class="pab primary" onclick="analyzePaper('+JSON.stringify(p).replace(/"/g,'&quot;')+')" style="display:none"></button>' +
+        '<button class="pab primary" onclick="analyzeFromList(\''+escHtml(p.title.replace(/'/g,"\\'"))+'\')">Analyze</button>' +
+        '<button class="pab" onclick="exportCitationFromList(\''+p.id+'\')" style="color:#7c3aed;border-color:#e9d5ff;">Export citation</button>' +
+        (p.link ? '<a class="paper-link" href="'+escHtml(p.link)+'" target="_blank">View →</a>' : '') +
+        '<button class="pab danger" onclick="removeFromList(\''+p.id+'\')" style="margin-left:auto;">Remove</button>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('listArea').innerHTML = html;
+}
+
+function analyzeFromList(title) {
+  // Find paper in list
+  var p = readingList.find(function(item){ return item.title === title; });
+  if (!p || !p.abstract) { showToast('No abstract available.', 'warning'); return; }
+
+  // Save to KB
+  if (typeof NiraKB !== 'undefined') {
+    var kb = { status:'complete', fileName:p.title.slice(0,50), masterSummary:p.abstract.slice(0,800),
+      extracted:{keywords:p.concepts||[],variables:[],findings:[]},
+      chunkSummaries:[{section:'abstract',summary:p.abstract.slice(0,400)}],
+      stats:{completedChunks:1} };
+    NiraKB.save(kb);
+  }
+  showToast('KB updated — opening proposal builder.', 'success');
+  setTimeout(function(){ window.location.href='proposal.html'; }, 1000);
+}
+
+function exportCitationFromList(id) {
+  var p = readingList.find(function(item){ return String(item.id) === String(id); });
+  if (!p) return;
+
+  var existing = [];
+  try { existing = JSON.parse(localStorage.getItem('nira_citations') || '[]'); } catch(e) {}
+
+  var isDuplicate = existing.some(function(c) {
+    if (p.doi && c.doi && c.doi === p.doi) return true;
+    return (c.text||'').toLowerCase().includes((p.title||'').toLowerCase().slice(0,40));
+  });
+  if (isDuplicate) { showToast('Already in citations library.', 'warning'); return; }
+
+  var authorStr = (p.authors||[]).map(function(name){
+    var parts = name.trim().split(' ');
+    if (parts.length===1) return parts[0];
+    return parts[parts.length-1] + ', ' + parts.slice(0,-1).map(function(n){return n[0]+'.';}).join(' ');
+  }).join(', ');
+
+  var citationText = authorStr +
+    (p.year ? ' ('+p.year+').' : '.') +
+    ' ' + (p.title||'') + '.' +
+    (p.venue ? ' '+p.venue+'.' : '') +
+    (p.doi ? ' '+p.doi : '');
+
+  existing.push({
+    id: Date.now(), type:'journal', format:'APA 7',
+    text: citationText.trim(),
+    doi: p.doi||'', title:p.title||'',
+    authors:p.authors, year:p.year||'', venue:p.venue||'', link:p.link||'',
+    source:'reading_list',
+    savedAt: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+  });
+  localStorage.setItem('nira_citations', JSON.stringify(existing));
+  showToast('Citation saved ✓', 'success');
+}
+
+function removeFromList(id) {
+  readingList = readingList.filter(function(p){ return String(p.id) !== String(id); });
+  saveList();
+  renderList();
+  showToast('Removed from Reading List.', 'info');
+}
+</script>
+</body>
+</html>
