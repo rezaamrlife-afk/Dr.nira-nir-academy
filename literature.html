@@ -491,13 +491,128 @@ function toggleAbs(idx) {
 }
 
 // ── ACTIONS ──
-function analyzePaper(idx) {
-  var p=papers[idx];
-  if(p.pdfLink) localStorage.setItem('nira_fetch_url', p.pdfLink);
-  else if(p.link) localStorage.setItem('nira_fetch_url', p.link);
-  localStorage.setItem('nira_prefetch_title', p.title);
-  showToast('Opening in Upload & Analyze...','info');
-  setTimeout(function(){ window.location.href='upload.html'; },800);
+async function analyzePaper(idx) {
+  var p = papers[idx];
+  if (!p.abstract || p.abstract.length < 50) {
+    showToast('No abstract available — opening in Upload & Analyze.', 'warning');
+    if (p.pdfLink) localStorage.setItem('nira_fetch_url', p.pdfLink);
+    else if (p.link) localStorage.setItem('nira_fetch_url', p.link);
+    localStorage.setItem('nira_prefetch_title', p.title);
+    setTimeout(function(){ window.location.href='upload.html'; }, 800);
+    return;
+  }
+
+  // Show loading state on button
+  var card = document.getElementById('card-' + idx);
+  var btn = card ? card.querySelector('.pab.primary') : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Analyzing...'; }
+
+  showToast('Analyzing paper abstract...', 'info', 2000);
+
+  try {
+    if (typeof NiraKB === 'undefined') throw new Error('KB not available');
+
+    // Build KB from abstract
+    var kb = NiraKB.load() || {};
+    kb.status = 'complete';
+    kb.fileName = p.title.slice(0, 60);
+    kb.masterSummary = p.abstract.slice(0, 800);
+    kb.extracted = {
+      keywords: p.concepts || [],
+      variables: [],
+      findings: [],
+      methodology: [],
+      researchQuestions: []
+    };
+    kb.chunkSummaries = [{
+      section: 'abstract',
+      summary: p.abstract.slice(0, 400)
+    }];
+    kb.stats = { completedChunks: 1 };
+    NiraKB.save(kb);
+
+    // Now call AI to analyze the abstract
+    var prompt = 'You are Dr. NIRA, an academic research advisor. Analyze this research paper abstract and provide:\n\n' +
+      '1. RESEARCH SUMMARY (2-3 sentences)\n' +
+      '2. KEY FINDINGS (3 bullet points)\n' +
+      '3. METHODOLOGY (brief)\n' +
+      '4. RELEVANCE FOR PhD RESEARCH (1-2 sentences)\n' +
+      '5. SUGGESTED RESEARCH GAPS (2 points)\n\n' +
+      'Paper: ' + p.title + '\n' +
+      'Authors: ' + p.authors.join(', ') + ' (' + p.year + ')\n' +
+      'Citations: ' + (p.citationCount || 0) + '\n\n' +
+      'Abstract:\n' + p.abstract;
+
+    var data = await NiraAPI.callWithRetry(async function() {
+      var res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ systemPrompt: 'You are an academic research advisor specializing in PhD proposal development.', userPrompt: prompt })
+      });
+      if (res.status === 429) throw new Error('429 rate limit');
+      if (!res.ok) { var e = await res.json().catch(function(){ return {}; }); throw new Error(e.error || 'API error'); }
+      return await res.json();
+    });
+
+    // Show analysis in a modal
+    showAnalysisModal(p, data.result || '');
+
+  } catch(err) {
+    showToast('Analysis failed: ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Analyze'; }
+  }
+}
+
+function showAnalysisModal(paper, analysis) {
+  // Remove existing modal
+  var existing = document.getElementById('analysisModal');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'analysisModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+
+  // Header
+  var header = document.createElement('div');
+  header.style.cssText = 'padding:20px 24px;border-bottom:1px solid #dde6f5;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;';
+  header.innerHTML = '<div>' +
+    '<div style="font-size:11px;font-weight:600;color:#6B7FA3;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Paper Analysis</div>' +
+    '<div style="font-size:14px;font-weight:600;color:#1B2A4A;line-height:1.4;">' + escHtml(paper.title.slice(0, 100)) + (paper.title.length > 100 ? '...' : '') + '</div>' +
+    '<div style="font-size:12px;color:#6B7FA3;margin-top:4px;">' + paper.authors.slice(0,3).join(', ') + ' · ' + paper.year + ' · 📊 ' + (paper.citationCount || 0) + ' citations</div>' +
+  '</div>' +
+  '<button onclick="document.getElementById(\'analysisModal\').remove()" style="background:none;border:none;cursor:pointer;color:#6B7FA3;font-size:20px;padding:4px;flex-shrink:0;">✕</button>';
+
+  // Body
+  var body = document.createElement('div');
+  body.style.cssText = 'padding:24px;overflow-y:auto;flex:1;';
+  var formatted = (analysis || '').replace(/\n/g, '<br>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  body.innerHTML = '<div style="font-size:13px;line-height:1.8;color:#374151;">' + formatted + '</div>';
+
+  // Footer
+  var footer = document.createElement('div');
+  footer.style.cssText = 'padding:16px 24px;border-top:1px solid #dde6f5;display:flex;gap:8px;';
+  footer.innerHTML = '<button onclick="sendToKBFromModal(' + papers.indexOf(paper) + ')" style="background:#16a34a;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Send to KB</button>' +
+    '<button onclick="createProposal(' + papers.indexOf(paper) + ')" style="background:#2563EB;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Create Proposal</button>' +
+    (paper.link ? '<a href="' + escHtml(paper.link) + '" target="_blank" style="background:#fff;color:#2563EB;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;text-decoration:none;display:inline-flex;align-items:center;">View paper →</a>' : '') +
+    '<button onclick="document.getElementById(\'analysisModal\').remove()" style="margin-left:auto;background:none;color:#6B7FA3;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;">Close</button>';
+
+  modal.appendChild(header);
+  modal.appendChild(body);
+  modal.appendChild(footer);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
+
+function sendToKBFromModal(idx) {
+  sendToKB(idx);
+  var modal = document.getElementById('analysisModal');
+  if (modal) modal.remove();
 }
 
 function sendToKB(idx) {
