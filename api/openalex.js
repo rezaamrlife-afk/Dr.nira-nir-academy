@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const intent = extractIntent(query);
 
     // ─────────────────────────────
-    // 2. QUERY EXPANSION (SAFE)
+    // 2. QUERY EXPANSION (SAFE + SHORT)
     // ─────────────────────────────
     const expandedQuery = buildExpandedQuery(query, intent);
 
@@ -48,19 +48,15 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-
-    // ─────────────────────────────
-    // 4. NORMALIZE RESULTS
-    // ─────────────────────────────
     let results = (data.results || []).map(normalizeResult);
 
     // ─────────────────────────────
-    // 5. FILTER + RANKING
+    // 4. RANKING + FILTERING
     // ─────────────────────────────
     results = rankResults(results, intent, filter, query);
 
     // ─────────────────────────────
-    // 6. RESPONSE
+    // 5. RESPONSE
     // ─────────────────────────────
     res.status(200).json({
       data: results.slice(0, 10),
@@ -84,26 +80,22 @@ function extractIntent(query) {
 
   const intent = {
     domain: 'general',
-    focus: [],
-    exclude: []
+    focus: []
   };
 
-  // language learning domain
-  if (/\b(efl|esl|sla|second language|language learning|language acquisition|applied linguistics|l2|bilingual|multilingual)\b/.test(q)) {
+  // domain detection
+  if (/\b(efl|esl|sla|language learning|language acquisition|applied linguistics|l2|bilingual)\b/.test(q)) {
     intent.domain = 'language_learning';
-  }
-  // education domain
-  else if (/\b(education|teaching|classroom|pedagogy|curriculum|instruction|learning)\b/.test(q)) {
+  } else if (/\b(education|teaching|classroom|pedagogy|curriculum|instruction)\b/.test(q)) {
     intent.domain = 'education';
   }
 
-  // motivation focus
-  if (/\b(motiv|engag|attitude|affect|anxiety|self.efficacy|autonomy|interest)\b/.test(q)) {
+  // focus detection
+  if (/\b(motiv|engag|attitude|affect|anxiety|interest|autonomy)\b/.test(q)) {
     intent.focus.push('motivation');
   }
 
-  // methodology focus
-  if (/\b(method|approach|technique|strategy|model|framework|curriculum)\b/.test(q)) {
+  if (/\b(method|strategy|model|framework|curriculum)\b/.test(q)) {
     intent.focus.push('methodology');
   }
 
@@ -112,7 +104,7 @@ function extractIntent(query) {
 
 //
 // ─────────────────────────────────────────────
-// QUERY EXPANSION (SAFE - SHORT ONLY)
+// QUERY EXPANSION (CONTROLLED)
 // ─────────────────────────────────────────────
 //
 function buildExpandedQuery(query, intent) {
@@ -177,14 +169,19 @@ function normalizeResult(p) {
 
 //
 // ─────────────────────────────────────────────
-// RANKING + FILTERING
+// RANKING + FILTERING (INTENT-AWARE)
 // ─────────────────────────────────────────────
 //
-const LANG = ['efl','esl','sla','language learning','language acquisition','l2'];
-const MOTIV = ['motivation','engagement','attitude','affect','anxiety','interest'];
+const LANG_SIGNALS = [
+  'efl','esl','sla','language learning','language acquisition','l2','bilingual'
+];
 
-function rankResults(results, intent, filter, query) {
-  const qTokens = query.toLowerCase().split(' ').filter(w => w.length > 3);
+const MOTIV_SIGNALS = [
+  'motivation','engagement','attitude','affect','anxiety','interest','autonomy'
+];
+
+export function rankResults(results, intent, filter, query) {
+  const tokens = query.toLowerCase().split(' ').filter(t => t.length > 3);
 
   return results
     .map(p => {
@@ -192,29 +189,37 @@ function rankResults(results, intent, filter, query) {
 
       let score = 0;
 
-      // citations
+      // ── citations ──
       score += Math.log1p(p.citationCount) * 3;
 
-      // recency
+      // ── recency ──
       if (p.year >= 2020) score += 4;
       else if (p.year >= 2015) score += 2;
 
-      // query overlap
-      qTokens.forEach(t => {
+      // ── query overlap ──
+      tokens.forEach(t => {
         if (text.includes(t)) score += 2;
       });
 
-      // language signal
-      LANG.forEach(s => {
-        if (text.includes(s)) score += 4;
-      });
+      // ── language signals ──
+      const langHits = LANG_SIGNALS.filter(s => text.includes(s)).length;
+      score += langHits * 4;
 
-      // motivation boost
-      if (intent.focus.includes('motivation')) {
-        MOTIV.forEach(s => {
-          if (text.includes(s)) score += 5;
-        });
+      // ── INTENT ALIGNMENT (CRITICAL LAYER) ──
+      let intentScore = 0;
+
+      if (intent.domain === 'language_learning') {
+        intentScore += 3;
       }
+
+      if (intent.focus.includes('motivation')) {
+        const motivationHits = MOTIV_SIGNALS.filter(s => text.includes(s)).length;
+        intentScore += motivationHits * 6;
+
+        if (motivationHits === 0) intentScore -= 8;
+      }
+
+      score += intentScore;
 
       p._score = score;
       return p;
@@ -222,9 +227,10 @@ function rankResults(results, intent, filter, query) {
     .filter(p => {
       const text = (p.title + ' ' + p.abstract).toLowerCase();
 
-      // hard filter for language learning
+      // hard filter for language learning motivation queries
       if (intent.domain === 'language_learning') {
-        return LANG.some(s => text.includes(s)) || MOTIV.some(s => text.includes(s));
+        return LANG_SIGNALS.some(s => text.includes(s)) ||
+               MOTIV_SIGNALS.some(s => text.includes(s));
       }
 
       return true;
