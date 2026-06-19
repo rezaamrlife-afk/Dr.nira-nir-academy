@@ -389,7 +389,7 @@ function showSkeletons() {
   document.getElementById('resultsHeader').style.display = 'none';
 }
 
-// ── OPENALEX ──
+// ── OPENALEX (primary for all non-arxiv) ──
 async function searchOpenAlex(query) {
   var filterParam = focus === 'education' ? 'education' : 'general';
   var url = '/api/openalex?query=' + encodeURIComponent(query) + '&sort=' + sortBy + '&filter=' + filterParam;
@@ -398,7 +398,13 @@ async function searchOpenAlex(query) {
   var data = await res.json();
   if (data.error) throw new Error(data.error);
   papers = data.data || [];
-  showResults(query, data.total || papers.length, 'relevance + citations');
+
+  // Show rewritten query notice if query was expanded
+  var rankingLabel = focus === 'education' ? 'relevance + citations + education filter' : 'relevance + citations';
+  if (data.rewrittenQuery) {
+    rankingLabel += ' • query expanded';
+  }
+  showResults(query, data.total || papers.length, rankingLabel);
 }
 
 // ── ARXIV ──
