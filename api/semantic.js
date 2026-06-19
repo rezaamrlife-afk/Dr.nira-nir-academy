@@ -8,20 +8,49 @@ export default async function handler(req, res) {
 
   try {
     const offset = start || '0';
-    // tldr removed — requires API key on free tier
-    const fields = 'title,abstract,year,citationCount,influentialCitationCount,venue,authors';
-    const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=10&offset=${offset}&fields=${fields}`;
+    const url = `https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=10&offset=${offset}&select=DOI,title,abstract,author,published,is-referenced-by-count,container-title,type&mailto=dr-nira@niracademy.com`;
 
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'Dr-NIRA-Academic-App/1.0' }
+      headers: { 'User-Agent': 'Dr-NIRA-Academic-App/1.0 (mailto:dr-nira@niracademy.com)' }
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error('Semantic Scholar ' + response.status + ': ' + errText.slice(0, 200));
+      throw new Error('CrossRef ' + response.status + ': ' + errText.slice(0, 200));
     }
+
     const data = await response.json();
-    res.status(200).json(data);
+    const items = (data.message && data.message.items) || [];
+
+    // Normalize to unified format
+    const papers = items.map(function(p) {
+      var authors = (p.author || []).map(function(a) {
+        return (a.given ? a.given + ' ' : '') + (a.family || '');
+      }).filter(Boolean);
+
+      var year = '';
+      if (p.published && p.published['date-parts'] && p.published['date-parts'][0]) {
+        year = String(p.published['date-parts'][0][0] || '');
+      }
+
+      var title = Array.isArray(p.title) ? p.title[0] : (p.title || '');
+      var venue = Array.isArray(p['container-title']) ? p['container-title'][0] : (p['container-title'] || '');
+      var abstract = p.abstract ? p.abstract.replace(/<[^>]+>/g, '') : '';
+
+      return {
+        paperId: p.DOI || '',
+        title: title,
+        abstract: abstract,
+        year: year,
+        authors: authors.slice(0, 5),
+        venue: venue,
+        citationCount: p['is-referenced-by-count'] || 0,
+        influentialCitationCount: 0,
+        doi: p.DOI || ''
+      };
+    });
+
+    res.status(200).json({ data: papers });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
