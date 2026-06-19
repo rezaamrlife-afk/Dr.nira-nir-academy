@@ -125,8 +125,12 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
 .btn-sec-regen:hover{background:var(--blue-pale);color:var(--blue);}
 .section-body{padding:16px 22px;background:#fafcff;border-top:1px solid var(--border);display:none;}
 .section-body.open{display:block;}
-.section-text{font-size:14px;color:var(--text-dark);line-height:1.8;outline:none;white-space:pre-wrap;border:1px dashed transparent;border-radius:6px;padding:8px;min-height:60px;}
+.section-text{font-size:14px;color:var(--text-dark);line-height:1.8;outline:none;white-space:pre-wrap;border:1px dashed transparent;border-radius:6px;padding:8px;min-height:60px;transition:border-color 0.2s;}
 .section-text:focus{border-color:var(--border);}
+.section-text.unsaved{border-color:#d97706;border-style:solid;}
+.section-save-hint{font-size:11px;color:var(--text-mid);padding:4px 8px;transition:color 0.2s;}
+.section-save-hint.unsaved{color:#d97706;}
+.section-save-hint.saved{color:#16a34a;}
 .section-spinner{display:flex;align-items:center;gap:10px;padding:12px;color:var(--text-mid);font-size:13px;}
 .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -629,7 +633,8 @@ function renderChapterCard(chId) {
       '</div>' +
       '<div class="section-body" id="sbody-' + chId + '-' + sId + '">' +
         (isDone
-          ? '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')" onblur="onSectionBlur(\'' + chId + '\',\'' + sId + '\')" onpaste="onSectionPaste(event)">' + content + '</div>'
+          ? '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')" onblur="onSectionBlur(\'' + chId + '\',\'' + sId + '\')" onpaste="onSectionPaste(event)">' + content + '</div>' +
+            '<div class="section-save-hint" id="shint-' + chId + '-' + sId + '">Click text to edit</div>'
           : '<div style="font-size:13px;color:var(--text-mid);padding:8px">Click Generate to create this section.</div>') +
       '</div>' +
     '</div>';
@@ -658,12 +663,41 @@ function toggleSection(chId, sId) {
   if (body) body.classList.toggle('open');
 }
 
+var sectionSaveTimers = {};
+
 function onSectionEdit(chId, sId) {
   var el = document.getElementById('stxt-' + chId + '-' + sId);
+  var hint = document.getElementById('shint-' + chId + '-' + sId);
+  if (!el) return;
+  el.classList.add('unsaved');
+  if (hint) { hint.textContent = 'Unsaved changes...'; hint.className = 'section-save-hint unsaved'; }
+  clearTimeout(sectionSaveTimers[chId + '_' + sId]);
+  sectionSaveTimers[chId + '_' + sId] = setTimeout(function() {
+    doSectionSave(chId, sId);
+  }, 1500);
+}
+
+function onSectionBlur(chId, sId) {
+  clearTimeout(sectionSaveTimers[chId + '_' + sId]);
+  doSectionSave(chId, sId);
+}
+
+function doSectionSave(chId, sId) {
+  var el = document.getElementById('stxt-' + chId + '-' + sId);
+  var hint = document.getElementById('shint-' + chId + '-' + sId);
   if (!el) return;
   if (!thesisData[chId]) thesisData[chId] = {};
   thesisData[chId][sId] = el.innerText;
   saveState();
+  el.classList.remove('unsaved');
+  if (hint) {
+    hint.textContent = 'Saved ✓';
+    hint.className = 'section-save-hint saved';
+    setTimeout(function() {
+      hint.textContent = 'Click text to edit';
+      hint.className = 'section-save-hint';
+    }, 1500);
+  }
   updateProgress();
   renderChapterNav();
 }
@@ -696,14 +730,7 @@ function cleanMarkdown(text) {
     .trim();
 }
 
-function onSectionBlur(chId, sId) {
-  // Save immediately on blur
-  var el = document.getElementById('stxt-' + chId + '-' + sId);
-  if (!el) return;
-  if (!thesisData[chId]) thesisData[chId] = {};
-  thesisData[chId][sId] = el.innerText;
-  saveState();
-}
+
 
 async function generateSectionUI(chId, sId) {
   var body = document.getElementById('sbody-' + chId + '-' + sId);
@@ -717,7 +744,8 @@ async function generateSectionUI(chId, sId) {
     var wc = cleaned.trim().split(/\s+/).length;
 
     if (body) {
-      body.innerHTML = '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')" onblur="onSectionBlur(\'' + chId + '\',\'' + sId + '\')" onpaste="onSectionPaste(event)">' + cleaned + '</div>';
+      body.innerHTML = '<div class="section-text" contenteditable="true" id="stxt-' + chId + '-' + sId + '" oninput="onSectionEdit(\'' + chId + '\',\'' + sId + '\')" onblur="onSectionBlur(\'' + chId + '\',\'' + sId + '\')" onpaste="onSectionPaste(event)">' + cleaned + '</div>' +
+        '<div class="section-save-hint" id="shint-' + chId + '-' + sId + '">Click text to edit</div>';
     }
     if (dot) { dot.className = 'section-dot done'; }
 
