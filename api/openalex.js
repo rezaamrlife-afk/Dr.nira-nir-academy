@@ -94,7 +94,10 @@ async function fetchOpenAlex(searchQuery, sort) {
   }
   url.searchParams.set('sort', sortParam);
 
-  url.searchParams.set('per-page', '25');
+  // Increased from 25 to 50: the hard filter for language_learning+motivation
+  // queries can eliminate a large fraction of a 25-result page, leaving too few
+  // candidates. A bigger candidate pool before filtering directly improves recall.
+  url.searchParams.set('per-page', '50');
   url.searchParams.set(
     'select',
     'id,title,abstract_inverted_index,authorships,publication_year,cited_by_count,concepts,primary_location,doi,open_access'
@@ -180,13 +183,16 @@ function buildExpandedQuery(query, intent) {
   }
 
   if (intent.domain === 'language_learning' && intent.focus.includes('motivation')) {
-    return query + ' motivation language learning';
+    // Broadened beyond just "motivation" so the OpenAlex search itself surfaces
+    // papers that use adjacent terminology (engagement, anxiety, willingness)
+    // instead of relying solely on the exact word "motivation".
+    return query + ' motivation engagement anxiety language learning EFL ESL TESOL';
   }
   if (intent.domain === 'language_learning') {
-    return query + ' language learning';
+    return query + ' language learning EFL ESL TESOL applied linguistics';
   }
   if (intent.domain === 'education' && intent.focus.includes('motivation')) {
-    return query + ' motivation learning';
+    return query + ' motivation engagement learning education';
   }
   return query;
 }
@@ -235,9 +241,27 @@ function normalizeResult(p) {
 // ─────────────────────────────────────────────
 // RANK + FILTER
 // ─────────────────────────────────────────────
-const LANG_SIGNALS   = ['efl', 'esl', 'sla', 'second language', 'language learning', 'language acquisition', 'applied linguistics', 'english language', 'foreign language', 'l2', 'bilingual'];
-const MOTIV_SIGNALS  = ['motivation', 'motivat', 'engagement', 'engage', 'attitude', 'affect', 'willingness', 'anxiety', 'self-efficacy', 'autonomy', 'interest'];
-const NOISE_DOMAINS  = ['mathematics', 'physics', 'chemistry', 'engineering', 'computer science', 'biology', 'medicine', 'economics'];
+// Expanded with common synonyms/abbreviations that earlier caused relevant papers
+// to be missed (e.g. a paper using "TESOL" or "intrinsic motivation" instead of
+// the exact words "language learning" or "motivation" was previously invisible
+// to these checks).
+const LANG_SIGNALS = [
+  'efl', 'esl', 'sla', 'tesol', 'tefl', 'elt', 'eal',
+  'second language', 'foreign language', 'language learning', 'language acquisition',
+  'language education', 'language teaching', 'language instruction', 'language proficiency',
+  'applied linguistics', 'english language', 'l2', 'l1', 'bilingual', 'multilingual',
+  'esol', 'english learner', 'language classroom', 'second language acquisition'
+];
+
+const MOTIV_SIGNALS = [
+  'motivation', 'motivat', 'engagement', 'engage', 'attitude', 'affect',
+  'willingness', 'anxiety', 'self-efficacy', 'self efficacy', 'autonomy', 'interest',
+  'intrinsic motivation', 'extrinsic motivation', 'learner belief', 'learner psychology',
+  'academic buoyancy', 'enjoyment', 'burnout', 'resilience', 'self-regulation',
+  'self regulation', 'mindset', 'identity', 'demotivation', 'persistence', 'grit'
+];
+
+const NOISE_DOMAINS = ['mathematics', 'physics', 'chemistry', 'engineering', 'computer science', 'biology', 'medicine', 'economics'];
 
 function scoreOnly(p, intent, filter, originalQuery) {
   const queryLower = originalQuery.toLowerCase();
@@ -306,7 +330,11 @@ function rankAndFilter(results, intent, filter, originalQuery) {
       // Hard filter only applies when we're confident about a specific domain+focus combo,
       // and only excludes documents with NO relevant signal at all (recall-preserving).
       if (intent.domain === 'language_learning' && intent.focus.includes('motivation')) {
-        const text = (p.title + ' ' + p.abstract).toLowerCase();
+        // Now also checks concepts, not just title+abstract — a paper can have a thin
+        // or jargon-heavy abstract that misses our keyword list while OpenAlex's own
+        // concept tagging correctly identifies it as relevant. Checking concepts too
+        // catches these papers instead of dropping them.
+        const text = (p.title + ' ' + p.abstract + ' ' + (p.concepts || []).join(' ')).toLowerCase();
         const hasLang = LANG_SIGNALS.some(s => text.includes(s));
         const hasMotiv = MOTIV_SIGNALS.some(s => text.includes(s));
         return hasLang || hasMotiv;
