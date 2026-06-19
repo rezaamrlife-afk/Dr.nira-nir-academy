@@ -215,6 +215,27 @@ function showToast(message, type = 'success', duration = 3000) {
   document.getElementById('nira-toast-container').appendChild(toast);
   setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
 }
+
+function showConfirm(message, onConfirm, options) {
+  options = options || {};
+  const okLabel = options.okLabel || 'Confirm';
+  const okColor = options.danger ? '#dc2626' : '#2563EB';
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.25);';
+  modal.innerHTML = `<div style="font-size:14px;color:#1B2A4A;line-height:1.6;margin-bottom:20px;">${message}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button id="nira-confirm-cancel" style="padding:8px 16px;border:1px solid #dde6f5;background:#fff;color:#1B2A4A;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
+      <button id="nira-confirm-ok" style="padding:8px 16px;border:none;background:${okColor};color:#fff;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">${okLabel}</button>
+    </div>`;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  function close() { overlay.remove(); }
+  document.getElementById('nira-confirm-ok').onclick = function() { close(); onConfirm(); };
+  document.getElementById('nira-confirm-cancel').onclick = close;
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
+}
 </script>
 </head>
 <body>
@@ -243,6 +264,7 @@ function showToast(message, type = 'success', duration = 3000) {
         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         <span>Academic writer</span>
       </a>
+      <a class="nav-item" href="structural-editor.html"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg><span>Structural editor</span></a>
       <a class="nav-item" href="charts.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Charts &amp; tables</span></a>
       <a class="nav-item" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
       <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
@@ -850,11 +872,13 @@ function showToast(message, type = 'success', duration = 3000) {
   }
 
   function clearLibrary() {
-    if (!library.length) return;
-    if (!confirm('Delete all ' + library.length + ' citations?')) return;
-    library = [];
-    localStorage.setItem('nira_citations', JSON.stringify(library));
-    renderLibrary();
+    if (!library.length) { showToast('Library is already empty.', 'info'); return; }
+    showConfirm('Delete all ' + library.length + ' citations? This cannot be undone.', function() {
+      library = [];
+      localStorage.setItem('nira_citations', JSON.stringify(library));
+      renderLibrary();
+      showToast('Library cleared.', 'success');
+    }, { okLabel: 'Delete all', danger: true });
   }
 
   function searchCitations(val) { renderLibrary(val); }
