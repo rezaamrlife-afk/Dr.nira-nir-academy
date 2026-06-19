@@ -13,12 +13,16 @@ export default async function handler(req, res) {
     // ── 2. CONTROLLED QUERY EXPANSION ──
     const expandedQuery = buildExpandedQuery(query, intent);
 
-    // ── 3. OPENALEX RETRIEVAL ──
-    const sortParam = sort === 'latest' ? 'publication_year:desc' : 'cited_by_count:desc';
-    const fields = 'id,title,abstract_inverted_index,authorships,publication_year,cited_by_count,concepts,primary_location,doi,open_access';
-    const url = `https://api.openalex.org/works?search=${encodeURIComponent(expandedQuery)}&filter=has_abstract:true&sort=${sortParam}&per-page=25&select=${fields}&mailto=dr-nira@niracademy.com`;
+    // ── 3. OPENALEX RETRIEVAL — safe URL construction ──
+    const baseUrl = new URL('https://api.openalex.org/works');
+    baseUrl.searchParams.set('search', expandedQuery);
+    baseUrl.searchParams.set('filter', 'has_abstract:true');
+    baseUrl.searchParams.set('sort', sort === 'latest' ? 'publication_year:desc' : 'cited_by_count:desc');
+    baseUrl.searchParams.set('per-page', '25');
+    baseUrl.searchParams.set('select', 'id,title,abstract_inverted_index,authorships,publication_year,cited_by_count,concepts,primary_location,doi,open_access');
+    baseUrl.searchParams.set('mailto', 'dr-nira@niracademy.com');
 
-    const response = await fetch(url, { headers: { 'User-Agent': 'Dr-NIRA-Academic-App/1.0' } });
+    const response = await fetch(baseUrl.toString(), { headers: { 'User-Agent': 'Dr-NIRA-Academic-App/1.0' } });
     if (!response.ok) {
       const errText = await response.text();
       throw new Error('OpenAlex ' + response.status + ': ' + errText.slice(0, 200));
