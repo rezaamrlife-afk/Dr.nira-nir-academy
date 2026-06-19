@@ -3,12 +3,13 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { query, start } = req.query;
+  const { query, start, sort } = req.query;
   if (!query) return res.status(400).json({ error: 'query required' });
 
   try {
     const offset = start || '0';
-    const url = `https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=10&offset=${offset}&select=DOI,title,abstract,author,published,is-referenced-by-count,container-title,type&mailto=dr-nira@niracademy.com`;
+    const sortParam = sort === 'latest' ? 'published' : 'relevance';
+    const url = `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(query)}&filter=type:journal-article&rows=10&offset=${offset}&select=DOI,title,abstract,author,published,is-referenced-by-count,container-title,type&sort=${sortParam}&order=desc&mailto=dr-nira@niracademy.com`;
 
     const response = await fetch(url, {
       headers: { 'User-Agent': 'Dr-NIRA-Academic-App/1.0 (mailto:dr-nira@niracademy.com)' }
