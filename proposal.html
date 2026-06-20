@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="js/project-manager.js"></script>
-<script src="js/knowledge-base.js"></script>
-<!-- auth-guard disabled until auth is activated -->
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dr. NIRA — Proposal Builder</title>
+<script src="js/project-manager.js"></script>
+<script src="js/knowledge-base.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -815,6 +813,14 @@ function showConfirm(message, onConfirm, options) {
 
   function loadWorkspaceState() {
     try {
+      // Only load workspace state if we have actual project data
+      if (typeof NiraProject !== 'undefined') {
+        var sg = NiraProject.load('proposal');
+        if (!sg || Object.keys(sg).length === 0) {
+          localStorage.removeItem('nira_workspace_state');
+          return;
+        }
+      }
       var raw = localStorage.getItem('nira_workspace_state');
       if (raw) WorkspaceState = JSON.parse(raw);
     } catch(e) {}
@@ -1306,7 +1312,11 @@ function showConfirm(message, onConfirm, options) {
 
     // Load proposal
     const sg = NiraProject.load('proposal');
-    if (sg && Object.keys(sg).length > 0) generated = sg;
+    if (sg && Object.keys(sg).length > 0) {
+      generated = sg;
+    } else {
+      generated = {}; // Ensure clean state if no project data (e.g. after reset)
+    }
 
     // Check if coming from upload
     if (localStorage.getItem('nira_build_from_upload') === '1') {
