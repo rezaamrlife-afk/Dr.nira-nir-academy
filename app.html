@@ -959,7 +959,7 @@
 function resetAllData() {
   showConfirm('This will clear ALL your research data including proposals, thesis, and questionnaires. This cannot be undone.', function() {
     NiraProject.hardReset();
-    window.location.reload();
+    window.location.href = 'app.html';
   }, { okLabel: 'Reset all', danger: true });
 }
 
