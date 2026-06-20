@@ -957,10 +957,97 @@
 
 <script>
 function resetAllData() {
-  showConfirm('This will clear ALL your research data including proposals, thesis, and questionnaires. This cannot be undone.', function() {
-    NiraProject.hardReset();
-    window.location.href = 'app.html';
-  }, { okLabel: 'Reset all', danger: true });
+  // ── STEP 1: Detailed warning modal ──
+  var overlay = document.createElement('div');
+  overlay.id = 'resetModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  overlay.innerHTML =
+    '<div style="background:#fff;border-radius:16px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:Inter,sans-serif;overflow:hidden;">' +
+      // Header
+      '<div style="background:#fef2f2;padding:20px 24px 16px;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:12px;">' +
+        '<div style="width:36px;height:36px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">⚠️</div>' +
+        '<div>' +
+          '<div style="font-size:15px;font-weight:700;color:#991b1b;">Reset All Data</div>' +
+          '<div style="font-size:12px;color:#dc2626;margin-top:2px;">This action cannot be undone</div>' +
+        '</div>' +
+      '</div>' +
+      // Body
+      '<div style="padding:20px 24px;">' +
+        '<p style="font-size:13px;color:#374151;margin-bottom:14px;line-height:1.6;">This action will permanently remove all locally stored data from Dr. NIRA, including:</p>' +
+        '<div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">' +
+            ['Research Profile','Proposals','Thesis Projects','Knowledge Base','Reading List','Research Gaps','Citations Library','Writer Documents'].map(function(item) {
+              return '<div style="font-size:12px;color:#374151;display:flex;align-items:center;gap:6px;"><span style="color:#dc2626;font-weight:700;">•</span>' + item + '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+        '<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:12px;color:#92400e;line-height:1.6;">' +
+          '💡 We recommend <strong>exporting</strong> any important work before continuing.' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+          '<button id="resetCancel" style="padding:9px 20px;border:1px solid #dde6f5;background:#fff;color:#1B2A4A;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Cancel</button>' +
+          '<button id="resetConfirm" style="padding:9px 20px;border:none;background:#dc2626;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Reset Everything</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('resetCancel').onclick = function() { overlay.remove(); };
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+
+  document.getElementById('resetConfirm').onclick = function() {
+    var btn = document.getElementById('resetConfirm');
+    btn.disabled = true;
+    btn.textContent = 'Resetting...';
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'not-allowed';
+
+    // Small delay to let UI update before heavy operation
+    setTimeout(function() {
+      var success = NiraProject.hardReset();
+
+      overlay.remove();
+
+      if (!success) {
+        // Fallback — show error
+        showToast('Reset failed. Please try again.', 'error');
+        return;
+      }
+
+      // ── SUCCESS MODAL ──
+      var successOverlay = document.createElement('div');
+      successOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+      successOverlay.innerHTML =
+        '<div style="background:#fff;border-radius:16px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:Inter,sans-serif;overflow:hidden;">' +
+          '<div style="background:#f0fdf4;padding:20px 24px 16px;border-bottom:1px solid #bbf7d0;display:flex;align-items:center;gap:12px;">' +
+            '<div style="width:36px;height:36px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">✅</div>' +
+            '<div>' +
+              '<div style="font-size:15px;font-weight:700;color:#15803d;">Data Reset Complete</div>' +
+              '<div style="font-size:12px;color:#16a34a;margin-top:2px;">All data has been removed successfully</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="padding:20px 24px;">' +
+            '<p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:16px;">All local Dr. NIRA data has been successfully removed. The application will now refresh and start with a clean workspace.</p>' +
+            '<div style="background:#f8faff;border-radius:8px;padding:10px 14px;font-size:12px;color:#6B7FA3;text-align:center;">Redirecting in <span id="resetCountdown">3</span> seconds...</div>' +
+          '</div>' +
+        '</div>';
+
+      document.body.appendChild(successOverlay);
+
+      var count = 3;
+      var timer = setInterval(function() {
+        count--;
+        var el = document.getElementById('resetCountdown');
+        if (el) el.textContent = count;
+        if (count <= 0) {
+          clearInterval(timer);
+          window.location.href = 'app.html';
+        }
+      }, 1000);
+    }, 100);
+  };
 }
 
 window.addEventListener('load', function() {
