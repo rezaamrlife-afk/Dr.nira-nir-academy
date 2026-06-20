@@ -195,9 +195,18 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
       <span class="topbar-title">Structural editor</span>
       <div class="topbar-actions">
         <button class="btn-sm-outline" onclick="exportTOC()">Export TOC</button>
+        <button class="btn-sm-outline" onclick="syncFromThesis()" id="syncBtn">⟳ Sync from Thesis Builder</button>
         <button class="btn-sm-outline" onclick="window.location.href='thesis.html'">← Thesis builder</button>
         <button class="btn-sm" onclick="exportPDF()">Export PDF</button>
       </div>
+    </div>
+
+    <!-- SYNC BANNER -->
+    <div id="syncBanner" style="display:none;background:#f0fdf4;border-bottom:1px solid #bbf7d0;padding:10px 28px;display:flex;align-items:center;gap:10px;font-size:13px;color:#16a34a;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span id="syncBannerText">Thesis Builder data loaded — all sections are in sync.</span>
+      <button onclick="window.location.href='thesis.html'" style="margin-left:auto;background:none;border:1px solid #16a34a;color:#16a34a;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:Inter,sans-serif;">Open Thesis Builder →</button>
+      <button onclick="document.getElementById('syncBanner').style.display='none'" style="background:none;border:none;color:#16a34a;cursor:pointer;font-size:16px;padding:0 4px;">✕</button>
     </div>
 
     <div class="content">
@@ -324,10 +333,45 @@ window.addEventListener('load', function() {
   // Load thesis data from NiraProject
   thesisData = NiraProject.load('thesis') || {};
 
+  // Check if thesis builder has data → show sync banner
+  var s = countSections();
+  if (s.done > 0) {
+    var banner = document.getElementById('syncBanner');
+    var bannerText = document.getElementById('syncBannerText');
+    if (banner) banner.style.display = 'flex';
+    if (bannerText) bannerText.textContent = s.done + ' of ' + s.total + ' sections loaded from Thesis Builder — everything is in sync.';
+  }
+
   renderTOC();
   renderTOCPreview();
   updateStats();
 });
+
+// ── SYNC FROM THESIS BUILDER ──
+function syncFromThesis() {
+  thesisData = NiraProject.load('thesis') || {};
+  var s = countSections();
+  renderTOC();
+  renderTOCPreview();
+  updateStats();
+
+  // Re-render active chapter if open
+  var activeCards = document.querySelectorAll('.chapter-editor-area');
+  if (activeCards.length > 0) {
+    var activeCid = activeCards[0].getAttribute('data-cid');
+    if (activeCid) renderChapterEditor(activeCid);
+  }
+
+  if (s.done > 0) {
+    showToast(s.done + ' sections synced from Thesis Builder ✓', 'success');
+    var banner = document.getElementById('syncBanner');
+    var bannerText = document.getElementById('syncBannerText');
+    if (banner) banner.style.display = 'flex';
+    if (bannerText) bannerText.textContent = s.done + ' of ' + s.total + ' sections synced from Thesis Builder.';
+  } else {
+    showToast('No Thesis Builder data found. Start writing in Thesis Builder first.', 'warning', 4000);
+  }
+}
 
 // ── STATS ──
 function countSections() {
