@@ -156,7 +156,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
 .mobile-nav-item.active span{color:var(--blue-light);}
 .more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;}
 .more-overlay.open{display:block;}
-.more-drawer{position:fixed;bottom:-100%;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:200;padding:12px 0 max(20px,env(safe-area-inset-bottom));transition:bottom 0.3s cubic-bezier(0.32,0.72,0,1);}
+.more-drawer{position:fixed;bottom:-100%;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:200;padding:12px 0 max(20px,env(safe-area-inset-bottom));transition:bottom 0.3s cubic-bezier(0.32,0.72,0,1); max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch;}
 .more-drawer.open{bottom:0;}
 .more-drawer-handle{width:36px;height:4px;background:#dde6f5;border-radius:2px;margin:0 auto 16px;}
 .more-drawer-title{font-size:11px;font-weight:600;color:var(--text-mid);letter-spacing:0.08em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;}
@@ -184,6 +184,13 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
   .more-item-text { flex: 1; }
   .more-item-label { font-size: 14px; font-weight: 500; color: #1B2A4A; }
   .more-item-sub { font-size: 12px; color: #6B7FA3; margin-top: 1px; }
+
+  .more-group { border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 4px; margin-bottom: 4px; }
+  .more-group-header { padding: 8px 20px 6px; display: flex; flex-direction: column; gap: 1px; margin-bottom: 2px; }
+  .more-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .more-group-sub { font-size: 10px; color: #a0b0cc; }
+  .more-item.active-item { background: #f0f4ff; }
+  .more-item.active-item .more-item-label { font-weight: 600; color: #2563EB; }
 </style>
 <script src="js/project-manager.js"></script>
 <script src="js/knowledge-base.js"></script>
@@ -321,19 +328,44 @@ function showToast(message, type, duration) {
 <div class="more-drawer" id="moreDrawer">
   <div class="more-drawer-handle"></div>
   <div class="more-drawer-title">More</div>
-  <a class="more-item" href="literature.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="more-item-text"><div class="more-item-label">Literature search</div><div class="more-item-sub">Find academic papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="reading-list.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Reading list</div><div class="more-item-sub">Saved papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="research-gaps.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div><div class="more-item-text"><div class="more-item-label">Research gaps</div><div class="more-item-sub">Extracted gaps</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="thesis.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Thesis builder</div><div class="more-item-sub">Build your thesis</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="structural-editor.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div><div class="more-item-text"><div class="more-item-label">Structural editor</div><div class="more-item-sub">Organize chapters</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="enhance.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Writing enhancer</div><div class="more-item-sub">Improve academic text</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="charts.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="more-item-text"><div class="more-item-label">Charts &amp; tables</div><div class="more-item-sub">Visualize your data</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="conceptual-model.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><div class="more-item-text"><div class="more-item-label">Conceptual model</div><div class="more-item-sub">Research diagram</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="questionnaire.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div><div class="more-item-text"><div class="more-item-label">Questionnaire</div><div class="more-item-sub">Survey generator</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Academic writer</div><div class="more-item-sub">Write &amp; edit documents</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE &amp; more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div class="more-item-text"><div class="more-item-label">My proposals</div><div class="more-item-sub">Saved proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div class="more-item-text"><div class="more-item-label">Export</div><div class="more-item-sub">Download your work</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  <div style="padding:4px 20px 8px;font-size:10px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:0.08em;border-left:3px solid #2563EB;margin:4px 0 2px;">Research Core</div>
+  <div class="more-group">
+    <div class="more-group-header" style="background:rgba(37,99,235,0.05);border-left:3px solid #2563EB;">
+      <span class="more-group-label" style="color:#2563EB;">📚 Research Core</span>
+      <span class="more-group-sub">Core academic workflow</span>
+    </div>
+    <a class="more-item " href="literature.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="more-item-text"><div class="more-item-label">Literature search</div><div class="more-item-sub">Find academic papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="research-gaps.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div><div class="more-item-text"><div class="more-item-label">Research gaps</div><div class="more-item-sub">Extracted gaps</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="reading-list.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Reading list</div><div class="more-item-sub">Saved papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item active-item" href="thesis.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Thesis builder</div><div class="more-item-sub">Build your thesis</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
+  <div class="more-group">
+    <div class="more-group-header" style="background:rgba(22,163,74,0.05);border-left:3px solid #16a34a;">
+      <span class="more-group-label" style="color:#16a34a;">✍️ Writing Tools</span>
+      <span class="more-group-sub">Draft, refine & structure</span>
+    </div>
+    <a class="more-item " href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Academic writer</div><div class="more-item-sub">Write & edit documents</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="enhance.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Writing enhancer</div><div class="more-item-sub">Improve academic text</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="structural-editor.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div><div class="more-item-text"><div class="more-item-label">Structural editor</div><div class="more-item-sub">Organize chapters</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
+  <div class="more-group">
+    <div class="more-group-header" style="background:rgba(217,119,6,0.05);border-left:3px solid #d97706;">
+      <span class="more-group-label" style="color:#d97706;">📊 Analysis Tools</span>
+      <span class="more-group-sub">Visualize & validate</span>
+    </div>
+    <a class="more-item " href="charts.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="more-item-text"><div class="more-item-label">Charts & tables</div><div class="more-item-sub">Visualize your data</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="conceptual-model.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><div class="more-item-text"><div class="more-item-label">Conceptual model</div><div class="more-item-sub">Research diagram</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="questionnaire.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div><div class="more-item-text"><div class="more-item-label">Questionnaire</div><div class="more-item-sub">Survey generator</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
+  <div class="more-group" style="border-bottom:none;">
+    <div class="more-group-header" style="background:rgba(107,127,163,0.05);border-left:3px solid #6B7FA3;">
+      <span class="more-group-label" style="color:#6B7FA3;">📁 Management</span>
+      <span class="more-group-sub">Organize & export</span>
+    </div>
+    <a class="more-item " href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE & more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div class="more-item-text"><div class="more-item-label">My proposals</div><div class="more-item-sub">Saved proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div class="more-item-text"><div class="more-item-label">Export</div><div class="more-item-sub">Download your work</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
 </div>
 
 <script>
