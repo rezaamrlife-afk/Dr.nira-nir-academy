@@ -334,6 +334,12 @@
     .sections-nav { display: none; }
     .proposal-layout { grid-template-columns: 1fr; }
   }
+
+  @media (min-width: 901px) {
+    .mobile-nav { display: none !important; }
+    .more-overlay { display: none !important; }
+    .more-drawer { display: none !important; }
+  }
 </style>
 <script>
 function showToast(message, type = 'success', duration = 3000) {
