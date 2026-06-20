@@ -293,7 +293,9 @@ var NiraProject = (function() {
       'nira_auto_generate', 'nira_return_context',
       'nira_selected_gap', 'nira_return_to',
       // Writer
-      'nira_writer_docs'
+      'nira_writer_docs',
+      // Workspace state
+      'nira_workspace_state'
     ];
     keysToRemove.forEach(function(k){ localStorage.removeItem(k); });
 
