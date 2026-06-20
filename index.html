@@ -602,7 +602,7 @@
 
   .how-steps {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 20px;
     max-width: 900px;
     margin: 0 auto;
@@ -794,6 +794,9 @@
 
 <!-- HERO -->
 <section class="hero">
+  <div style="margin-bottom:20px;">
+    <img src="nir-logo.png" alt="NIR Academy" style="height:70px;width:auto;opacity:0.9;" onerror="this.style.display='none'">
+  </div>
   <div class="hero-eyebrow">
     <span></span>
     AI-Powered · Built for PhD Researchers
@@ -833,15 +836,23 @@
 <!-- FEATURES -->
 <section class="features" id="features">
   <p class="section-eyebrow">Core features</p>
-  <h2 class="section-title">Everything you need for a winning proposal</h2>
+  <h2 class="section-title">We turn academic papers into structured research outputs</h2>
   <div class="features-grid">
 
     <div class="feature-card">
       <div class="feature-icon">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       </div>
-      <h3>Research profile</h3>
-      <p>Set your field, degree level, university, and citation format. Dr. NIRA personalizes everything to your academic context.</p>
+      <h3>Literature search</h3>
+      <p>Search millions of peer-reviewed papers via OpenAlex. Ranked by citations and relevance — not just keywords.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      </div>
+      <h3>Research gap extraction</h3>
+      <p>AI reads paper abstracts and extracts structured research gaps — categorized by methodology, context, and theory.</p>
     </div>
 
     <div class="feature-card">
@@ -849,7 +860,7 @@
         <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
       </div>
       <h3>Topic generator</h3>
-      <p>Discover novel research topics with research gap analysis, innovation scoring, and keyword suggestions.</p>
+      <p>Discover novel research topics with gap analysis, innovation scoring, and keyword suggestions aligned to your field.</p>
     </div>
 
     <div class="feature-card">
@@ -857,7 +868,23 @@
         <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
       </div>
       <h3>Proposal builder</h3>
-      <p>Auto-generate every section — objectives, methodology, literature review, research questions — section by section.</p>
+      <p>5 authoring modes — from full AI generation to an interactive writing workspace. Every section, intelligently built.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </div>
+      <h3>Supervisor review</h3>
+      <p>AI acts as your academic supervisor — scoring 7 quality dimensions, identifying critical issues, and recommending improvements before submission.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      </div>
+      <h3>Thesis builder</h3>
+      <p>Build all 5 thesis chapters section by section with AI assistance, auto-save, and export to Structural Editor.</p>
     </div>
 
     <div class="feature-card">
@@ -865,7 +892,7 @@
         <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
       </div>
       <h3>Upload & analyze</h3>
-      <p>Upload PDF or Word files. Dr. NIRA analyzes your documents step by step — structure, gaps, quality, and suggestions.</p>
+      <p>Upload PDF or Word files. Dr. NIRA analyzes structure, methodology, gaps, and quality — step by step, section by section.</p>
     </div>
 
     <div class="feature-card">
@@ -873,7 +900,7 @@
         <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
       </div>
       <h3>Smart citations</h3>
-      <p>APA 7, MLA, IEEE, Chicago, Harvard, Vancouver — auto-formatted, sorted, and converted between styles.</p>
+      <p>APA 7, MLA, IEEE, Chicago, Harvard, Vancouver — auto-formatted from DOI or ISBN lookup, exported as a complete reference list.</p>
     </div>
 
     <div class="feature-card">
@@ -973,27 +1000,32 @@
 <!-- HOW IT WORKS -->
 <section class="how" id="how">
   <p class="section-eyebrow">How it works</p>
-  <h2 class="section-title">From idea to proposal in 4 steps</h2>
+  <h2 class="section-title">From academic papers to research output — in one pipeline</h2>
   <div class="how-steps">
     <div class="how-step">
       <div class="how-step-num">1</div>
-      <h3>Set up your profile</h3>
-      <p>Enter your field, degree level, university, and citation format preferences.</p>
+      <h3>Literature search</h3>
+      <p>Search millions of peer-reviewed papers. Analyze abstracts, save to reading list, and build your research knowledge base.</p>
     </div>
     <div class="how-step">
       <div class="how-step-num">2</div>
-      <h3>Find your topic</h3>
-      <p>Dr. NIRA suggests topics with research gap analysis and novelty scoring.</p>
+      <h3>AI analysis</h3>
+      <p>Upload papers or analyze abstracts. Dr. NIRA extracts methodology, findings, and key concepts into a structured Knowledge Base.</p>
     </div>
     <div class="how-step">
       <div class="how-step-num">3</div>
-      <h3>Build your proposal</h3>
-      <p>Every section generated intelligently — review, edit, and refine with AI.</p>
+      <h3>Research gap extraction</h3>
+      <p>AI identifies unexplored areas, methodological gaps, and underrepresented contexts — structured and ready to use.</p>
     </div>
     <div class="how-step">
       <div class="how-step-num">4</div>
-      <h3>Export and submit</h3>
-      <p>Download a polished DOCX or PDF ready for your supervisor.</p>
+      <h3>Proposal builder</h3>
+      <p>Generate your full PhD proposal using extracted gaps and KB context — every section aligned with your research evidence.</p>
+    </div>
+    <div class="how-step">
+      <div class="how-step-num">5</div>
+      <h3>Supervisor review</h3>
+      <p>AI scores your proposal across 7 academic dimensions, flags critical issues, and calculates submission readiness before you submit.</p>
     </div>
   </div>
 </section>
@@ -1049,6 +1081,10 @@
   <div class="footer-left">
     <span class="footer-logo">Dr. NIRA</span>
     <span class="footer-copy">© 2025 NIR Academy · All rights reserved</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="nir-logo.png" alt="NIR Academy" style="height:48px;width:auto;opacity:0.85;" onerror="this.style.display='none'">
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);line-height:1.4;">A product by<br><strong style="color:rgba(255,255,255,0.8);">NIR Academy</strong></div>
   </div>
   <div class="footer-links">
     <a href="#">Privacy policy</a>
