@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563EB">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dr. NIRA">
 <title>Dr. NIRA — AI Research Advisor for PhD Proposals</title>
 <meta name="description" content="From research topic to fully structured PhD proposal. Dr. NIRA guides every step with academic precision and intelligent AI support.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -776,7 +782,7 @@
 <header>
   <a href="#" class="logo">
     <div class="logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <img src="icons/dr-nira-icon-40.png" alt="Dr. NIRA" style="width:32px;height:32px;border-radius:7px;object-fit:cover;" onerror="this.style.display='none'">
     </div>
     <span class="logo-name">Dr. NIRA</span>
     <span class="logo-badge">BETA</span>
@@ -1095,5 +1101,14 @@
   </div>
 </footer>
 
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg) { console.log('[SW] Registered:', reg.scope); })
+      .catch(function(err) { console.warn('[SW] Registration failed:', err); });
+  });
+}
+</script>
 </body>
 </html>
