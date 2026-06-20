@@ -277,13 +277,32 @@ var NiraProject = (function() {
   function hardReset() {
     // Clear ALL Dr. NIRA data — but preserve auth session
     var keysToRemove = [
+      // Project system
       'nira_projects', 'nira_active_project',
+      // Proposal & thesis
       'nira_proposal', 'nira_thesis_v2', 'nira_questionnaire',
-      'nira_citations', 'nira_selected_topic', 'nira_topics',
+      'nira_proposals', 'nira_authoring_mode',
+      // Citations & library
+      'nira_citations', 'nira_reading_list', 'nira_research_gaps',
+      // Topics
+      'nira_selected_topic', 'nira_topics',
+      // Upload & KB
       'nira_upload_text', 'nira_upload_context', 'nira_upload_filename',
-      'nira_build_from_upload', 'nira_authoring_mode'
+      'nira_build_from_upload', 'nira_fetch_url', 'nira_prefetch_title',
+      // Flags & context
+      'nira_auto_generate', 'nira_return_context',
+      'nira_selected_gap', 'nira_return_to',
+      // Writer
+      'nira_writer_docs'
     ];
     keysToRemove.forEach(function(k){ localStorage.removeItem(k); });
+
+    // Also clear any remaining nira_ keys dynamically
+    var allKeys = Object.keys(localStorage);
+    allKeys.forEach(function(k){
+      if (k.startsWith('nira_')) localStorage.removeItem(k);
+    });
+
     return true;
   }
 
