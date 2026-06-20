@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Account & Data — Dr. NIRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f0f4ff;color:#1B2A4A;line-height:1.7;}
+.header{background:#0F1B33;padding:16px 32px;display:flex;align-items:center;gap:12px;}
+.header-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;}
+.header-sub{font-size:13px;color:#a0b0cc;}
+.container{max-width:600px;margin:40px auto;padding:0 24px 80px;}
+h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;margin-bottom:8px;}
+.subtitle{font-size:14px;color:#6B7FA3;margin-bottom:32px;}
+.card{background:#fff;border-radius:12px;padding:24px;margin-bottom:16px;border:1px solid #dde6f5;}
+h2{font-size:15px;font-weight:600;margin-bottom:10px;}
+p{font-size:13px;color:#374151;margin-bottom:10px;line-height:1.7;}
+ul{font-size:13px;color:#374151;padding-left:20px;margin-bottom:12px;}
+ul li{margin-bottom:5px;}
+.warning{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px;margin-bottom:20px;}
+.warning p{color:#991b1b;margin:0;}
+.btn-delete{background:#dc2626;color:#fff;border:none;padding:12px 24px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;width:100%;margin-top:8px;}
+.btn-delete:hover{background:#b91c1c;}
+.btn-export{background:#2563EB;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;display:inline-block;margin-bottom:12px;}
+.success{display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;text-align:center;}
+.success h3{color:#15803d;font-size:16px;margin-bottom:6px;}
+.success p{color:#16a34a;margin:0;font-size:13px;}
+a{color:#2563EB;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="header-logo">Dr. NIRA</div>
+    <div class="header-sub">A product by NIR Academy</div>
+  </div>
+</div>
+
+<div class="container">
+  <h1>Delete Account & Data</h1>
+  <div class="subtitle">Permanently remove all your Dr. NIRA data from this device.</div>
+
+  <div class="card">
+    <h2>What will be deleted</h2>
+    <p>Deleting your data will permanently remove:</p>
+    <ul>
+      <li>Research profile (name, university, field)</li>
+      <li>All proposals and generated sections</li>
+      <li>Thesis projects and chapters</li>
+      <li>Knowledge Base and uploaded document data</li>
+      <li>Citations library</li>
+      <li>Reading list and saved papers</li>
+      <li>Research gaps</li>
+      <li>Academic writer documents</li>
+      <li>All workspace and settings data</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Before you delete</h2>
+    <p>Dr. NIRA stores all data locally on your device. We recommend exporting your work before deletion.</p>
+    <a class="btn-export" href="export.html">Export my data first →</a>
+    <p style="font-size:12px;color:#6B7FA3;">This will open the Export page where you can download your proposals and citations.</p>
+  </div>
+
+  <div class="card">
+    <div class="warning">
+      <p><strong>⚠️ This action is permanent and cannot be undone.</strong> All data will be immediately deleted from your device's local storage.</p>
+    </div>
+
+    <div id="successMsg" class="success">
+      <h3>✅ Data Deleted Successfully</h3>
+      <p>All Dr. NIRA data has been removed from this device. <a href="index.html">Return to homepage →</a></p>
+    </div>
+
+    <button class="btn-delete" id="deleteBtn" onclick="deleteAllData()">
+      Delete All My Data
+    </button>
+  </div>
+
+  <p style="font-size:12px;color:#6B7FA3;text-align:center;margin-top:16px;">
+    For questions, visit <a href="https://www.niracademy.com">www.niracademy.com</a> · <a href="privacy.html">Privacy Policy</a>
+  </p>
+</div>
+
+<script src="js/project-manager.js"></script>
+<script>
+function deleteAllData() {
+  var btn = document.getElementById('deleteBtn');
+  btn.disabled = true;
+  btn.textContent = 'Deleting...';
+
+  setTimeout(function() {
+    if (typeof NiraProject !== 'undefined') {
+      NiraProject.hardReset();
+    } else {
+      // Fallback: clear all nira_ keys
+      Object.keys(localStorage).forEach(function(k) {
+        if (k.startsWith('nira_')) localStorage.removeItem(k);
+      });
+    }
+
+    btn.style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+
+    // Redirect after 3 seconds
+    setTimeout(function() {
+      window.location.href = 'index.html';
+    }, 3000);
+  }, 500);
+}
+</script>
+</body>
+</html>
