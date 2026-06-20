@@ -601,6 +601,7 @@ function showAnalysisModal(paper, analysis) {
   footer.style.cssText = 'padding:16px 24px;border-top:1px solid #dde6f5;display:flex;gap:8px;';
   footer.innerHTML = '<button onclick="sendToKBFromModal(' + papers.indexOf(paper) + ')" style="background:#16a34a;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Send to KB</button>' +
     '<button onclick="exportToCitations(' + papers.indexOf(paper) + ')" style="background:#f5f3ff;color:#7c3aed;border:1px solid #e9d5ff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Export citation</button>' +
+    '<button onclick="extractGapsFromModal(' + papers.indexOf(paper) + ')" style="background:#0F1B33;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;" id="extractGapsBtn">Extract Research Gaps</button>' +
     '<button onclick="createProposal(' + papers.indexOf(paper) + ')" style="background:#2563EB;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Create Proposal</button>' +
     (paper.link ? '<a href="' + escHtml(paper.link) + '" target="_blank" style="background:#fff;color:#2563EB;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;text-decoration:none;display:inline-flex;align-items:center;">View paper →</a>' : '') +
     '<button onclick="document.getElementById(\'analysisModal\').remove()" style="margin-left:auto;background:none;color:#6B7FA3;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;">Close</button>';
@@ -664,6 +665,92 @@ function saveToReadingList(idx) {
 
   var btn = document.getElementById('rl-' + idx);
   if (btn) { btn.textContent = '✓ Saved'; btn.style.color = '#16a34a'; btn.style.borderColor = '#16a34a'; btn.disabled = true; }
+}
+
+function sendToKBFromModal(idx) {
+  sendToKB(idx);
+  var modal = document.getElementById('analysisModal');
+  if (modal) modal.remove();
+}
+
+// ── RESEARCH GAPS ──
+async function extractGapsFromModal(idx) {
+  var p = papers[idx];
+  if (!p || !p.abstract) { showToast('No abstract available.', 'warning'); return; }
+
+  var btn = document.getElementById('extractGapsBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Extracting...'; }
+
+  try {
+    var prompt = 'You are an academic research advisor. Analyze this paper and extract 3-5 specific research gaps.\n\n' +
+      'Paper: ' + p.title + '\n' +
+      'Authors: ' + p.authors.join(', ') + ' (' + p.year + ')\n' +
+      'Abstract: ' + p.abstract + '\n\n' +
+      'Output ONLY valid JSON array (no markdown, no extra text):\n' +
+      '[{"gap": "Gap statement", "category": "methodology"}, ...]\n' +
+      'Categories: methodology, context, theory, population, temporal\n' +
+      'Output only the JSON array.';
+
+    var data = await NiraAPI.callWithRetry(async function() {
+      var res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ systemPrompt: 'You are an academic research gap analyst. Output only valid JSON.', userPrompt: prompt })
+      });
+      if (res.status === 429) throw new Error('429 rate limit');
+      if (!res.ok) { var e = await res.json().catch(function(){ return {}; }); throw new Error(e.error || 'API error'); }
+      return await res.json();
+    });
+
+    var raw = (data.result || '').trim().replace(/```json|```/g, '').trim();
+    var gaps;
+    try { gaps = JSON.parse(raw); } catch(e) {
+      var match = raw.match(/\[[\s\S]*\]/);
+      if (match) gaps = JSON.parse(match[0]);
+      else throw new Error('Could not parse gaps response');
+    }
+    if (!Array.isArray(gaps) || gaps.length === 0) throw new Error('No gaps returned');
+
+    var sourceRef = (p.authors[0] || 'Unknown') + ' et al. (' + p.year + '). ' + p.title.slice(0, 60) + (p.title.length > 60 ? '...' : '');
+    var existing = [];
+    try { existing = JSON.parse(localStorage.getItem('nira_research_gaps') || '[]'); } catch(e) {}
+
+    var newGaps = gaps.map(function(g) {
+      return {
+        id: Date.now() + Math.round(Math.random() * 1000),
+        gap: g.gap || '',
+        category: (g.category || 'methodology').toLowerCase(),
+        sourcePapers: [{ title: p.title, authors: p.authors, year: p.year, link: p.link }],
+        sourceRef: sourceRef,
+        createdAt: new Date().toISOString()
+      };
+    });
+
+    localStorage.setItem('nira_research_gaps', JSON.stringify(existing.concat(newGaps)));
+
+    // Show in modal
+    var modalBody = document.querySelector('#analysisModal div[style*="overflow-y"]');
+    if (modalBody) {
+      var catColors = { methodology:'#dbeafe|#2563EB', context:'#dcfce7|#16a34a', theory:'#f5f3ff|#7c3aed', population:'#fef3c7|#d97706', temporal:'#fce7f3|#db2777' };
+      var html = '<div style="margin-top:16px;border-top:1px solid #dde6f5;padding-top:16px;">' +
+        '<div style="font-size:11px;font-weight:600;color:#6B7FA3;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Research Gaps Extracted (' + newGaps.length + ')</div>';
+      newGaps.forEach(function(g) {
+        var cc = (catColors[g.category] || '#f0f4ff|#6B7FA3').split('|');
+        html += '<div style="padding:10px 14px;background:#f8faff;border-radius:8px;margin-bottom:8px;border-left:3px solid ' + cc[1] + ';">' +
+          '<span style="font-size:10px;font-weight:600;background:' + cc[0] + ';color:' + cc[1] + ';padding:2px 8px;border-radius:10px;text-transform:uppercase;display:inline-block;margin-bottom:6px;">' + g.category + '</span>' +
+          '<div style="font-size:13px;color:#1B2A4A;line-height:1.6;">' + escHtml(g.gap) + '</div>' +
+        '</div>';
+      });
+      html += '<a href="research-gaps.html" style="display:inline-block;margin-top:8px;font-size:12px;color:#2563EB;font-weight:500;">View all research gaps →</a></div>';
+      modalBody.innerHTML += html;
+    }
+
+    showToast(newGaps.length + ' gaps extracted ✓', 'success', 4000);
+  } catch(err) {
+    showToast('Extraction failed: ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Extract Research Gaps'; }
+  }
 }
 
 function exportToCitations(idx) {
