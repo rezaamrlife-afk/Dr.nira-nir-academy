@@ -353,6 +353,27 @@ function showToast(message, type = 'success', duration = 3000) {
   document.getElementById('nira-toast-container').appendChild(toast);
   setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
 }
+function showConfirm(message, onConfirm, options) {
+  options = options || {};
+  var okLabel = options.okLabel || 'Confirm';
+  var okColor = options.danger ? '#dc2626' : '#2563EB';
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.25);font-family:Inter,sans-serif;';
+  modal.innerHTML = '<div style="font-size:14px;color:#1B2A4A;line-height:1.6;margin-bottom:20px;">' + message + '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+    '<button id="nira-cc" style="padding:8px 16px;border:1px solid #dde6f5;background:#fff;color:#1B2A4A;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Cancel</button>' +
+    '<button id="nira-co" style="padding:8px 16px;border:none;background:' + okColor + ';color:#fff;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">' + okLabel + '</button>' +
+    '</div>';
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  function close() { overlay.remove(); }
+  modal.querySelector('#nira-co').onclick = function() { close(); onConfirm(); };
+  modal.querySelector('#nira-cc').onclick = close;
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
+}
+
 </script>
 </head>
 <body>
@@ -964,16 +985,17 @@ function showToast(message, type = 'success', duration = 3000) {
   }
 
   function restoreVersion(sectionId, idx) {
-    var section = getSection(sectionId);
-    var ver = section.versions[idx];
-    if (!ver) return;
-    if (!confirm('Restore this version? Current content will be saved as a new version.')) return;
-    pushVersion(sectionId, section.content);
-    updateSection(sectionId, { content: ver.text });
-    var contentEl = document.getElementById('content-' + sectionId);
-    if (contentEl) contentEl.innerText = ver.text;
-    renderWorkspaceVersions(sectionId);
-    showToast('Version restored', 'success');
+    showConfirm('Restore this version? Current content will be saved as a new version.', function() {
+      var section = getSection(sectionId);
+      var ver = section.versions[idx];
+      if (!ver) return;
+      pushVersion(sectionId, section.content);
+      updateSection(sectionId, { content: ver.text });
+      var contentEl = document.getElementById('content-' + sectionId);
+      if (contentEl) contentEl.innerText = ver.text;
+      renderWorkspaceVersions(sectionId);
+      showToast('Version restored', 'success');
+    });
   }
 
   function exportSectionPDF(sectionId) {
@@ -1028,9 +1050,12 @@ function showToast(message, type = 'success', duration = 3000) {
   function changeTopic() {
     var hasSections = Object.keys(generated).length > 0;
     if (hasSections) {
-      if (!confirm('Changing the topic will clear all generated sections. Continue?')) return;
-      generated = {};
-      NiraProject.resetModule('proposal');
+      showConfirm('Changing the topic will clear all generated sections. Continue?', function() {
+        generated = {};
+        NiraProject.resetModule('proposal');
+        window.location.href = 'topic.html';
+      }, { okLabel: 'Change topic', danger: true });
+      return;
     }
     window.location.href = 'topic.html';
   }
@@ -1458,12 +1483,14 @@ function showToast(message, type = 'success', duration = 3000) {
   }
 
   function clearSection(sectionId) {
-    if (!confirm('Clear this section? Your authored content will be removed.')) return;
-    delete generated[sectionId];
-    NiraProject.save('proposal', generated);
-    renderSectionCards();
-    renderSectionsNav();
-    updateProgress();
+    showConfirm('Clear this section? Your authored content will be removed.', function() {
+      delete generated[sectionId];
+      NiraProject.save('proposal', generated);
+      renderSectionCards();
+      renderSectionsNav();
+      updateProgress();
+      showToast('Section cleared.', 'info');
+    }, { okLabel: 'Clear', danger: true });
   }
 
   function manualSave(sectionId) {
