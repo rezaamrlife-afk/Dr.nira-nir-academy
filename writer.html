@@ -148,7 +148,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff
 .mobile-nav-item.active span { color: var(--blue-light); }
 .more-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; }
 .more-overlay.open { display: block; }
-.more-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 200; padding: 12px 0 max(20px, env(safe-area-inset-bottom)); transition: bottom 0.3s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -4px 32px rgba(0,0,0,0.15); }
+.more-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 200; padding: 12px 0 max(20px, env(safe-area-inset-bottom)); transition: bottom 0.3s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -4px 32px rgba(0,0,0,0.15); max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .more-drawer.open { bottom: 0; }
 .more-drawer-handle { width: 36px; height: 4px; background: #dde6f5; border-radius: 2px; margin: 0 auto 16px; }
 .more-drawer-title { font-size: 11px; font-weight: 600; color: var(--text-mid); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 20px; margin-bottom: 8px; }
@@ -177,6 +177,13 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff
   .more-item-text { flex: 1; }
   .more-item-label { font-size: 14px; font-weight: 500; color: #1B2A4A; }
   .more-item-sub { font-size: 12px; color: #6B7FA3; margin-top: 1px; }
+
+  .more-group { border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 4px; margin-bottom: 4px; }
+  .more-group-header { padding: 8px 20px 6px; display: flex; flex-direction: column; gap: 1px; margin-bottom: 2px; }
+  .more-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .more-group-sub { font-size: 10px; color: #a0b0cc; }
+  .more-item.active-item { background: #f0f4ff; }
+  .more-item.active-item .more-item-label { font-weight: 600; color: #2563EB; }
 </style>
 </head>
 <body>
@@ -323,199 +330,44 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff
 <div class="more-drawer" id="moreDrawer">
   <div class="more-drawer-handle"></div>
   <div class="more-drawer-title">More</div>
-  <a class="more-item" href="literature.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="more-item-text"><div class="more-item-label">Literature search</div><div class="more-item-sub">Find academic papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="reading-list.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Reading list</div><div class="more-item-sub">Saved papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="research-gaps.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div><div class="more-item-text"><div class="more-item-label">Research gaps</div><div class="more-item-sub">Extracted gaps</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="thesis.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Thesis builder</div><div class="more-item-sub">Build your thesis</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="structural-editor.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div><div class="more-item-text"><div class="more-item-label">Structural editor</div><div class="more-item-sub">Organize chapters</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="enhance.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Writing enhancer</div><div class="more-item-sub">Improve academic text</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="charts.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="more-item-text"><div class="more-item-label">Charts &amp; tables</div><div class="more-item-sub">Visualize your data</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="conceptual-model.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><div class="more-item-text"><div class="more-item-label">Conceptual model</div><div class="more-item-sub">Research diagram</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="questionnaire.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div><div class="more-item-text"><div class="more-item-label">Questionnaire</div><div class="more-item-sub">Survey generator</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Academic writer</div><div class="more-item-sub">Write &amp; edit documents</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE &amp; more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div class="more-item-text"><div class="more-item-label">My proposals</div><div class="more-item-sub">Saved proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-  <a class="more-item" href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div class="more-item-text"><div class="more-item-label">Export</div><div class="more-item-sub">Download your work</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
-<script>
-var quill = new Quill('#editor', {
-  theme: 'snow',
-  modules: {
-    toolbar: '#toolbar',
-    history: { delay: 1000, maxStack: 100, userOnly: true }
-  },
-  placeholder: 'Start writing your academic document here...'
-});
-
-var currentDocId = null;
-var docs = JSON.parse(localStorage.getItem('nira_writer_docs') || '[]');
-var autoSaveTimer = null;
-
-window.addEventListener('load', function() {
-  var sp = localStorage.getItem('nira_profile');
-  if (sp) {
-    var p = JSON.parse(sp);
-    document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
-    document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
-    if (p.fullName) {
-      document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-    }
-  }
-  renderDocsList();
-  var lastId = localStorage.getItem('nira_writer_active');
-  if (lastId) {
-    var doc = docs.find(function(d){ return d.id == lastId; });
-    if (doc) { loadDoc(doc.id); }
-    else if (docs.length > 0) { loadDoc(docs[0].id); }
-    else { newDocument(); }
-  } else if (docs.length > 0) {
-    loadDoc(docs[0].id);
-  } else {
-    newDocument();
-  }
-});
-
-quill.on('text-change', function() {
-  updateStats();
-  triggerAutoSave();
-});
-
-function updateStats() {
-  var text = quill.getText().trim();
-  var words = text ? text.split(/\s+/).filter(function(w){ return w.length > 0; }).length : 0;
-  var chars = text.length;
-  var readTime = Math.max(1, Math.ceil(words / 200));
-  document.getElementById('wordCount').textContent = words.toLocaleString();
-  document.getElementById('charCount').textContent = chars.toLocaleString();
-  document.getElementById('readTime').textContent = readTime + ' min';
-}
-
-function triggerAutoSave() {
-  var dot = document.getElementById('autosaveDot');
-  var label = document.getElementById('autosaveLabel');
-  dot.classList.add('saving');
-  label.textContent = 'Saving...';
-  clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(function() {
-    saveCurrentDoc();
-    dot.classList.remove('saving');
-    label.textContent = 'Saved';
-    var now = new Date();
-    document.getElementById('lastSaved').textContent = 'Last saved ' + now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  }, 1200);
-}
-
-function saveCurrentDoc() {
-  if (!currentDocId) return;
-  var idx = docs.findIndex(function(d){ return d.id === currentDocId; });
-  if (idx === -1) return;
-  docs[idx].content = quill.getContents();
-  docs[idx].title = document.getElementById('docTitle').value || 'Untitled';
-  docs[idx].updatedAt = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
-  docs[idx].wordCount = quill.getText().trim().split(/\s+/).filter(function(w){ return w.length > 0; }).length;
-  localStorage.setItem('nira_writer_docs', JSON.stringify(docs));
-  renderDocsList();
-}
-
-function newDocument() {
-  saveCurrentDoc();
-  var doc = {
-    id: Date.now(),
-    title: 'Untitled',
-    content: null,
-    createdAt: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}),
-    updatedAt: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}),
-    wordCount: 0
-  };
-  docs.unshift(doc);
-  localStorage.setItem('nira_writer_docs', JSON.stringify(docs));
-  loadDoc(doc.id);
-  renderDocsList();
-  setTimeout(function(){ document.getElementById('docTitle').focus(); }, 100);
-}
-
-function loadDoc(id) {
-  saveCurrentDoc();
-  var doc = docs.find(function(d){ return d.id === id; });
-  if (!doc) return;
-  currentDocId = id;
-  localStorage.setItem('nira_writer_active', id);
-  document.getElementById('docTitle').value = doc.title || 'Untitled';
-  if (doc.content) { quill.setContents(doc.content); }
-  else { quill.setText(''); }
-  updateStats();
-  renderDocsList();
-}
-
-function deleteDoc(id) {
-  showConfirm('Delete this document? This cannot be undone.', function() {
-    docs = docs.filter(function(d){ return d.id !== id; });
-    localStorage.setItem('nira_writer_docs', JSON.stringify(docs));
-    if (currentDocId === id) {
-      currentDocId = null;
-      if (docs.length > 0) { loadDoc(docs[0].id); }
-      else { newDocument(); }
-    }
-    renderDocsList();
-    showToast('Document deleted.', 'success');
-  }, { okLabel: 'Delete', danger: true });
-}
-
-function duplicateDoc(id) {
-  var doc = docs.find(function(d){ return d.id === id; });
-  if (!doc) return;
-  var copy = Object.assign({}, doc, {
-    id: Date.now(),
-    title: doc.title + ' (copy)',
-    createdAt: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}),
-    updatedAt: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})
-  });
-  docs.unshift(copy);
-  localStorage.setItem('nira_writer_docs', JSON.stringify(docs));
-  loadDoc(copy.id);
-  renderDocsList();
-}
-
-function renderDocsList() {
-  var list = document.getElementById('docsList');
-  if (docs.length === 0) {
-    list.innerHTML = '<div class="docs-empty">No documents yet.<br>Click + to create one.</div>';
-    return;
-  }
-  list.innerHTML = docs.map(function(d) {
-    return '<div class="doc-item ' + (d.id === currentDocId ? 'active' : '') + '" onclick="loadDoc(' + d.id + ')">' +
-      '<div class="doc-item-title">' + (d.title || 'Untitled') + '</div>' +
-      '<div class="doc-item-meta">' + d.updatedAt + ' · ' + ((d.wordCount||0).toLocaleString()) + ' words</div>' +
-      '<div class="doc-item-actions">' +
-        '<button class="doc-action-btn" onclick="event.stopPropagation();duplicateDoc(' + d.id + ')">Duplicate</button>' +
-        '<button class="doc-action-btn danger" onclick="event.stopPropagation();deleteDoc(' + d.id + ')">Delete</button>' +
-      '</div></div>';
-  }).join('');
-}
-
-document.getElementById('docTitle').addEventListener('input', function() {
-  triggerAutoSave();
-});
-
-function exportTXT() {
-  var title = document.getElementById('docTitle').value || 'document';
-  var text = quill.getText();
-  var blob = new Blob([text], {type: 'text/plain'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = title.replace(/[^a-z0-9]/gi,'-').toLowerCase() + '.txt';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportPDF() {
-  var title = document.getElementById('docTitle').value || 'Academic Document';
-  var content = document.querySelector('.ql-editor').innerHTML;
-  var win = window.open('', '_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + title + '</title><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"><style>body{font-family:Lora,Georgia,serif;font-size:13pt;line-height:1.85;color:#1a1a2e;max-width:720px;margin:2cm auto;padding:0 1cm}h1{font-family:"Playfair Display",serif;font-size:24pt}h2{font-family:"Playfair Display",serif;font-size:18pt}h3{font-size:14pt;font-weight:600}blockquote{border-left:3px solid #60A5FA;padding-left:14px;color:#6B7FA3;font-style:italic}a{color:#2563EB}</style></head><body><h1 style="text-align:center;margin-bottom:32px">' + title + '</h1>' + content + '<script>
+  <div style="padding:4px 20px 8px;font-size:10px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:0.08em;border-left:3px solid #2563EB;margin:4px 0 2px;">Research Core</div>
+  <div class="more-group">
+    <div class="more-group-header" style="background:rgba(37,99,235,0.05);border-left:3px solid #2563EB;">
+      <span class="more-group-label" style="color:#2563EB;">📚 Research Core</span>
+      <span class="more-group-sub">Core academic workflow</span>
+    </div>
+    <a class="more-item " href="literature.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="more-item-text"><div class="more-item-label">Literature search</div><div class="more-item-sub">Find academic papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="research-gaps.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div><div class="more-item-text"><div class="more-item-label">Research gaps</div><div class="more-item-sub">Extracted gaps</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="reading-list.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Reading list</div><div class="more-item-sub">Saved papers</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="thesis.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Thesis builder</div><div class="more-item-sub">Build your thesis</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
+  <div class="more-group">
+    <div class="more-group-header" style="background:rgba(22,163,74,0.05);border-left:3px solid #16a34a;">
+      <span class="more-group-label" style="color:#16a34a;">✍️ Writing Tools</span>
+      <span class="more-group-sub">Draft, refine & structure</span>
+    </div>
+    <a class="more-item active-item" href="writer.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Academic writer</div><div class="more-item-sub">Write & edit documents</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="enhance.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="more-item-text"><div class="more-item-label">Writing enhancer</div><div class="more-item-sub">Improve academic text</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="structural-editor.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div><div class="more-item-text"><div class="more-item-label">Structural editor</div><div class="more-item-sub">Organize chapters</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
+  <div class="more-group">
+    <div class="more-group-header" style="background:rgba(217,119,6,0.05);border-left:3px solid #d97706;">
+      <span class="more-group-label" style="color:#d97706;">📊 Analysis Tools</span>
+      <span class="more-group-sub">Visualize & validate</span>
+    </div>
+    <a class="more-item " href="charts.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="more-item-text"><div class="more-item-label">Charts & tables</div><div class="more-item-sub">Visualize your data</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="conceptual-model.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><div class="more-item-text"><div class="more-item-label">Conceptual model</div><div class="more-item-sub">Research diagram</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="questionnaire.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div><div class="more-item-text"><div class="more-item-label">Questionnaire</div><div class="more-item-sub">Survey generator</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
+  <div class="more-group" style="border-bottom:none;">
+    <div class="more-group-header" style="background:rgba(107,127,163,0.05);border-left:3px solid #6B7FA3;">
+      <span class="more-group-label" style="color:#6B7FA3;">📁 Management</span>
+      <span class="more-group-sub">Organize & export</span>
+    </div>
+    <a class="more-item " href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE & more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div class="more-item-text"><div class="more-item-label">My proposals</div><div class="more-item-sub">Saved proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div class="more-item-text"><div class="more-item-label">Export</div><div class="more-item-sub">Download your work</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/sw.js')
