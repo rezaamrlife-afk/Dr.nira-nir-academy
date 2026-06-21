@@ -317,6 +317,7 @@ function showNotification(opts) {
         <button class="btn-sm-outline" onclick="runValidation()">Validate</button>
         <button class="btn-sm-outline" onclick="window.location.href='structural-editor.html'">Structural editor →</button>
         <button class="btn-sm-outline" onclick="window.location.href='app.html'">← Dashboard</button>
+        <button class="btn-sm-outline" onclick="exportAcademicThesis()">📄 Academic Export</button>
         <button class="btn-sm" onclick="exportThesis()">Export thesis</button>
       </div>
     </div>
@@ -964,6 +965,104 @@ async function generateAllChapters() {
 function scrollToChapter(chId) {
   var el = document.getElementById('card-' + chId);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── ACADEMIC EXPORT (READ ONLY — no changes to existing logic) ──
+function exportAcademicThesis() {
+  var profile = JSON.parse(localStorage.getItem('nira_profile') || '{}');
+  var topic = JSON.parse(localStorage.getItem('nira_selected_topic') || '{}');
+  var content = JSON.parse(localStorage.getItem('nira_thesis_v2') || '{}');
+  var schema = window.chapterSchema;
+  var ids = window.chapterIds || ['chapter1','chapter2','chapter3','chapter4','chapter5'];
+
+  var researchTitle = topic.title_en || content.title || profile.researchTitle || 'Research Title';
+  var today = new Date().toLocaleDateString('en-GB', { year:'numeric', month:'long', day:'numeric' });
+
+  // ── COVER PAGE ──
+  var cover =
+    '<div class="cover">' +
+      (profile.universityLogo ? '<img src="' + profile.universityLogo + '" style="width:120px;margin-bottom:20px;" onerror="this.style.display=\'none\'">' : '') +
+      '<h1>' + (profile.university || 'University') + '</h1>' +
+      (profile.department ? '<p>' + profile.department + '</p>' : '') +
+      '<div style="margin:40px 0;border-top:2px solid #000;border-bottom:2px solid #000;padding:20px 0;">' +
+        '<h2>' + researchTitle + '</h2>' +
+      '</div>' +
+      '<p><strong>Student:</strong> ' + (profile.fullName || '—') + '</p>' +
+      (profile.studentId ? '<p><strong>Student ID:</strong> ' + profile.studentId + '</p>' : '') +
+      (profile.supervisor ? '<p><strong>Supervisor:</strong> ' + profile.supervisor + '</p>' : '') +
+      '<p><strong>Degree:</strong> ' + (profile.degree || '—') + '</p>' +
+      '<p><strong>Field:</strong> ' + (profile.field || '—') + '</p>' +
+      '<p style="margin-top:40px;">' + today + '</p>' +
+    '</div>';
+
+  // ── TABLE OF CONTENTS ──
+  var tocRows = '';
+  ids.forEach(function(id) {
+    var ch = schema[id];
+    if (!ch) return;
+    tocRows += '<div class="toc-row"><span>Chapter ' + ch.num + ': ' + ch.title + '</span></div>';
+    Object.keys(ch.sections).forEach(function(sId, idx) {
+      tocRows += '<div class="toc-sub">' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sId] + '</div>';
+    });
+  });
+  var toc = '<div class="toc"><h2>Table of Contents</h2>' + tocRows + '</div>';
+
+  // ── CONTENT ──
+  var body = '';
+  ids.forEach(function(id) {
+    var ch = schema[id];
+    if (!ch) return;
+    var chData = content[id] || {};
+    body += '<div class="chapter"><h2>Chapter ' + ch.num + ': ' + ch.title + '</h2>';
+    Object.keys(ch.sections).forEach(function(sId) {
+      var text = chData[sId] || '';
+      if (text) {
+        body += '<h3>' + ch.sections[sId] + '</h3>';
+        body += '<p>' + text.replace(/\n/g, '</p><p>') + '</p>';
+      }
+    });
+    body += '</div>';
+  });
+
+  // ── BUILD & PRINT ──
+  var html =
+    '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>' + researchTitle + '</title>' +
+    '<style>' +
+      'body{font-family:"Times New Roman",serif;margin:0;padding:0;font-size:12pt;line-height:1.8;color:#000;}' +
+      '@page{margin:2.5cm;}' +
+      '.cover{text-align:center;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;page-break-after:always;}' +
+      '.cover h1{font-size:18pt;margin-bottom:8px;}' +
+      '.cover h2{font-size:16pt;margin:0;}' +
+      '.toc{page-break-after:always;padding:20px 0;}' +
+      '.toc h2{font-size:16pt;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:20px;}' +
+      '.toc-row{font-weight:bold;margin:10px 0 4px;}' +
+      '.toc-sub{margin-left:20px;color:#333;margin-bottom:2px;}' +
+      '.chapter{page-break-before:always;}' +
+      'h2{font-size:14pt;margin-top:30px;}' +
+      'h3{font-size:12pt;margin-top:20px;}' +
+      'p{margin:8px 0;text-align:justify;}' +
+    '</style>' +
+    '</head><body>' +
+    cover + toc + body +
+    '</body></html>';
+
+  var win = window.open('', '_blank');
+  if (!win) { showToast('Please allow popups to export.', 'warning'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 600);
+
+  showNotification({
+    type: 'success',
+    icon: '📄',
+    title: 'Academic Export Ready',
+    subtitle: researchTitle.slice(0, 50),
+    detail: 'Print dialog opened. Choose "Save as PDF" for a digital copy.',
+    actions: [{ label: 'Dismiss', onclick: '' }],
+    duration: 8000
+  });
 }
 
 function exportThesis() {
