@@ -191,6 +191,11 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
   .more-group-sub { font-size: 10px; color: #a0b0cc; }
   .more-item.active-item { background: #f0f4ff; }
   .more-item.active-item .more-item-label { font-weight: 600; color: #2563EB; }
+
+  .help-icon { display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#EEF4FF;color:#2563EB;font-size:10px;font-weight:700;border:1px solid #dde6f5;cursor:pointer;vertical-align:middle;margin-left:5px;font-family:Inter,sans-serif;line-height:1;flex-shrink:0; }
+  .help-icon:hover { background:#2563EB;color:#fff;border-color:#2563EB; }
+  .help-tooltip { position:fixed;background:#0F1B33;color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.6;max-width:240px;z-index:99999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.25);font-family:Inter,sans-serif;display:none; }
+  .help-tooltip strong { color:#60A5FA;display:block;margin-bottom:3px;font-size:12px; }
 </style>
 <script src="js/project-manager.js"></script>
 <script src="js/knowledge-base.js"></script>
@@ -344,7 +349,7 @@ function showNotification(opts) {
           <div class="generate-all-bar">
             <div class="generate-all-text">
               <h4>Generate full thesis</h4>
-              <p>Generate all 5 chapters section by section with academic precision.</p>
+              <p>Generate all<button class="help-icon" data-help-title="Generate all chapters" data-help-desc="Automatically generates all thesis chapters based on your topic, profile, and project data." aria-label="Help">i</button> 5 chapters section by section with academic precision.</p>
             </div>
             <button class="gen-all-btn" id="genAllBtn" onclick="generateAllChapters()">
               <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -1044,6 +1049,40 @@ if ('serviceWorker' in navigator) {
       .catch(function(err) { console.warn('[SW] Registration failed:', err); });
   });
 }
+</script>
+<script>
+  (function() {
+    var tooltip = document.createElement('div');
+    tooltip.className = 'help-tooltip';
+    tooltip.id = 'helpTooltip';
+    document.body.appendChild(tooltip);
+    document.addEventListener('mouseover', function(e) {
+      var btn = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!btn) return;
+      tooltip.innerHTML = (btn.dataset.helpTitle ? '<strong>' + btn.dataset.helpTitle + '</strong>' : '') + (btn.dataset.helpDesc || '');
+      tooltip.style.display = 'block';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (tooltip.style.display === 'none') return;
+      var x = e.clientX + 12; var y = e.clientY + 12;
+      if (x + 255 > window.innerWidth) x = e.clientX - 255;
+      if (y + 90 > window.innerHeight) y = e.clientY - 90;
+      tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px';
+    });
+    document.addEventListener('mouseout', function(e) {
+      if (e.target.closest && e.target.closest('.help-icon')) tooltip.style.display = 'none';
+    });
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!btn) { tooltip.style.display = 'none'; return; }
+      e.stopPropagation();
+      tooltip.innerHTML = (btn.dataset.helpTitle ? '<strong>' + btn.dataset.helpTitle + '</strong>' : '') + (btn.dataset.helpDesc || '');
+      var rect = btn.getBoundingClientRect();
+      tooltip.style.left = Math.min(rect.left, window.innerWidth - 255) + 'px';
+      tooltip.style.top = (rect.bottom + 8) + 'px';
+      tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+    });
+  })();
 </script>
 </body>
 </html>
