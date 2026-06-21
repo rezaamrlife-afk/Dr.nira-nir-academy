@@ -191,6 +191,11 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
   .more-group-sub { font-size: 10px; color: #a0b0cc; }
   .more-item.active-item { background: #f0f4ff; }
   .more-item.active-item .more-item-label { font-weight: 600; color: #2563EB; }
+
+  .help-icon { display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#EEF4FF;color:#2563EB;font-size:10px;font-weight:700;border:1px solid #dde6f5;cursor:pointer;vertical-align:middle;margin-left:5px;font-family:Inter,sans-serif;line-height:1;flex-shrink:0; }
+  .help-icon:hover { background:#2563EB;color:#fff;border-color:#2563EB; }
+  .help-tooltip { position:fixed;background:#0F1B33;color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.6;max-width:240px;z-index:99999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.25);font-family:Inter,sans-serif;display:none; }
+  .help-tooltip strong { color:#60A5FA;display:block;margin-bottom:3px;font-size:12px; }
 </style>
 </head>
 <body>
@@ -582,8 +587,8 @@ function renderResults() {
       '<div class="paper-abstract'+(isExp?'':' collapsed')+'" id="abs-'+idx+'">'+escHtml(p.abstract||'No abstract available.')+'</div>' +
       '<span class="paper-toggle" onclick="toggleAbs('+idx+')">'+(isExp?'Show less':'Show more')+'</span>' +
       '<div class="paper-actions">' +
-        '<button class="pab primary" onclick="analyzePaper('+idx+')">Analyze</button>' +
-        '<button class="pab success" onclick="sendToKB('+idx+')">Send to KB</button>' +
+        '<button class="pab primary" onclick="analyzePaper('+idx+')">Analyze</button><button class="help-icon" data-help-title="Analyze" data-help-desc="Uses AI to analyze the abstract and highlights strengths, weaknesses, and relevance to your research." aria-label="Help">i</button>' +
+        '<button class="pab success" onclick="sendToKB('+idx+')">Send to KB</button><button class="help-icon" data-help-title="Send to KB" data-help-desc="Adds this paper to your Knowledge Base so Proposal Builder can use it for aligned writing." aria-label="Help">i</button>' +
         '<button class="pab" onclick="createProposal('+idx+')">Create Proposal</button>' +
         '<button class="pab" onclick="exportToCitations('+idx+')" style="color:#7c3aed;border-color:#e9d5ff;">Export citation</button>' +
         '<button class="pab" id="rl-'+idx+'" onclick="saveToReadingList('+idx+')" '+(isInReadingList(p)?'disabled style="color:#16a34a;border-color:#16a34a;"':'')+'>'+(isInReadingList(p)?'✓ Saved':'Save')+'</button>' +
@@ -712,7 +717,7 @@ function showAnalysisModal(paper, analysis) {
   footer.style.cssText = 'padding:16px 24px;border-top:1px solid #dde6f5;display:flex;gap:8px;';
   footer.innerHTML = '<button onclick="sendToKBFromModal(' + papers.indexOf(paper) + ')" style="background:#16a34a;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Send to KB</button>' +
     '<button onclick="exportToCitations(' + papers.indexOf(paper) + ')" style="background:#f5f3ff;color:#7c3aed;border:1px solid #e9d5ff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Export citation</button>' +
-    '<button onclick="extractGapsFromModal(' + papers.indexOf(paper) + ')" style="background:#0F1B33;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;" id="extractGapsBtn">Extract Research Gaps</button>' +
+    '<button onclick="extractGapsFromModal(' + papers.indexOf(paper) + ')" style="background:#0F1B33;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;" id="extractGapsBtn">Extract Research Gaps</button><button class="help-icon" data-help-title="Extract Research Gaps" data-help-desc="Identifies research gaps mentioned or implied in the paper abstract using AI." aria-label="Help">i</button>' +
     '<button onclick="createProposal(' + papers.indexOf(paper) + ')" style="background:#2563EB;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Create Proposal</button>' +
     (paper.link ? '<a href="' + escHtml(paper.link) + '" target="_blank" style="background:#fff;color:#2563EB;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;text-decoration:none;display:inline-flex;align-items:center;">View paper →</a>' : '') +
     '<button onclick="document.getElementById(\'analysisModal\').remove()" style="margin-left:auto;background:none;color:#6B7FA3;border:1px solid #dde6f5;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;">Close</button>';
@@ -1079,6 +1084,40 @@ if ('serviceWorker' in navigator) {
       .catch(function(err) { console.warn('[SW] Registration failed:', err); });
   });
 }
+</script>
+<script>
+  (function() {
+    var tooltip = document.createElement('div');
+    tooltip.className = 'help-tooltip';
+    tooltip.id = 'helpTooltip';
+    document.body.appendChild(tooltip);
+    document.addEventListener('mouseover', function(e) {
+      var btn = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!btn) return;
+      tooltip.innerHTML = (btn.dataset.helpTitle ? '<strong>' + btn.dataset.helpTitle + '</strong>' : '') + (btn.dataset.helpDesc || '');
+      tooltip.style.display = 'block';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (tooltip.style.display === 'none') return;
+      var x = e.clientX + 12; var y = e.clientY + 12;
+      if (x + 255 > window.innerWidth) x = e.clientX - 255;
+      if (y + 90 > window.innerHeight) y = e.clientY - 90;
+      tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px';
+    });
+    document.addEventListener('mouseout', function(e) {
+      if (e.target.closest && e.target.closest('.help-icon')) tooltip.style.display = 'none';
+    });
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!btn) { tooltip.style.display = 'none'; return; }
+      e.stopPropagation();
+      tooltip.innerHTML = (btn.dataset.helpTitle ? '<strong>' + btn.dataset.helpTitle + '</strong>' : '') + (btn.dataset.helpDesc || '');
+      var rect = btn.getBoundingClientRect();
+      tooltip.style.left = Math.min(rect.left, window.innerWidth - 255) + 'px';
+      tooltip.style.top = (rect.bottom + 8) + 'px';
+      tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+    });
+  })();
 </script>
 </body>
 </html>
