@@ -347,6 +347,11 @@
   .more-group-sub { font-size: 10px; color: #a0b0cc; }
   .more-item.active-item { background: #f0f4ff; }
   .more-item.active-item .more-item-label { font-weight: 600; color: #2563EB; }
+
+  .help-icon { display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#EEF4FF;color:#2563EB;font-size:10px;font-weight:700;border:1px solid #dde6f5;cursor:pointer;vertical-align:middle;margin-left:5px;font-family:Inter,sans-serif;line-height:1;flex-shrink:0; }
+  .help-icon:hover { background:#2563EB;color:#fff;border-color:#2563EB; }
+  .help-tooltip { position:fixed;background:#0F1B33;color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.6;max-width:240px;z-index:99999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.25);font-family:Inter,sans-serif;display:none; }
+  .help-tooltip strong { color:#60A5FA;display:block;margin-bottom:3px;font-size:12px; }
 </style>
 <script>
 function showToast(message, type = 'success', duration = 3000) {
@@ -482,7 +487,7 @@ function showConfirm(message, onConfirm, options) {
       <span class="topbar-title">Proposal builder</span>
       <div class="topbar-actions">
         <button class="btn-sm-outline" onclick="window.location.href='topic.html'">← Topics</button>
-        <button class="btn-sm-outline" id="supervisorBtn" onclick="runSupervisorReview()" disabled style="opacity:0.45;cursor:not-allowed;">Supervisor Review</button>
+        <button class="btn-sm-outline" id="supervisorBtn" onclick="runSupervisorReview()" disabled style="opacity:0.45;cursor:not-allowed;">Supervisor Review</button><button class="help-icon" data-help-title="Supervisor Review" data-help-desc="Reviews your proposal for structure, research logic, and academic quality — then provides scores and feedback." aria-label="Help">i</button>
         <button class="btn-sm" onclick="window.location.href='export.html'">Export proposal →</button>
       </div>
     </div>
@@ -2377,6 +2382,40 @@ if ('serviceWorker' in navigator) {
       .catch(function(err) { console.warn('[SW] Registration failed:', err); });
   });
 }
+</script>
+
+<script>
+  (function() {
+    var tt = document.createElement('div');
+    tt.className = 'help-tooltip'; tt.id = 'helpTooltip';
+    document.body.appendChild(tt);
+    document.addEventListener('mouseover', function(e) {
+      var b = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!b) return;
+      tt.innerHTML = (b.dataset.helpTitle ? '<strong>' + b.dataset.helpTitle + '</strong>' : '') + (b.dataset.helpDesc || '');
+      tt.style.display = 'block';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (tt.style.display === 'none') return;
+      var x = e.clientX+12, y = e.clientY+12;
+      if (x+255 > window.innerWidth) x = e.clientX-255;
+      if (y+90 > window.innerHeight) y = e.clientY-90;
+      tt.style.left = x+'px'; tt.style.top = y+'px';
+    });
+    document.addEventListener('mouseout', function(e) {
+      if (e.target.closest && e.target.closest('.help-icon')) tt.style.display = 'none';
+    });
+    document.addEventListener('click', function(e) {
+      var b = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!b) { tt.style.display = 'none'; return; }
+      e.stopPropagation();
+      tt.innerHTML = (b.dataset.helpTitle ? '<strong>' + b.dataset.helpTitle + '</strong>' : '') + (b.dataset.helpDesc || '');
+      var r = b.getBoundingClientRect();
+      tt.style.left = Math.min(r.left,window.innerWidth-255)+'px';
+      tt.style.top = (r.bottom+8)+'px';
+      tt.style.display = tt.style.display==='block'?'none':'block';
+    });
+  })();
 </script>
 </body>
 </html>
