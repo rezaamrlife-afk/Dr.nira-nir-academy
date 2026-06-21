@@ -717,7 +717,7 @@ function saveToReadingList(idx) {
 
   localStorage.setItem('nira_reading_list', JSON.stringify(list));
   updateReadingListBadge();
-  showToast('Saved to Reading List ✓', 'success');
+  showToast('Saved to Reading List ✓ — <a href="reading-list.html" style="color:#fff;font-weight:600;text-decoration:underline;">View list →</a>', 'success', 5000);
 
   var btn = document.getElementById('rl-' + idx);
   if (btn) { btn.textContent = '✓ Saved'; btn.style.color = '#16a34a'; btn.style.borderColor = '#16a34a'; btn.disabled = true; }
@@ -874,7 +874,7 @@ function exportToCitations(idx) {
 
   existing.push(newCitation);
   localStorage.setItem('nira_citations', JSON.stringify(existing));
-  showToast('Citation saved ✓', 'success');
+  showToast('Citation saved ✓ — <a href="citations.html" style="color:#fff;font-weight:600;text-decoration:underline;">View citations →</a>', 'success', 5000);
 }
 
 function formatAPAAuthor(name) {
@@ -902,7 +902,7 @@ function sendToKB(idx) {
     kb.masterSummary=(kb.masterSummary+'\n\nAdditional: '+p.title+'. '+p.abstract.slice(0,300)).slice(0,1200);
   }
   NiraKB.save(kb);
-  showToast('"'+p.title.slice(0,40)+'..." added to KB ✓','success',4000);
+  showToast('"'+p.title.slice(0,40)+'..." added to KB ✓ — <a href="proposal.html" style="color:#fff;font-weight:600;text-decoration:underline;">Use in Proposal →</a>','success',5000);
 }
 
 function createProposal(idx) {
