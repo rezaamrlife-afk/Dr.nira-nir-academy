@@ -1090,10 +1090,10 @@ function showConfirm(message, onConfirm, options) {
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'expand\',\'' + sectionId + '\',\'\')">⊕ Expand</button>' +
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'shorten\',\'' + sectionId + '\',\'\')">⊖ Shorten</button>' +
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'citations\',\'' + sectionId + '\',\'\')">📚 Add citations</button>' +
-        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'align_kb\',\'' + sectionId + '\',\'\')">🔗 Align with KB</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'align_kb\',\'' + sectionId + '\',\'\')">🔗 Align with KB</button><button class="help-icon" data-help-title="Align with KB" data-help-desc="Rewrites this section to align with your Knowledge Base content for academic consistency." aria-label="Help">i</button>' +
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'rewrite\',\'' + sectionId + '\',\'\')">↺ Rewrite</button>' +
         '<button class="ws-action-btn" onclick="goToUpload()">📄 Upload PDF</button>' +
-        '<button class="ws-action-btn" onclick="openWriteFromPDF(\'' + sectionId + '\')" style="background:#f0fdf4;color:#16a34a;border-color:#bbf7d0;">✍️ Write from PDF</button>' +
+        '<button class="ws-action-btn" onclick="openWriteFromPDF(\'' + sectionId + '\')" style="background:#f0fdf4;color:#16a34a;border-color:#bbf7d0;">✍️ Write from PDF</button><button class="help-icon" data-help-title="Write from PDF" data-help-desc="Generates this section directly from your uploaded PDF without creating a Knowledge Base." aria-label="Help">i</button>' +
       '</div>' +
       '<div class="ws-input-row">' +
         '<input type="text" class="ws-input" id="ws-input-' + sectionId + '" placeholder="Custom instruction (e.g. more academic, focus on EFL teachers...)" onkeydown="if(event.key===\'Enter\'){var v=this.value.trim();if(v)runAction(\'custom\',\'' + sectionId + '\',v);}">' +
