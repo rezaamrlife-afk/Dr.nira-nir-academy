@@ -71,7 +71,10 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
 .toc-chapter-header.active{background:var(--blue-pale);}
 .toc-chapter-num{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .toc-chapter-num.done{background:var(--green);}
-.toc-chapter-title{font-size:12px;font-weight:600;color:var(--text-dark);flex:1;}
+.toc-chapter-title{font-size:12px;font-weight:600;color:var(--text-dark);flex:1;cursor:text;}
+.toc-chapter-title:hover{color:#2563EB;}
+.toc-section-label{font-size:12px;color:var(--text-dark);cursor:text;}
+.toc-section-label:hover{color:#2563EB;}
 .toc-chapter-count{font-size:10px;color:var(--text-mid);}
 .toc-sections{padding:2px 0 4px 32px;display:none;}
 .toc-sections.open{display:block;}
@@ -243,6 +246,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
         <div class="toc-panel">
           <div class="toc-header">
             <h3>Table of contents</h3>
+            <button onclick="resetCustomLabels()" title="Reset to default labels" style="background:none;border:none;font-size:11px;color:#a0b0cc;cursor:pointer;padding:2px 6px;border-radius:4px;font-family:Inter,sans-serif;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#a0b0cc'">↺ Reset labels</button>
             <span class="toc-stats" id="tocStats">0 / 0 sections</span>
           </div>
           <div class="toc-body" id="tocBody"></div>
@@ -340,6 +344,53 @@ var CHAPTER_IDS = ['chapter1','chapter2','chapter3','chapter4','chapter5'];
 
 var thesisData = {};
 var activeChapter = null;
+
+// ── CUSTOM LABELS (Display Override — isolated from thesis data) ──
+var CUSTOM_LABELS_KEY = 'nira_custom_labels';
+
+function getCustomLabels() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_LABELS_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+
+function saveCustomLabels(labels) {
+  try { localStorage.setItem(CUSTOM_LABELS_KEY, JSON.stringify(labels)); }
+  catch(e) {}
+}
+
+function getChapterLabel(cid) {
+  var custom = getCustomLabels();
+  var customVal = custom[cid] && custom[cid]._title;
+  if (!chapterSchema[cid]) {
+    console.warn('[getChapterLabel] Missing schema coverage for:', cid);
+    return cid;
+  }
+  return customVal || chapterSchema[cid].title;
+}
+
+function getSectionLabel(cid, sid) {
+  var custom = getCustomLabels();
+  var customVal = custom[cid] && custom[cid][sid];
+  if (!chapterSchema[cid] || !chapterSchema[cid].sections[sid]) {
+    console.warn('[getSectionLabel] Missing schema coverage for:', cid, sid);
+    return sid;
+  }
+  return customVal || chapterSchema[cid].sections[sid];
+}
+
+function setChapterLabel(cid, value) {
+  var labels = getCustomLabels();
+  if (!labels[cid]) labels[cid] = {};
+  labels[cid]._title = value.trim() || chapterSchema[cid].title;
+  saveCustomLabels(labels);
+}
+
+function setSectionLabel(cid, sid, value) {
+  var labels = getCustomLabels();
+  if (!labels[cid]) labels[cid] = {};
+  labels[cid][sid] = value.trim() || chapterSchema[cid].sections[sid];
+  saveCustomLabels(labels);
+}
 
 function showToast(msg, type) {
   type = type || 'info';
@@ -450,6 +501,44 @@ function updateStats() {
 }
 
 // ── TOC SIDEBAR ──
+// ── EDITABLE LABELS (Display Override Only) ──
+function startEditLabel(el, cid, sid) {
+  var current = sid ? getSectionLabel(cid, sid) : getChapterLabel(cid);
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.value = current;
+  input.style.cssText = 'width:100%;font-size:12px;font-weight:' + (sid ? '400' : '600') + ';border:1px solid #2563EB;border-radius:4px;padding:2px 6px;font-family:Inter,sans-serif;outline:none;background:#fff;color:#1B2A4A;';
+
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+
+  function commitEdit() {
+    var val = input.value.trim();
+    if (sid) {
+      setSectionLabel(cid, sid, val);
+    } else {
+      setChapterLabel(cid, val);
+    }
+    renderTOC();
+    renderTOCPreview();
+    showToast('Label updated ✓', 'success');
+  }
+
+  input.addEventListener('blur', commitEdit);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); commitEdit(); input.blur(); }
+    if (e.key === 'Escape') { renderTOC(); renderTOCPreview(); }
+  });
+}
+
+function resetCustomLabels() {
+  localStorage.removeItem(CUSTOM_LABELS_KEY);
+  renderTOC();
+  renderTOCPreview();
+  showToast('Labels reset to defaults ✓', 'success');
+}
+
 function renderTOC() {
   var html = '';
   CHAPTER_IDS.forEach(function(cid) {
@@ -465,7 +554,7 @@ function renderTOC() {
     html += '<div class="toc-chapter">' +
       '<div class="toc-chapter-header' + (isActive ? ' active' : '') + '" onclick="selectChapter(\'' + cid + '\')">' +
         '<div class="toc-chapter-num' + (allDone ? ' done' : '') + '">' + ch.num + '</div>' +
-        '<div class="toc-chapter-title">' + ch.title + '</div>' +
+        '<div class="toc-chapter-title" title="Click to edit" onclick="event.stopPropagation();startEditLabel(this,\'' + cid + '\',null)">' + getChapterLabel(cid) + '</div>' +
         '<div class="toc-chapter-count">' + doneSecs.length + '/' + secKeys.length + '</div>' +
       '</div>' +
       '<div class="toc-sections' + (isActive ? ' open' : '') + '">';
@@ -473,7 +562,8 @@ function renderTOC() {
     secKeys.forEach(function(sid) {
       var hasCon = thesisData[cid] && thesisData[cid][sid] && thesisData[cid][sid].trim();
       html += '<div class="toc-section-item' + (hasCon ? ' done' : '') + '" onclick="selectChapter(\'' + cid + '\'); scrollToSection(\'' + cid + '_' + sid + '\')">' +
-        '<div class="toc-dot"></div>' + secs[sid] +
+        '<div class="toc-dot"></div>' +
+        '<span class="toc-section-label" title="Click to edit" onclick="event.stopPropagation();startEditLabel(this,\'' + cid + '\',\'' + sid + '\')">' + getSectionLabel(cid, sid) + '</span>' +
         '</div>';
     });
 
@@ -489,14 +579,14 @@ function renderTOCPreview() {
   CHAPTER_IDS.forEach(function(cid) {
     var ch = CHAPTERS[cid];
     html += '<div class="toc-entry">' +
-      '<span class="toc-entry-chapter">Chapter ' + ch.num + ': ' + ch.title + '</span>' +
+      '<span class="toc-entry-chapter">Chapter ' + ch.num + ': ' + getChapterLabel(cid) + '</span>' +
       '<span class="toc-dots"></span>' +
       '<span class="toc-page">' + pageNum + '</span>' +
       '</div>';
     pageNum += 2;
     Object.keys(ch.sections).forEach(function(sid) {
       html += '<div class="toc-entry">' +
-        '<span class="toc-entry-section">' + ch.num + '.' + (Object.keys(ch.sections).indexOf(sid)+1) + ' ' + ch.sections[sid] + '</span>' +
+        '<span class="toc-entry-section">' + ch.num + '.' + (Object.keys(ch.sections).indexOf(sid)+1) + ' ' + getSectionLabel(cid, sid) + '</span>' +
         '<span class="toc-dots"></span>' +
         '<span class="toc-page">' + pageNum + '</span>' +
         '</div>';
@@ -527,7 +617,7 @@ function renderChapterEditor(cid) {
   var secKeys = Object.keys(secs);
 
   var html = '<div class="editor-header">' +
-    '<div class="editor-breadcrumb">Thesis &rsaquo; <strong>Chapter ' + ch.num + ': ' + ch.title + '</strong></div>' +
+    '<div class="editor-breadcrumb">Thesis &rsaquo; <strong>Chapter ' + ch.num + ': ' + getChapterLabel(cid) + '</strong></div>' +
     '<div class="editor-actions">' +
       '<button class="sec-btn" onclick="exportChapterPDF(\'' + cid + '\')">Export chapter PDF</button>' +
     '</div>' +
@@ -617,10 +707,10 @@ function exportTOC() {
   var page = 1;
   CHAPTER_IDS.forEach(function(cid) {
     var ch = CHAPTERS[cid];
-    lines.push('Chapter ' + ch.num + ': ' + ch.title + ' ............ ' + page);
+    lines.push('Chapter ' + ch.num + ': ' + getChapterLabel(cid) + ' ............ ' + page);
     page += 2;
     Object.keys(ch.sections).forEach(function(sid, idx) {
-      lines.push('  ' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sid] + ' ............ ' + page);
+      lines.push('  ' + ch.num + '.' + (idx+1) + ' ' + getSectionLabel(cid, sid) + ' ............ ' + page);
       page++;
     });
     lines.push('');
@@ -645,12 +735,12 @@ function exportChapterPDF(cid) {
     'p{margin-bottom:12px;text-align:justify}' +
     '@media print{body{margin:1cm}}' +
     '</style></head><body>' +
-    '<h1>Chapter ' + ch.num + ': ' + ch.title + '</h1>' +
+    '<h1>Chapter ' + ch.num + ': ' + getChapterLabel(cid) + '</h1>' +
     '<div class="meta">' + (topic.title_en || 'Research Thesis') + ' · Generated by Dr. NIRA</div>');
 
   Object.keys(ch.sections).forEach(function(sid, idx) {
     var content = (thesisData[cid] && thesisData[cid][sid]) || '';
-    win.document.write('<h2>' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sid] + '</h2>');
+    win.document.write('<h2>' + ch.num + '.' + (idx+1) + ' ' + getSectionLabel(cid, sid) + '</h2>');
     if (content.trim()) {
       content.split('\n').forEach(function(p) {
         if (p.trim()) win.document.write('<p>' + p + '</p>');
@@ -663,6 +753,7 @@ function exportChapterPDF(cid) {
   win.document.write('</body></html>');
   win.document.close();
   setTimeout(function(){ win.print(); }, 400);
+  showToast('Chapter PDF ready — print dialog opened', 'success');
 }
 
 function exportPDF() {
@@ -683,10 +774,10 @@ function exportPDF() {
 
   CHAPTER_IDS.forEach(function(cid) {
     var ch = CHAPTERS[cid];
-    win.document.write('<h2>Chapter ' + ch.num + ': ' + ch.title + '</h2>');
+    win.document.write('<h2>Chapter ' + ch.num + ': ' + getChapterLabel(cid) + '</h2>');
     Object.keys(ch.sections).forEach(function(sid, idx) {
       var content = (thesisData[cid] && thesisData[cid][sid]) || '';
-      win.document.write('<h3>' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sid] + '</h3>');
+      win.document.write('<h3>' + ch.num + '.' + (idx+1) + ' ' + getSectionLabel(cid, sid) + '</h3>');
       if (content.trim()) {
         content.split('\n').forEach(function(p){ if (p.trim()) win.document.write('<p>' + p + '</p>'); });
       } else {
@@ -698,6 +789,7 @@ function exportPDF() {
   win.document.write('</body></html>');
   win.document.close();
   setTimeout(function(){ win.print(); }, 400);
+  showToast('Full thesis PDF ready — print dialog opened', 'success');
 }
 
 function toggleMoreDrawer() {
