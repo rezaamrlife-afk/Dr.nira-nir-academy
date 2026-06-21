@@ -981,18 +981,25 @@ function exportAcademicThesis() {
   // ── COVER PAGE ──
   var cover =
     '<div class="cover">' +
-      (profile.universityLogo ? '<img src="' + profile.universityLogo + '" style="width:120px;margin-bottom:20px;" onerror="this.style.display=\'none\'">' : '') +
-      '<h1>' + (profile.university || 'University') + '</h1>' +
-      (profile.department ? '<p>' + profile.department + '</p>' : '') +
-      '<div style="margin:40px 0;border-top:2px solid #000;border-bottom:2px solid #000;padding:20px 0;">' +
-        '<h2>' + researchTitle + '</h2>' +
+      '<div class="cover-top">' +
+        (profile.universityLogo ? '<img class="cover-logo" src="' + profile.universityLogo + '" onerror="this.style.display=\'none\'">' : '') +
+        '<div class="cover-university">' + (profile.university || 'University') + '</div>' +
+        (profile.department ? '<div class="cover-department">' + profile.department + '</div>' : '') +
       '</div>' +
-      '<p><strong>Student:</strong> ' + (profile.fullName || '—') + '</p>' +
-      (profile.studentId ? '<p><strong>Student ID:</strong> ' + profile.studentId + '</p>' : '') +
-      (profile.supervisor ? '<p><strong>Supervisor:</strong> ' + profile.supervisor + '</p>' : '') +
-      '<p><strong>Degree:</strong> ' + (profile.degree || '—') + '</p>' +
-      '<p><strong>Field:</strong> ' + (profile.field || '—') + '</p>' +
-      '<p style="margin-top:40px;">' + today + '</p>' +
+      '<div class="cover-mid">' +
+        '<div class="cover-type">PhD / Master\'s Thesis</div>' +
+        '<div class="cover-title">' + researchTitle + '</div>' +
+      '</div>' +
+      '<div class="cover-bottom">' +
+        '<table>' +
+          '<tr><td>Student:</td><td>' + (profile.fullName || '—') + '</td></tr>' +
+          (profile.studentId ? '<tr><td>Student ID:</td><td>' + profile.studentId + '</td></tr>' : '') +
+          (profile.supervisor ? '<tr><td>Supervisor:</td><td>' + profile.supervisor + '</td></tr>' : '') +
+          '<tr><td>Degree:</td><td>' + (profile.degree || '—') + '</td></tr>' +
+          '<tr><td>Field:</td><td>' + (profile.field || '—') + '</td></tr>' +
+          '<tr><td>Date:</td><td>' + today + '</td></tr>' +
+        '</table>' +
+      '</div>' +
     '</div>';
 
   // ── TABLE OF CONTENTS ──
@@ -1000,12 +1007,12 @@ function exportAcademicThesis() {
   ids.forEach(function(id) {
     var ch = schema[id];
     if (!ch) return;
-    tocRows += '<div class="toc-row"><span>Chapter ' + ch.num + ': ' + ch.title + '</span></div>';
+    tocRows += '<div class="toc-chapter"><span class="toc-chapter-label">Chapter ' + ch.num + ': ' + ch.title + '</span><span class="toc-dots"></span></div>';
     Object.keys(ch.sections).forEach(function(sId, idx) {
-      tocRows += '<div class="toc-sub">' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sId] + '</div>';
+      tocRows += '<div class="toc-section"><span class="toc-section-label">' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sId] + '</span><span class="toc-dots"></span></div>';
     });
   });
-  var toc = '<div class="toc"><h2>Table of Contents</h2>' + tocRows + '</div>';
+  var toc = '<div class="toc"><div class="toc-heading">Table of Contents</div>' + tocRows + '</div>';
 
   // ── CONTENT ──
   var body = '';
@@ -1013,12 +1020,12 @@ function exportAcademicThesis() {
     var ch = schema[id];
     if (!ch) return;
     var chData = content[id] || {};
-    body += '<div class="chapter"><h2>Chapter ' + ch.num + ': ' + ch.title + '</h2>';
-    Object.keys(ch.sections).forEach(function(sId) {
+    body += '<div class="chapter"><div class="chapter-title">Chapter ' + ch.num + ': ' + ch.title + '</div>';
+    Object.keys(ch.sections).forEach(function(sId, idx) {
       var text = chData[sId] || '';
       if (text) {
-        body += '<h3>' + ch.sections[sId] + '</h3>';
-        body += '<p>' + text.replace(/\n/g, '</p><p>') + '</p>';
+        body += '<h3>' + ch.num + '.' + (idx+1) + ' ' + ch.sections[sId] + '</h3>';
+        body += '<p>' + text.replace(/\n\n/g, '</p><p>').replace(/\n/g, ' ') + '</p>';
       }
     });
     body += '</div>';
@@ -1029,19 +1036,31 @@ function exportAcademicThesis() {
     '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
     '<title>' + researchTitle + '</title>' +
     '<style>' +
-      'body{font-family:"Times New Roman",serif;margin:0;padding:0;font-size:12pt;line-height:1.8;color:#000;}' +
-      '@page{margin:2.5cm;}' +
-      '.cover{text-align:center;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;page-break-after:always;}' +
-      '.cover h1{font-size:18pt;margin-bottom:8px;}' +
-      '.cover h2{font-size:16pt;margin:0;}' +
+      'body{font-family:"Times New Roman",Times,serif;margin:0;padding:0;font-size:12pt;line-height:1.6;color:#000;}' +
+      '@page{margin:2.5cm 3cm 2.5cm 3.5cm;}' +
+      'p{margin:0 0 10px;text-align:justify;}' +
+      '.cover{text-align:center;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:60px 40px;page-break-after:always;box-sizing:border-box;}' +
+      '.cover-top{display:flex;flex-direction:column;align-items:center;gap:8px;}' +
+      '.cover-logo{width:110px;height:auto;margin-bottom:12px;}' +
+      '.cover-university{font-size:16pt;font-weight:bold;text-transform:uppercase;letter-spacing:1px;}' +
+      '.cover-department{font-size:12pt;}' +
+      '.cover-mid{border-top:2px solid #000;border-bottom:2px solid #000;padding:28px 20px;width:80%;text-align:center;}' +
+      '.cover-type{font-size:12pt;font-style:italic;margin-bottom:12px;color:#444;}' +
+      '.cover-title{font-size:16pt;font-weight:bold;line-height:1.4;}' +
+      '.cover-bottom{font-size:11pt;line-height:2;}' +
+      '.cover-bottom table{margin:0 auto;border-collapse:collapse;}' +
+      '.cover-bottom td{padding:2px 12px;}' +
+      '.cover-bottom td:first-child{text-align:right;font-weight:bold;}' +
+      '.cover-bottom td:last-child{text-align:left;}' +
       '.toc{page-break-after:always;padding:20px 0;}' +
-      '.toc h2{font-size:16pt;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:20px;}' +
-      '.toc-row{font-weight:bold;margin:10px 0 4px;}' +
-      '.toc-sub{margin-left:20px;color:#333;margin-bottom:2px;}' +
+      '.toc-heading{font-size:16pt;font-weight:bold;text-align:center;margin-bottom:30px;text-transform:uppercase;letter-spacing:1px;}' +
+      '.toc-chapter{display:flex;align-items:baseline;margin:10px 0 4px;font-weight:bold;font-size:12pt;}' +
+      '.toc-section{display:flex;align-items:baseline;margin:3px 0 3px 24px;font-size:11pt;}' +
+      '.toc-chapter-label,.toc-section-label{white-space:nowrap;}' +
+      '.toc-dots{flex:1;border-bottom:1px dotted #666;margin:0 8px;min-width:20px;}' +
       '.chapter{page-break-before:always;}' +
-      'h2{font-size:14pt;margin-top:30px;}' +
-      'h3{font-size:12pt;margin-top:20px;}' +
-      'p{margin:8px 0;text-align:justify;}' +
+      '.chapter-title{font-size:15pt;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:24px;page-break-after:avoid;}' +
+      'h3{font-size:13pt;font-weight:bold;margin:22px 0 10px;page-break-after:avoid;}' +
     '</style>' +
     '</head><body>' +
     cover + toc + body +
