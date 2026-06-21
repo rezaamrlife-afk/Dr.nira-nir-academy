@@ -403,6 +403,23 @@ function showToast(message, type = 'success', duration = 3000) {
                   <input class="form-input" type="text" id="supervisor" placeholder="e.g. Prof. Michael Smith">
                 </div>
               </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Student ID <span style="color:var(--text-mid);font-weight:400">(optional)</span></label>
+                  <input class="form-input" type="text" id="studentId" placeholder="e.g. 20241234">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Department / Faculty <span style="color:var(--text-mid);font-weight:400">(optional)</span></label>
+                  <input class="form-input" type="text" id="department" placeholder="e.g. Faculty of Education">
+                </div>
+              </div>
+              <div class="form-row single">
+                <div class="form-group">
+                  <label class="form-label">University Logo URL <span style="color:var(--text-mid);font-weight:400">(optional — used in academic export)</span></label>
+                  <input class="form-input" type="url" id="universityLogo" placeholder="https://university.edu/logo.png">
+                  <div style="font-size:11px;color:var(--text-mid);margin-top:4px;">Paste a direct image URL — right-click your university logo online → "Copy image address"</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -693,6 +710,9 @@ function showToast(message, type = 'success', duration = 3000) {
       university: document.getElementById('university').value,
       country: document.getElementById('country').value,
       supervisor: document.getElementById('supervisor').value,
+      studentId: document.getElementById('studentId').value,
+      department: document.getElementById('department').value,
+      universityLogo: document.getElementById('universityLogo').value,
       degree: document.getElementById('degree').value,
       field: document.getElementById('field').value,
       specialization: document.getElementById('specialization').value,
@@ -705,8 +725,15 @@ function showToast(message, type = 'success', duration = 3000) {
       language: document.querySelector('.lang-btn.selected')?.id?.replace('lang-','') || 'en'
     };
 
-    if (!profile.fullName || !profile.email || !profile.university || !profile.degree || !profile.field) {
-      showToast('Please fill in all required fields before saving.', 'warning');
+    const missing = [];
+    if (!profile.fullName) missing.push('Full Name');
+    if (!profile.email) missing.push('Email');
+    if (!profile.university) missing.push('University');
+    if (!profile.degree) missing.push('Degree Level');
+    if (!profile.field) missing.push('Field of Study');
+
+    if (missing.length > 0) {
+      showToast('Please fill in: ' + missing.join(', '), 'warning', 5000);
       return;
     }
 
@@ -725,6 +752,9 @@ function showToast(message, type = 'success', duration = 3000) {
     if (p.university) { document.getElementById('university').value = p.university; markDone('university', true); }
     if (p.country) document.getElementById('country').value = p.country;
     if (p.supervisor) document.getElementById('supervisor').value = p.supervisor;
+    if (p.studentId) document.getElementById('studentId').value = p.studentId;
+    if (p.department) document.getElementById('department').value = p.department;
+    if (p.universityLogo) document.getElementById('universityLogo').value = p.universityLogo;
     if (p.degree) { document.getElementById('degree').value = p.degree; markDone('degree', true); }
     if (p.field) { document.getElementById('field').value = p.field; markDone('field', true); }
     if (p.specialization) document.getElementById('specialization').value = p.specialization;
