@@ -888,6 +888,9 @@ async function generateChapterAllSections(chId) {
 
   if (btn) { btn.disabled = false; btn.textContent = 'Regenerate all'; }
 
+  // Wait for thesisData to update before checking status
+  await new Promise(function(r){ setTimeout(r, 200); });
+
   // Notification after chapter done
   var chapterLabel = chapterSchema[chId] ? chapterSchema[chId].title : chId;
   var done = chapterIds.filter(function(id){ return getChapterStatus(id) === 'done'; }).length;
