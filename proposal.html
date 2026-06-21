@@ -12,7 +12,7 @@
 <title>Dr. NIRA — Proposal Builder</title>
 <script src="js/project-manager.js"></script>
 <script src="js/knowledge-base.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -1088,6 +1088,7 @@ function showConfirm(message, onConfirm, options) {
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'align_kb\',\'' + sectionId + '\',\'\')">🔗 Align with KB</button>' +
         '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'rewrite\',\'' + sectionId + '\',\'\')">↺ Rewrite</button>' +
         '<button class="ws-action-btn" onclick="goToUpload()">📄 Upload PDF</button>' +
+        '<button class="ws-action-btn" onclick="openWriteFromPDF(\'' + sectionId + '\')" style="background:#f0fdf4;color:#16a34a;border-color:#bbf7d0;">✍️ Write from PDF</button>' +
       '</div>' +
       '<div class="ws-input-row">' +
         '<input type="text" class="ws-input" id="ws-input-' + sectionId + '" placeholder="Custom instruction (e.g. more academic, focus on EFL teachers...)" onkeydown="if(event.key===\'Enter\'){var v=this.value.trim();if(v)runAction(\'custom\',\'' + sectionId + '\',v);}">' +
@@ -1649,6 +1650,164 @@ ${text}`;
       btn.style.opacity = '1';
       btn.style.cursor = 'pointer';
     }
+  }
+
+  // ── MODE 2: WRITE FROM PDF (isolated — does NOT affect Mode 1 KB flow) ──
+  function openWriteFromPDF(sectionId) {
+    var existing = document.getElementById('writeFromPDFModal');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'writeFromPDFModal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    overlay.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.25);font-family:Inter,sans-serif;overflow:hidden;">' +
+        '<div style="background:#f0fdf4;padding:18px 24px;border-bottom:1px solid #bbf7d0;display:flex;align-items:center;gap:10px;">' +
+          '<div style="width:36px;height:36px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">✍️</div>' +
+          '<div>' +
+            '<div style="font-size:15px;font-weight:700;color:#15803d;">Write from PDF</div>' +
+            '<div style="font-size:12px;color:#16a34a;margin-top:2px;">AI will write directly from your document</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="padding:20px 24px;">' +
+          '<p style="font-size:13px;color:#374151;margin-bottom:16px;line-height:1.6;">Upload your thesis or research PDF. Dr. NIRA will extract research questions, methodology, and literature context — then write this section directly from your document.</p>' +
+          '<div id="wfpDropzone" style="border:2px dashed #bbf7d0;border-radius:10px;padding:28px;text-align:center;cursor:pointer;background:#f8fffe;margin-bottom:16px;" onclick="document.getElementById(\'wfpFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'#16a34a\'" ondragleave="this.style.borderColor=\'#bbf7d0\'" ondrop="handleWFPDrop(event)">' +
+            '<div style="font-size:28px;margin-bottom:8px;">📄</div>' +
+            '<div style="font-size:13px;font-weight:500;color:#15803d;">Click to select PDF</div>' +
+            '<div style="font-size:11px;color:#6B7FA3;margin-top:4px;">or drag and drop</div>' +
+          '</div>' +
+          '<input type="file" id="wfpFileInput" accept=".pdf" style="display:none" onchange="handleWFPFile(this.files[0])">' +
+          '<div id="wfpFileName" style="display:none;font-size:12px;color:#15803d;font-weight:500;margin-bottom:16px;padding:8px 12px;background:#f0fdf4;border-radius:8px;"></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+            '<button onclick="document.getElementById(\'writeFromPDFModal\').remove()" style="padding:8px 16px;border:1px solid #dde6f5;background:#fff;color:#374151;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;">Cancel</button>' +
+            '<button id="wfpGenerateBtn" onclick="executeWriteFromPDF(\'' + sectionId + '\')" disabled style="padding:8px 16px;border:none;background:#16a34a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;opacity:0.5;">Generate section →</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  }
+
+  var wfpExtractedText = '';
+
+  function handleWFPDrop(e) {
+    e.preventDefault();
+    var file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') handleWFPFile(file);
+  }
+
+  async function handleWFPFile(file) {
+    if (!file) return;
+    var nameEl = document.getElementById('wfpFileName');
+    var btn = document.getElementById('wfpGenerateBtn');
+    var dropzone = document.getElementById('wfpDropzone');
+
+    if (nameEl) { nameEl.style.display = 'block'; nameEl.textContent = '⏳ Extracting text from ' + file.name + '...'; }
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+
+    try {
+      // Extract text using pdf.js (same as upload.html — no KB created)
+      if (typeof pdfjsLib === 'undefined') throw new Error('PDF library not loaded');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      var ab = await file.arrayBuffer();
+      var pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+      var text = '';
+      var maxPages = Math.min(pdf.numPages, 15); // first 15 pages
+      for (var i = 1; i <= maxPages; i++) {
+        var page = await pdf.getPage(i);
+        var content = await page.getTextContent();
+        text += content.items.map(function(item){ return item.str; }).join(' ') + '\n';
+      }
+
+      wfpExtractedText = text.trim().slice(0, 6000); // limit for API
+
+      if (!wfpExtractedText) throw new Error('Could not extract text from PDF');
+
+      if (nameEl) { nameEl.textContent = '✓ ' + file.name + ' ready (' + pdf.numPages + ' pages)'; }
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      if (dropzone) { dropzone.style.borderColor = '#16a34a'; dropzone.innerHTML = '<div style="font-size:20px">✅</div><div style="font-size:12px;color:#15803d;font-weight:500;">PDF loaded successfully</div>'; }
+
+    } catch(err) {
+      if (nameEl) { nameEl.textContent = '❌ Error: ' + err.message; nameEl.style.color = '#dc2626'; }
+    }
+  }
+
+  async function executeWriteFromPDF(sectionId) {
+    if (!wfpExtractedText) { showToast('Please select a PDF first.', 'warning'); return; }
+
+    var sectionDef = SECTIONS.find(function(s){ return s.id === sectionId; });
+    var sectionLabel = sectionDef ? sectionDef.label : sectionId;
+
+    // Confirmation dialog
+    var modal = document.getElementById('writeFromPDFModal');
+    if (modal) modal.remove();
+
+    showConfirm(
+      'Generate "' + sectionLabel + '" directly from this PDF?\n\nThis will NOT affect your Knowledge Base or any other workspace feature.',
+      async function() {
+        if (isRunningAction) { showToast('Please wait for current action.', 'warning'); return; }
+        isRunningAction = true;
+
+        showToast('Writing section from PDF...', 'info', 8000);
+
+        var wsLoading = document.getElementById('ws-loading-' + sectionId);
+        if (wsLoading) wsLoading.style.display = 'inline-block';
+        document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = true; });
+
+        try {
+          var prompt = 'You are Dr. NIRA, an expert academic writing assistant.\n\n' +
+            'The user has provided a research document. Your task is to write the "' + sectionLabel + '" section for their PhD proposal/thesis based ONLY on the content of this document.\n\n' +
+            'RULES:\n' +
+            '- Extract research questions, methodology, literature, and theoretical framework from the document\n' +
+            '- Write the section in formal academic English\n' +
+            '- Ground every claim in the provided document\n' +
+            '- Do NOT add information not present in the document\n' +
+            '- Output ONLY the section content, no headings or preamble\n\n' +
+            'DOCUMENT CONTENT:\n' + wfpExtractedText + '\n\n' +
+            'Write the "' + sectionLabel + '" section now:';
+
+          var data = await NiraAPI.callWithRetry(async function() {
+            var res = await fetch('/api/proposal', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ messages: [
+                { role: 'system', content: BASE_SYSTEM },
+                { role: 'user', content: prompt }
+              ]})
+            });
+            if (res.status === 429) throw new Error('429 rate limit');
+            if (!res.ok) { var e = await res.json().catch(function(){ return {}; }); throw new Error(e.error || 'API error'); }
+            return await res.json();
+          });
+
+          var result = (data.result || '').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'').trim();
+          if (!result) throw new Error('Empty response');
+
+          // Save version and update — same as normal actions
+          var section = getSection(sectionId);
+          pushVersion(sectionId, section.content || generated[sectionId] || '');
+          updateSection(sectionId, { content: result });
+          var contentEl = document.getElementById('content-' + sectionId);
+          if (contentEl) contentEl.innerText = result;
+          renderWorkspaceHistory(sectionId);
+          renderWorkspaceVersions(sectionId);
+
+          showToast('"' + sectionLabel + '" written from PDF ✓', 'success', 5000);
+          wfpExtractedText = ''; // reset for next use
+
+        } catch(err) {
+          showToast('Error: ' + err.message, 'error');
+        } finally {
+          isRunningAction = false;
+          if (wsLoading) wsLoading.style.display = 'none';
+          document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = false; });
+        }
+      },
+      { okLabel: 'Yes, Generate Section' }
+    );
   }
 
   function goToUpload() {
