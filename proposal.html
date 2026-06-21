@@ -921,12 +921,33 @@ function showConfirm(message, onConfirm, options) {
   // ── ACTION ROUTER ──
   async function runAction(action, sectionId, userInput) {
     if (isRunningAction) { showToast('Please wait for current action to complete.', 'warning'); return; }
-    isRunningAction = true;
 
     var sectionDef = SECTIONS.find(function(s){ return s.id === sectionId; });
     var sectionLabel = sectionDef ? sectionDef.label : sectionId;
     var section = getSection(sectionId);
-    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var currentContent = (section.content || generated[sectionId] || '').trim();
+
+    // ── LAYER 1: Content guard ──
+    if (!currentContent && action !== 'custom' && action !== 'align_kb') {
+      showToast('Please generate or write content first, then use workspace actions.', 'warning', 4000);
+      return;
+    }
+
+    // ── LAYER 2: Safe isRunningAction with logging ──
+    isRunningAction = true;
+    console.log('[Workspace] Action started:', action, sectionId);
+
+    // ── LAYER 3: Safe kb guard ──
+    var kb = null;
+    try {
+      if (typeof NiraKB !== 'undefined') {
+        kb = NiraKB.load();
+      }
+    } catch(kbErr) {
+      console.error('[Workspace] KB load failed:', kbErr);
+      kb = null;
+    }
+    console.log('[Workspace] KB loaded:', !!kb);
 
     // Show loading in workspace
     var wsLoading = document.getElementById('ws-loading-' + sectionId);
@@ -935,7 +956,9 @@ function showConfirm(message, onConfirm, options) {
     document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = true; });
 
     try {
-      var userPrompt = buildWorkspacePrompt(action, sectionLabel, section.content || generated[sectionId] || '', userInput, kb);
+      console.log('[Workspace] Content length:', currentContent.length);
+      console.log('[Workspace] Action:', action);
+      var userPrompt = buildWorkspacePrompt(action, sectionLabel, currentContent, userInput, kb);
       var messages = buildMessagesWithHistory(sectionId, BASE_SYSTEM, userPrompt);
 
       var data = await NiraAPI.callWithRetry(async function() {
@@ -953,12 +976,13 @@ function showConfirm(message, onConfirm, options) {
       });
 
       var result = (data.result || '').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'').trim();
+      if (!result) throw new Error('Empty response from AI');
 
       // Save version before updating
-      pushVersion(sectionId, section.content || generated[sectionId] || '');
+      pushVersion(sectionId, currentContent);
       updateSection(sectionId, { content: result });
 
-      // Push history with fullText for multi-turn
+      // Push history
       var actionLabel = { improve:'Improve style', expand:'Expand', shorten:'Shorten', citations:'Add citations', align_kb:'Align with KB', rewrite:'Rewrite', custom: userInput || 'Custom' };
       pushHistory(sectionId, { role: 'user', text: actionLabel[action] || userInput || action });
       pushHistory(sectionId, { role: 'assistant', text: result.slice(0, 120) + (result.length > 120 ? '...' : ''), fullText: result });
@@ -967,17 +991,19 @@ function showConfirm(message, onConfirm, options) {
       var contentEl = document.getElementById('content-' + sectionId);
       if (contentEl) contentEl.innerText = result;
 
-      // Update workspace UI
       renderWorkspaceHistory(sectionId);
       renderWorkspaceVersions(sectionId);
 
       showToast('Section updated!', 'success');
       if (wsInput) wsInput.value = '';
+      console.log('[Workspace] Action completed:', action);
 
     } catch(err) {
+      console.error('[Workspace] Action failed:', err.message);
       showToast('Error: ' + err.message, 'error');
     } finally {
       isRunningAction = false;
+      console.log('[Workspace] isRunningAction reset to false');
       if (wsLoading) wsLoading.style.display = 'none';
       document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = false; });
     }
