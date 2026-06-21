@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="js/project-manager.js"></script>
-<!-- auth-guard disabled until auth is activated -->
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="/manifest.json">
@@ -12,8 +9,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dr. NIRA">
-<title>Dr. NIRA — My Proposals</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>Dr. NIRA — Proposal Builder</title>
+<script src="js/project-manager.js"></script>
+<script src="js/knowledge-base.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -24,10 +23,11 @@
     --muted: #a0b0cc; --text-dark: #1B2A4A; --text-mid: #6B7FA3;
     --border: #dde6f5; --sidebar-w: 240px;
     --green: #16a34a; --green-pale: #f0fdf4;
-    --red: #dc2626; --red-pale: #fef2f2;
   }
   html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff; color: var(--text-dark); }
   .app-shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
   .sidebar { width: var(--sidebar-w); background: var(--navy-dark); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
   .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
   .sidebar-logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
@@ -48,83 +48,252 @@
   .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
   .user-name { font-size: 12px; font-weight: 500; color: #fff; }
   .user-role { font-size: 11px; color: var(--muted); }
+
+  /* MAIN */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .topbar-title { font-size: 15px; font-weight: 600; color: var(--text-dark); }
   .topbar-actions { display: flex; align-items: center; gap: 10px; }
   .btn-sm { background: var(--blue); color: #fff; border: none; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
   .btn-sm:hover { background: #1d4ed8; }
-  .btn-sm-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-sm:disabled { background: #93b4f0; cursor: not-allowed; }
+  .btn-sm-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; }
   .btn-sm-outline:hover { background: var(--blue-pale); }
   .content { flex: 1; overflow-y: auto; padding: 28px; }
-  .page-header { margin-bottom: 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-  .page-header-text h1 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--navy-dark); margin-bottom: 6px; }
-  .page-header-text p { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
 
-  /* SAVE CURRENT */
-  .save-bar { background: var(--navy-dark); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .save-bar-text h4 { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 3px; }
-  .save-bar-text p { font-size: 12px; color: var(--muted); }
-  .save-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .save-input { padding: 8px 12px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #fff; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; width: 220px; }
-  .save-input::placeholder { color: var(--muted); }
-  .save-input:focus { border-color: var(--blue-light); }
-  .btn-save { background: var(--blue); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
-  .btn-save:hover { background: #1d4ed8; }
+  /* LAYOUT */
+  .proposal-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
 
-  /* PROPOSALS GRID */
-  .proposals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  /* LEFT NAV */
+  .sections-nav { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; position: sticky; top: 0; }
+  .sections-nav-header { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .sections-nav-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
+  .sections-nav-header p { font-size: 11px; color: var(--text-mid); }
+  .sections-list { padding: 10px 10px; }
+  .section-nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; }
+  .section-nav-item:hover { background: #f8faff; }
+  .section-nav-item.active { background: var(--blue-pale); }
+  .section-status { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section-status.done { background: var(--green); border-color: var(--green); }
+  .section-status.active { background: var(--blue); border-color: var(--blue); }
+  .section-status.generating { background: var(--blue-pale); border-color: var(--blue); animation: pulse 1s infinite; }
+  .section-status svg { width: 10px; height: 10px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .section-nav-label { font-size: 12px; color: var(--text-mid); flex: 1; }
+  .section-nav-item.active .section-nav-label { color: var(--blue); font-weight: 500; }
+  .section-nav-item.done-item .section-nav-label { color: var(--text-dark); }
 
-  /* PROPOSAL CARD */
-  .proposal-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; cursor: pointer; }
-  .proposal-card:hover { border-color: var(--blue-light); transform: translateY(-2px); }
-  .proposal-card-top { background: var(--navy-dark); padding: 18px 18px 14px; }
-  .proposal-card-num { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
-  .proposal-card-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: #fff; line-height: 1.4; margin-bottom: 8px; }
-  .proposal-card-meta { font-size: 11px; color: var(--muted); }
-  .proposal-card-body { padding: 14px 18px; }
-  .proposal-progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
-  .proposal-progress-fill { height: 100%; background: var(--blue); border-radius: 2px; }
-  .proposal-stats { display: flex; gap: 12px; margin-bottom: 14px; }
-  .proposal-stat { font-size: 11px; color: var(--text-mid); }
-  .proposal-stat strong { color: var(--text-dark); font-weight: 600; }
-  .proposal-sections { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; }
-  .section-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .section-dot.done { background: var(--blue); }
-  .section-dot.empty { background: var(--border); }
-  .proposal-card-actions { display: flex; gap: 6px; }
-  .btn-card { flex: 1; padding: 7px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; text-align: center; transition: all 0.15s; border: 1px solid var(--border); background: #fff; color: var(--text-dark); }
-  .btn-card:hover { background: var(--blue-pale); border-color: var(--blue-light); color: var(--blue); }
-  .btn-card.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .btn-card.primary:hover { background: #1d4ed8; }
-  .btn-card.danger:hover { background: var(--red-pale); border-color: #fecaca; color: var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  /* EMPTY STATE */
-  .empty-state { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 60px 24px; text-align: center; }
-  .empty-icon { width: 60px; height: 60px; background: var(--blue-pale); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
-  .empty-icon svg { width: 30px; height: 30px; fill: none; stroke: var(--blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
-  .empty-state p { font-size: 13px; color: var(--text-mid); line-height: 1.6; max-width: 300px; margin: 0 auto 20px; }
+  .nav-progress { padding: 14px 18px; border-top: 1px solid var(--border); }
+  .nav-progress-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+  .nav-progress-fill { height: 100%; background: var(--blue); border-radius: 3px; transition: width 0.4s ease; }
+  .nav-progress-label { font-size: 11px; color: var(--text-mid); }
 
-  /* MODAL */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
-  .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; overflow: hidden; }
-  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .modal-header h3 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--navy-dark); }
-  .modal-close { background: none; border: none; font-size: 22px; color: var(--text-mid); cursor: pointer; line-height: 1; }
-  .modal-body { padding: 24px; max-height: 60vh; overflow-y: auto; }
-  .modal-section { margin-bottom: 20px; }
-  .modal-section-title { font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
-  .modal-section-text { font-size: 13px; color: var(--text-dark); line-height: 1.75; white-space: pre-wrap; }
-  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+  /* TOPIC CHIP */
+  .topic-chip { background: var(--navy-dark); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .topic-chip-text h4 { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+  .topic-chip-text p { font-size: 11px; color: var(--muted); }
+  .topic-chip-change { font-size: 11px; color: var(--blue-light); cursor: pointer; white-space: nowrap; flex-shrink: 0; text-decoration: underline; }
+
+  /* MODE CHOICE CARDS */
+  .mode-choice-card { background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 24px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 12px; }
+  .mode-choice-card:hover { border-color: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+  .mode-choice-card.selected-ai { border-color: var(--blue); background: var(--blue-pale); }
+  .mode-choice-card.selected-manual { border-color: #16a34a; background: #f0fdf4; }
+  .mode-choice-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .mode-choice-icon.ai { background: var(--blue); }
+  .mode-choice-icon.manual { background: #16a34a; }
+  .mode-choice-icon svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mode-choice-title { font-size: 15px; font-weight: 600; color: var(--navy-dark); }
+  .mode-choice-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+  .mode-choice-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .mode-choice-list li { font-size: 12px; color: var(--text-mid); display: flex; align-items: center; gap: 6px; }
+  .mode-choice-list li::before { content: '✓'; color: var(--blue); font-weight: 600; font-size: 11px; }
+  .mode-choice-card.selected-manual .mode-choice-list li::before { color: #16a34a; }
+  .mode-choice-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-align: center; margin-top: 4px; }
+  .mode-choice-badge.ai { background: var(--blue-pale); color: var(--blue); }
+  .mode-choice-badge.manual { background: #dcfce7; color: #16a34a; }
+
+  .mode-choice-icon.workspace { background: #0891b2; }
+  .mode-choice-badge.workspace { background: #e0f2fe; color: #0891b2; }
+  .workspace-card { grid-column: 1 / -1; }
+
+  /* WORKSPACE PANEL */
+  /* SUPERVISOR REVIEW PANEL */
+  .sup-overlay { position: fixed; inset: 0; background: rgba(15,27,51,0.45); z-index: 9000; display: none; }
+  .sup-overlay.open { display: block; }
+  .sup-panel { position: fixed; top: 0; right: -480px; width: 460px; max-width: 92vw; height: 100vh; background: #fff; z-index: 9001; box-shadow: -8px 0 32px rgba(0,0,0,0.18); transition: right 0.3s cubic-bezier(0.32,0.72,0,1); display: flex; flex-direction: column; }
+  .sup-panel.open { right: 0; }
+  .sup-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .sup-header h3 { font-size: 15px; font-weight: 600; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+  .sup-close { background: none; border: none; cursor: pointer; color: var(--text-mid); padding: 4px; border-radius: 6px; display: flex; }
+  .sup-close:hover { background: #f0f4ff; color: var(--text-dark); }
+  .sup-body { flex: 1; overflow-y: auto; padding: 22px; }
+
+  .sup-loading { padding: 20px 0; }
+  .sup-loading-step { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 13px; color: var(--text-mid); opacity: 0.4; transition: opacity 0.3s; }
+  .sup-loading-step.active { opacity: 1; color: var(--text-dark); font-weight: 500; }
+  .sup-loading-step.done { opacity: 0.7; color: #16a34a; }
+  .sup-loading-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sup-loading-step.active .sup-loading-dot { border-color: var(--blue); border-top-color: transparent; animation: spin 0.8s linear infinite; }
+  .sup-loading-step.done .sup-loading-dot { border-color: #16a34a; background: #16a34a; }
+  .sup-loading-step.done .sup-loading-dot::after { content: '✓'; color: #fff; font-size: 10px; }
+
+  .sup-score-hero { text-align: center; padding: 16px 0 24px; }
+  .sup-score-num { font-size: 44px; font-weight: 700; color: var(--navy); font-family: 'Playfair Display', serif; line-height: 1; }
+  .sup-score-max { font-size: 18px; color: var(--text-mid); }
+  .sup-score-label { display: inline-block; margin-top: 8px; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .sup-score-label.excellent { background: #dcfce7; color: #16a34a; }
+  .sup-score-label.strong { background: #dbeafe; color: #2563EB; }
+  .sup-score-label.acceptable { background: #fef3c7; color: #d97706; }
+  .sup-score-label.needs-improvement { background: #fed7aa; color: #ea580c; }
+  .sup-score-label.major-revision { background: #fecaca; color: #dc2626; }
+
+  .sup-readiness { background: #f8faff; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+  .sup-readiness-label { font-size: 12px; color: var(--text-mid); font-weight: 500; }
+  .sup-readiness-val { font-size: 16px; font-weight: 700; color: var(--blue); }
+
+  .sup-section-title { font-size: 11px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 0 10px; }
+  .sup-cat-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .sup-cat-name { font-size: 12px; color: var(--text-dark); flex: 0 0 150px; }
+  .sup-cat-bar-track { flex: 1; height: 7px; background: #f0f4ff; border-radius: 4px; overflow: hidden; }
+  .sup-cat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .sup-cat-score { font-size: 11px; font-weight: 600; color: var(--text-mid); flex: 0 0 36px; text-align: right; }
+
+  .sup-issue-item, .sup-rec-item { display: flex; gap: 10px; padding: 10px 0; font-size: 13px; color: var(--text-dark); line-height: 1.6; border-bottom: 1px solid #f0f4ff; }
+  .sup-issue-item:last-child, .sup-rec-item:last-child { border-bottom: none; }
+  .sup-icon-bullet { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; margin-top: 1px; }
+  .sup-icon-bullet.issue { background: #fef2f2; color: #dc2626; }
+  .sup-icon-bullet.rec { background: #f0fdf4; color: #16a34a; }
+
+  .sup-footer { padding: 16px 22px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .sup-rerun-btn { width: 100%; padding: 10px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .sup-rerun-btn:hover { background: var(--navy-dark); }
+  .sup-rerun-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .sup-empty { text-align: center; padding: 40px 20px; color: var(--text-mid); font-size: 13px; }
+
+  .workspace-panel { border-top: 1px solid #e0f2ff; background: #f0f9ff; padding: 14px 20px; margin-top: 0; }
+  .workspace-panel-header { font-size: 11px; font-weight: 600; color: #0891b2; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .workspace-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .ws-action-btn { border: 1px solid #bae6fd; background: #fff; color: #0369a1; font-size: 11px; font-weight: 500; padding: 5px 11px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+  .ws-action-btn:hover { background: #0891b2; color: #fff; border-color: #0891b2; }
+  .ws-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ws-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .ws-input { flex: 1; padding: 8px 12px; border: 1px solid #bae6fd; border-radius: 7px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-dark); outline: none; background: #fff; }
+  .ws-input:focus { border-color: #0891b2; }
+  .ws-send-btn { background: #0891b2; color: #fff; border: none; padding: 8px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+  .ws-send-btn:hover { background: #0e7490; }
+  .ws-send-btn:disabled { background: #7dd3fc; cursor: not-allowed; }
+  .ws-history { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+  .ws-history-item { font-size: 12px; padding: 8px 12px; border-radius: 10px; line-height: 1.6; max-width: 92%; word-break: break-word; }
+  .ws-history-item.user { background: #0891b2; color: #fff; border-radius: 10px 10px 4px 10px; align-self: flex-end; }
+  .ws-history-item.assistant { background: #f0f9ff; border: 1px solid #e0f2fe; color: var(--text-dark); border-radius: 10px 10px 10px 4px; align-self: flex-start; }
+  .ws-history-label { font-size: 10px; font-weight: 600; margin-bottom: 2px; opacity: 0.75; }
+  .ws-version-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .ws-version-btn { font-size: 10px; padding: 2px 8px; border: 1px solid #bae6fd; border-radius: 10px; background: #fff; color: #0369a1; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .ws-version-btn:hover { background: #e0f2fe; }
+  .ws-spinner { width: 14px; height: 14px; border: 2px solid #bae6fd; border-top-color: #0891b2; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+  .mode-choice-badge.guided { background: #fef3c7; color: #92400e; }
+  .mode-choice-card.selected-guided { border-color: #d97706; background: #fffbeb; }
+
+  /* FAST TRACK MODE */
+  .mode-choice-icon.fast { background: #7c3aed; }
+  .mode-choice-badge.fast { background: #ede9fe; color: #7c3aed; }
+  .title-input-screen { display:none; max-width:580px; margin:0 auto 24px; background:#fff; border:1px solid var(--border); border-radius:16px; padding:32px; }
+  .title-input-header { text-align:center; margin-bottom:24px; }
+  .title-input-icon { width:52px; height:52px; background:#7c3aed; border-radius:12px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .title-input-icon svg { width:26px; height:26px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .title-input-header h3 { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--navy-dark); margin-bottom:6px; }
+  .title-input-header p { font-size:13px; color:var(--text-mid); line-height:1.6; }
+  .title-textarea { width:100%; padding:14px 16px; border:2px solid var(--border); border-radius:10px; font-size:15px; font-family:'Playfair Display',serif; color:var(--text-dark); outline:none; resize:none; line-height:1.6; transition:border-color 0.2s; min-height:100px; }
+  .title-textarea:focus { border-color:#7c3aed; }
+  .title-generate-btn { width:100%; padding:13px; background:#7c3aed; color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:500; cursor:pointer; font-family:'Inter',sans-serif; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:16px; transition:background 0.2s; }
+  .title-generate-btn:hover { background:#6d28d9; }
+  .title-generate-btn:disabled { background:#a78bfa; cursor:not-allowed; }
+  .title-back-btn { width:100%; padding:10px; background:transparent; color:var(--text-mid); border:1px solid var(--border); border-radius:9px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; margin-top:8px; }
+  .title-back-btn:hover { background:var(--blue-pale); }
+
+  /* GUIDED FEEDBACK PANEL */
+  .guided-feedback-panel { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin-top: 10px; display: none; }
+  .guided-feedback-panel.open { display: block; }
+  .guided-feedback-title { font-size: 11px; font-weight: 600; color: #92400e; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .guided-feedback-text { font-size: 13px; color: var(--text-dark); line-height: 1.75; white-space: pre-wrap; }
+  .guided-get-btn { background: #d97706; color: #fff; border: none; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 5px; }
+  .guided-get-btn:hover { background: #b45309; }
+  .guided-get-btn:disabled { background: #fbbf24; cursor: not-allowed; }
+
+  /* MANUAL MODE TEXTAREA */
+  .manual-textarea { width: 100%; padding: 16px; border: none; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.8; resize: vertical; min-height: 160px; background: #fafcff; }
+  .manual-textarea::placeholder { color: #b0bec5; font-style: italic; }
+  .manual-section-footer { padding: 10px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; }
+  .manual-save-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .manual-save-btn:hover { background: #15803d; }
+  .authored-badge { font-size: 11px; color: #16a34a; font-weight: 500; }
+  .generate-all-text h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
+  .generate-all-text p { font-size: 12px; color: var(--text-mid); }
+  .generate-all-btn { background: var(--navy-dark); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; transition: background 0.2s; }
+  .generate-all-btn:hover { background: var(--navy); }
+  .generate-all-btn:disabled { background: #93b4f0; cursor: not-allowed; }
+
+  /* SECTION CARDS */
+  .section-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+  .section-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .section-card-title { display: flex; align-items: center; gap: 10px; }
+  .section-card-num { width: 28px; height: 28px; border-radius: 50%; background: var(--blue-pale); color: var(--blue); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section-card-num.done { background: var(--green); color: #fff; }
+  .section-card-label { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+  .section-card-desc { font-size: 12px; color: var(--text-mid); margin-top: 1px; }
+  .section-card-actions { display: flex; align-items: center; gap: 8px; }
+
+  .btn-gen { background: var(--blue); color: #fff; border: none; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 5px; }
+  .btn-gen:hover { background: #1d4ed8; }
+  .btn-gen:disabled { background: #93b4f0; cursor: not-allowed; }
+  .btn-regen { background: transparent; color: var(--text-mid); border: 1px solid var(--border); padding: 7px 12px; border-radius: 7px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-regen:hover { background: var(--blue-pale); color: var(--blue); }
+
+  .section-card-body { padding: 20px; }
+
+  /* EMPTY SECTION */
+  .section-empty { text-align: center; padding: 28px; }
+  .section-empty p { font-size: 13px; color: var(--text-mid); }
+
+  /* CONTENT AREA */
+  .section-content { font-size: 14px; color: var(--text-dark); line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+  .section-content[contenteditable="true"] {
+    outline: none; border: 1px dashed var(--border); border-radius: 8px;
+    padding: 14px; min-height: 80px; cursor: text;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .section-content[contenteditable="true"]:hover { border-color: var(--blue-light); }
+  .section-content[contenteditable="true"]:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); border-style: solid; }
+  .section-content.unsaved { border-color: #d97706 !important; border-style: solid !important; }
+  .edit-hint { font-size: 11px; color: var(--text-mid); cursor: pointer; }
+  .edit-hint.unsaved-hint { color: #d97706; font-weight: 500; }
+
+  /* GENERATING */
+  .generating-placeholder { display: flex; align-items: center; gap: 10px; padding: 20px; color: var(--text-mid); font-size: 13px; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* WORD COUNT */
+  .section-footer { padding: 10px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #fafcff; }
+  .word-count { font-size: 11px; color: var(--text-mid); }
+  .edit-hint { font-size: 11px; color: var(--text-mid); }
+
+  /* EXPORT BAR */
+  .export-bar { background: var(--navy-dark); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .export-bar-text h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+  .export-bar-text p { font-size: 12px; color: var(--muted); }
+  .export-bar-actions { display: flex; gap: 8px; }
+  .btn-export { background: var(--blue); color: #fff; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-export:hover { background: #1d4ed8; }
 
   @media (max-width: 900px) {
     .sidebar { display: none; }
-    .proposals-grid { grid-template-columns: 1fr; }
+    .proposal-layout { grid-template-columns: 1fr; }
     .content { padding: 16px; }
-    .save-bar { flex-direction: column; align-items: flex-start; }
-    .save-bar-right { width: 100%; }
-    .save-input { width: 100%; }
   }
   /* MOBILE BOTTOM NAV */
   .mobile-nav {
@@ -162,6 +331,8 @@
     .mobile-nav { display: block; }
     .content { padding: 16px; padding-bottom: 80px; }
     .topbar { padding: 0 16px; }
+    .sections-nav { display: none; }
+    .proposal-layout { grid-template-columns: 1fr; }
   }
 
   @media (min-width: 901px) {
@@ -176,6 +347,11 @@
   .more-group-sub { font-size: 10px; color: #a0b0cc; }
   .more-item.active-item { background: #f0f4ff; }
   .more-item.active-item .more-item-label { font-weight: 600; color: #2563EB; }
+
+  .help-icon { display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#EEF4FF;color:#2563EB;font-size:10px;font-weight:700;border:1px solid #dde6f5;cursor:pointer;vertical-align:middle;margin-left:5px;font-family:Inter,sans-serif;line-height:1;flex-shrink:0; }
+  .help-icon:hover { background:#2563EB;color:#fff;border-color:#2563EB; }
+  .help-tooltip { position:fixed;background:#0F1B33;color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.6;max-width:240px;z-index:99999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.25);font-family:Inter,sans-serif;display:none; }
+  .help-tooltip strong { color:#60A5FA;display:block;margin-bottom:3px;font-size:12px; }
 </style>
 <script>
 function showToast(message, type = 'success', duration = 3000) {
@@ -188,7 +364,7 @@ function showToast(message, type = 'success', duration = 3000) {
   if (!document.getElementById('nira-toast-style')) {
     const s = document.createElement('style');
     s.id = 'nira-toast-style';
-    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}';
     document.head.appendChild(s);
   }
   const colors = { success:'#16a34a', error:'#dc2626', info:'#2563EB', warning:'#d97706' };
@@ -199,57 +375,77 @@ function showToast(message, type = 'success', duration = 3000) {
   document.getElementById('nira-toast-container').appendChild(toast);
   setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
 }
-
 function showConfirm(message, onConfirm, options) {
   options = options || {};
-  const okLabel = options.okLabel || 'Confirm';
-  const okColor = options.danger ? '#dc2626' : '#2563EB';
-
-  const overlay = document.createElement('div');
+  var okLabel = options.okLabel || 'Confirm';
+  var okColor = options.danger ? '#dc2626' : '#2563EB';
+  var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
-
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.25);animation:modalIn 0.2s ease;';
-  modal.innerHTML = `
-    <div style="font-size:14px;color:#1B2A4A;line-height:1.6;margin-bottom:20px;">${message}</div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button id="nira-confirm-cancel" style="padding:8px 16px;border:1px solid #dde6f5;background:#fff;color:#1B2A4A;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
-      <button id="nira-confirm-ok" style="padding:8px 16px;border:none;background:${okColor};color:#fff;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">${okLabel}</button>
-    </div>`;
-
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.25);font-family:Inter,sans-serif;';
+  modal.innerHTML = '<div style="font-size:14px;color:#1B2A4A;line-height:1.6;margin-bottom:20px;">' + message + '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+    '<button id="nira-cc" style="padding:8px 16px;border:1px solid #dde6f5;background:#fff;color:#1B2A4A;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Cancel</button>' +
+    '<button id="nira-co" style="padding:8px 16px;border:none;background:' + okColor + ';color:#fff;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">' + okLabel + '</button>' +
+    '</div>';
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
-
   function close() { overlay.remove(); }
-
-  document.getElementById('nira-confirm-ok').onclick = function() { close(); onConfirm(); };
-  document.getElementById('nira-confirm-cancel').onclick = close;
+  modal.querySelector('#nira-co').onclick = function() { close(); onConfirm(); };
+  modal.querySelector('#nira-cc').onclick = close;
   overlay.onclick = function(e) { if (e.target === overlay) close(); };
 }
+
 </script>
 </head>
 <body>
 <div class="app-shell">
+
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><img src="icons/dr-nira-icon-32.png" alt="Dr. NIRA" style="width:32px;height:32px;border-radius:7px;object-fit:cover;" onerror="this.style.display='none'"></div>
+      <div class="sidebar-logo-icon">
+        <img src="icons/dr-nira-icon-32.png" alt="Dr. NIRA" style="width:32px;height:32px;border-radius:7px;object-fit:cover;" onerror="this.style.display='none'">
+      </div>
       <span class="sidebar-logo-name">Dr. NIRA</span>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Main</div>
-      <a class="nav-item" href="app.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
-      <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>My profile</span></a>
-      <a class="nav-item active" href="proposals.html"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg><span>My proposals</span></a>
+      <a class="nav-item" href="app.html">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" href="profile.html">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>My profile</span>
+      </a>
+      <a class="nav-item" href="proposals.html">
+        <svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <span>My proposals</span>
+      </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Research</div>
-      <a class="nav-item" href="topic.html"><svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>Topic generator</span><span class="nav-badge">New</span></a>
+      <a class="nav-item" href="topic.html">
+        <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span>Topic generator</span>
+        <span class="nav-badge">New</span>
+      </a>
       <a class="nav-item" href="literature.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Literature search</span><span class="nav-badge">New</span></a>
       <a class="nav-item" href="reading-list.html"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg><span>Reading list</span></a>
       <a class="nav-item" href="research-gaps.html"><svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span>Research gaps</span></a>
-      <a class="nav-item" href="proposal.html"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Proposal builder</span></a>
-      <a class="nav-item" href="thesis.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Thesis builder</span></a>
-      <a class="nav-item" href="upload.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span>Upload & analyze</span></a>
+      <a class="nav-item active" href="proposal.html">
+        <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span>Proposal builder</span>
+      </a>
+      <a class="nav-item" href="thesis.html">
+        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span>Thesis builder</span>
+      </a>
+            <a class="nav-item" href="upload.html">
+        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <span>Upload & analyze</span>
+      </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Tools</div>
@@ -257,286 +453,1814 @@ function showConfirm(message, onConfirm, options) {
       <a class="nav-item" href="charts.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Charts &amp; tables</span></a>
       <a class="nav-item" href="conceptual-model.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg><span>Conceptual model</span></a>
       <a class="nav-item" href="questionnaire.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span>Questionnaire</span></a>
-      <a class="nav-item" href="enhance.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Writing enhancer</span></a>
-      <a class="nav-item" href="writer.html"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Academic writer</span></a>
-      <a class="nav-item" href="citations.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Citations</span></a>
-      <a class="nav-item" href="export.html"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Export</span></a>
+      <a class="nav-item" href="enhance.html">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Writing enhancer</span>
+      </a>
+            <a class="nav-item" href="writer.html">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Academic writer</span>
+      </a>
+      <a class="nav-item" href="citations.html">
+        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span>Citations</span>
+      </a>
+      <a class="nav-item" href="export.html">
+        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span>Export</span>
+      </a>
     </div>
     <div class="sidebar-bottom">
       <div class="user-card">
         <div class="user-avatar" id="sidebarAvatar">DR</div>
-        <div><div class="user-name" id="sidebarName">Dr. Researcher</div><div class="user-role" id="sidebarRole">PhD Candidate</div></div>
+        <div>
+          <div class="user-name" id="sidebarName">Dr. Researcher</div>
+          <div class="user-role" id="sidebarRole">PhD Candidate</div>
+        </div>
       </div>
     </div>
   </aside>
 
+  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <span class="topbar-title">My proposals</span>
+      <span class="topbar-title">Proposal builder</span>
       <div class="topbar-actions">
-        <button class="btn-sm-outline" onclick="window.location.href='app.html'">← Dashboard</button>
-        <button class="btn-sm" onclick="window.location.href='proposal.html'">
-          <svg style="width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-          New proposal
-        </button>
+        <button class="btn-sm-outline" onclick="window.location.href='topic.html'">← Topics</button>
+        <button class="btn-sm-outline" id="supervisorBtn" onclick="runSupervisorReview()" disabled style="opacity:0.45;cursor:not-allowed;">Supervisor Review</button><button class="help-icon" data-help-title="Supervisor Review" data-help-desc="Reviews your proposal for structure, research logic, and academic quality — then provides scores and feedback." aria-label="Help">i</button>
+        <button class="btn-sm" onclick="window.location.href='export.html'">Export proposal →</button>
       </div>
     </div>
 
     <div class="content">
-      <div class="page-header">
-        <div class="page-header-text">
-          <h1>My proposals</h1>
-          <p>Save, manage, and revisit all your PhD proposals in one place.</p>
+
+      <!-- MODE SELECTION SCREEN -->
+      <div id="modeSelectionScreen" style="display:none;max-width:860px;margin:0 auto 24px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <p style="font-size:11px;font-weight:600;color:var(--blue);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Choose your authoring approach</p>
+          <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--navy-dark);margin-bottom:8px">How would you like to work?</h2>
+          <p style="font-size:13px;color:var(--text-mid)">Select an approach for this session. You can change it at any time.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+          <!-- MODE 1 -->
+          <div class="mode-choice-card" onclick="selectMode('ai')">
+            <div class="mode-choice-icon ai">
+              <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <h3 class="mode-choice-title">AI-Assisted Drafting</h3>
+            <p class="mode-choice-desc">Dr. NIRA generates each section based on your research profile and topic. Review, edit, and refine the output.</p>
+            <ul class="mode-choice-list">
+              <li>AI generates all 10 sections</li>
+              <li>Instant academic drafts</li>
+              <li>Fully editable output</li>
+              <li>Regenerate any section</li>
+            </ul>
+            <div class="mode-choice-badge ai">Recommended for speed</div>
+          </div>
+
+          <!-- MODE 2 -->
+          <div class="mode-choice-card" onclick="selectMode('manual')">
+            <div class="mode-choice-icon manual">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <h3 class="mode-choice-title">Independent Authoring</h3>
+            <p class="mode-choice-desc">Write each section yourself with full scholarly control. No AI generation — pure independent academic work.</p>
+            <ul class="mode-choice-list">
+              <li>You write every section</li>
+              <li>No AI involvement</li>
+              <li>Full academic ownership</li>
+              <li>Save & edit anytime</li>
+            </ul>
+            <div class="mode-choice-badge manual">Recommended for integrity</div>
+          </div>
+
+          <!-- MODE 3 -->
+          <div class="mode-choice-card" onclick="selectMode('guided')">
+            <div class="mode-choice-icon guided">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </div>
+            <h3 class="mode-choice-title">Guided Writing</h3>
+            <p class="mode-choice-desc">You write each section independently. AI provides targeted feedback, critique, and improvement suggestions on your draft.</p>
+            <ul class="mode-choice-list">
+              <li>You write every section</li>
+              <li>AI reviews & critiques</li>
+              <li>Specific improvement notes</li>
+              <li>Academic quality feedback</li>
+            </ul>
+            <div class="mode-choice-badge guided">Recommended for learning</div>
+          </div>
+
+          <!-- MODE 4 -->
+          <div class="mode-choice-card" onclick="selectMode('fast')" style="border-color:#7c3aed">
+            <div class="mode-choice-icon fast">
+              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <h3 class="mode-choice-title">Title-to-Proposal <span style="font-size:10px;background:#ede9fe;color:#7c3aed;padding:2px 7px;border-radius:10px;font-weight:600;vertical-align:middle;margin-left:4px">Fast Track</span></h3>
+            <p class="mode-choice-desc">Enter only your research title. Dr. NIRA infers the domain, methodology, and academic context — then generates the full proposal instantly.</p>
+            <ul class="mode-choice-list">
+              <li>Only a title required</li>
+              <li>AI infers all context</li>
+              <li>Full proposal in minutes</li>
+              <li>No profile setup needed</li>
+            </ul>
+            <div class="mode-choice-badge fast">Recommended for exploration</div>
+          </div>
+
+        </div>
+
+        <!-- MODE 5 — Full width -->
+        <div class="mode-choice-card workspace-card" onclick="selectMode('workspace')" style="border-color:#0891b2;background:linear-gradient(135deg,#f0f9ff 0%,#fff 100%);">
+          <div style="display:flex;align-items:flex-start;gap:16px;">
+            <div class="mode-choice-icon workspace" style="flex-shrink:0">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/><path d="M15 5l3 3"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <h3 class="mode-choice-title" style="margin:0">AI Writing Workspace</h3>
+                <span style="font-size:10px;background:#e0f2fe;color:#0891b2;padding:2px 8px;border-radius:10px;font-weight:600;">New</span>
+              </div>
+              <p class="mode-choice-desc">Every section becomes an interactive AI workspace. Generate a first draft, then refine iteratively — improve tone, expand, shorten, add citations, or give custom instructions. Each section remembers its editing history.</p>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;">
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">Iterative editing</span>
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">7 AI actions</span>
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">KB integration</span>
+                <span style="font-size:11px;background:#e0f2fe;color:#0891b2;padding:3px 8px;border-radius:6px;text-align:center;">Version history</span>
+              </div>
+            </div>
+          </div>
+          <div class="mode-choice-badge" style="background:#e0f2fe;color:#0891b2;margin-top:12px;">Recommended for quality writing</div>
         </div>
       </div>
 
-      <!-- SAVE CURRENT -->
-      <div class="save-bar" id="saveBar" style="display:none">
-        <div class="save-bar-text">
-          <h4>You have an active proposal</h4>
-          <p id="activeProposalMeta">Save it before starting a new one</p>
+      <!-- TITLE INPUT SCREEN (Fast Track) -->
+      <div class="title-input-screen" id="titleInputScreen">
+
+        <!-- STEP 1: Title Entry -->
+        <div id="ftStep1">
+          <div class="title-input-header">
+            <div class="title-input-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <h3>Title-to-Proposal Fast Track</h3>
+            <p>Enter your research title. Dr. NIRA will suggest the academic domain and methodology — you confirm before generation begins.</p>
+          </div>
+          <textarea class="title-textarea" id="fastTrackTitle" placeholder="e.g. The Impact of Artificial Intelligence on EFL Learner Autonomy in Higher Education" rows="3" oninput="ftPreview()"></textarea>
+
+          <!-- Warning for existing proposal data -->
+          <div id="ftPrevWarn" style="display:none;margin-top:10px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#dc2626;">
+            ⚠ You have an existing proposal saved. Generating a new one will <strong>replace</strong> all previous sections.
+          </div>
+          <div id="ftPreviewBox" style="display:none;margin-top:12px;padding:12px 14px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;font-size:12px;color:#4c1d95;line-height:1.8;"></div>
+          <button class="title-generate-btn" onclick="ftGoToConfirm()">
+            <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            Review research direction →
+          </button>
+          <button class="title-back-btn" onclick="showModeSelection()">← Back to mode selection</button>
         </div>
-        <div class="save-bar-right">
-          <input class="save-input" type="text" id="proposalNameInput" placeholder="Proposal name...">
-          <button class="btn-save" onclick="saveCurrentProposal()">Save proposal</button>
+
+        <!-- STEP 2: Confirmation -->
+        <div id="ftStep2" style="display:none;">
+          <div class="title-input-header">
+            <h3 style="margin-bottom:4px">Confirm research direction</h3>
+            <p>Review the inferred context below. Edit any field if needed, then generate your proposal.</p>
+          </div>
+
+          <div style="background:#f8faff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:11px;font-weight:600;color:#7c3aed;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;">Research Direction Summary</div>
+
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">Research title</label>
+              <div id="ftConfirmTitle" style="font-size:14px;font-weight:500;color:var(--navy-dark);font-family:'Playfair Display',serif;line-height:1.5;padding:8px 10px;background:#fff;border:1px solid var(--border);border-radius:7px;"></div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">
+                Academic domain
+                <span style="font-size:10px;font-weight:400;color:var(--text-mid);margin-left:6px;" id="domainConfidence"></span>
+              </label>
+              <input type="text" id="ftEditDomain" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">
+                Suggested methodology
+                <span style="font-size:10px;font-weight:400;color:var(--text-mid);margin-left:6px;" id="methodConfidence"></span>
+              </label>
+              <input type="text" id="ftEditMethod" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">Academic level</label>
+                <select id="ftEditLevel" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;background:#fff;">
+                  <option value="PhD">PhD</option>
+                  <option value="Master's">Master's</option>
+                  <option value="Bachelor's">Bachelor's</option>
+                  <option value="Postdoctoral">Postdoctoral</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:4px;">Citation format</label>
+                <select id="ftEditCitation" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-dark);outline:none;background:#fff;">
+                  <option value="APA 7">APA 7th</option>
+                  <option value="APA 6">APA 6th</option>
+                  <option value="MLA">MLA</option>
+                  <option value="Chicago">Chicago</option>
+                  <option value="IEEE">IEEE</option>
+                  <option value="Vancouver">Vancouver</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px;line-height:1.6;">
+            ⚠ These are <strong>suggested</strong> values inferred from your title. Edit them if needed before generating — they will guide the AI throughout all 10 sections.
+          </div>
+
+          <button class="title-generate-btn" id="fastTrackBtn" onclick="startFastTrack()">
+            <svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Generate full proposal
+          </button>
+          <button class="title-back-btn" onclick="ftBackToStep1()">← Edit title</button>
+        </div>
+
+      </div>
+
+      <!-- MODE INDICATOR (shown after selection) -->
+      <div id="modeIndicator" style="display:none;margin-bottom:16px;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="modeIndicatorIcon" style="width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;">
+              <svg id="modeIndicatorSvg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-dark)" id="modeIndicatorTitle"></div>
+              <div style="font-size:11px;color:var(--text-mid)" id="modeIndicatorDesc"></div>
+            </div>
+          </div>
+          <button onclick="showModeSelection()" style="font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;">Change</button>
         </div>
       </div>
 
-      <!-- PROPOSALS -->
-      <div id="proposalsContainer"></div>
+      <!-- TOPIC CHIP -->
+      <div class="topic-chip" id="topicChip">
+        <div class="topic-chip-text">
+          <h4 id="chipTitle">No topic selected</h4>
+          <p id="chipMeta">Go to Topic generator to select a topic first</p>
+        </div>
+        <span class="topic-chip-change" onclick="changeTopic()">Change topic</span>
+      </div>
 
-    </div>
-  </div>
-</div>
+      <div class="proposal-layout" id="proposalLayout">
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h3 id="modalTitle">Proposal</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-    <div class="modal-footer">
-      <button class="btn-sm-outline" onclick="closeModal()">Close</button>
-      <button class="btn-sm" onclick="loadProposal()">Open in builder</button>
+        <!-- SECTIONS NAV -->
+        <div class="sections-nav">
+          <div class="sections-nav-header">
+            <h3>Proposal sections</h3>
+            <p id="sectionsNavDesc">Click any section to generate</p>
+          </div>
+          <div class="sections-list" id="sectionsList"></div>
+          <div class="nav-progress">
+            <div class="nav-progress-bar">
+              <div class="nav-progress-fill" id="navProgressFill" style="width:0%"></div>
+            </div>
+            <div class="nav-progress-label" id="navProgressLabel">0 of 10 sections complete</div>
+          </div>
+        </div>
+
+        <!-- RIGHT CONTENT -->
+        <div>
+            <div class="generate-all-bar" id="generateAllBar" style="display:flex">
+              <div class="generate-all-text">
+                <h4>Generate full proposal</h4>
+                <p>Auto-generate all 10 sections one by one with academic precision.</p>
+              </div>
+              <button class="generate-all-btn" id="generateAllBtn" onclick="generateAll()">
+                <svg style="width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                Generate all sections
+              </button>
+            </div>
+
+          <!-- SECTION CARDS -->
+          <div id="sectionCards"></div>
+
+          <!-- EXPORT BAR -->
+          <div class="export-bar" id="exportBar" style="display:none">
+            <div class="export-bar-text">
+              <h4>Your proposal is ready!</h4>
+              <p>All sections generated. Export as DOCX or PDF.</p>
+            </div>
+            <div class="export-bar-actions">
+              <button class="btn-export" onclick="window.location.href='export.html'">Export DOCX / PDF</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  const SECTION_LABELS = {
-    title: 'Title', problem: 'Problem Statement', objectives: 'Objectives',
-    questions: 'Research Questions', hypotheses: 'Hypotheses',
-    literature: 'Literature Review', novelty: 'Innovation & Necessity',
-    methodology: 'Methodology', limitations: 'Limitations', references: 'References'
+  const SECTIONS = [
+    { id: 'title',        label: 'Title',                  desc: 'English & Persian title + short title' },
+    { id: 'problem',      label: 'Problem statement',      desc: 'Introduction, importance, research gap' },
+    { id: 'objectives',   label: 'Objectives',             desc: 'General, specific & applied objectives' },
+    { id: 'questions',    label: 'Research questions',     desc: 'Main question & sub-questions' },
+    { id: 'hypotheses',   label: 'Hypotheses',             desc: 'Main & sub-hypotheses' },
+    { id: 'literature',   label: 'Literature review',      desc: 'Domestic & international background' },
+    { id: 'novelty',      label: 'Innovation & necessity', desc: 'What makes this research unique' },
+    { id: 'methodology',  label: 'Methodology',            desc: 'Type, population, sampling, tools, analysis' },
+    { id: 'limitations',  label: 'Limitations',            desc: 'Research scope and constraints' },
+    { id: 'references',   label: 'Initial references',     desc: 'Suggested key references in correct format' }
+  ];
+
+  let profile = {};
+  let topic = {};
+  let generated = {};
+  let generating = false;
+  let authoringMode = localStorage.getItem('nira_authoring_mode') || 'ai';
+
+  // ── WORKSPACE STATE (Mode 5) ──
+  var LIMITS = { aiHistory: 10, versions: 3 };
+  var isRunningAction = false;
+
+  var WorkspaceState = {
+    sections: {},
+    activeSectionId: null,
+    version: 1
   };
 
-  let proposals = JSON.parse(localStorage.getItem('nira_proposals') || '[]');
-  let activeModalId = null;
+  function getSection(id) {
+    if (!WorkspaceState.sections[id]) {
+      WorkspaceState.sections[id] = {
+        content: generated[id] || '',
+        aiHistory: [],
+        versions: []
+      };
+    }
+    return WorkspaceState.sections[id];
+  }
+
+  function updateSection(id, patch) {
+    var section = getSection(id);
+    Object.assign(section, patch);
+    if (patch.content !== undefined) {
+      generated[id] = patch.content;
+      NiraProject.save('proposal', generated);
+    }
+    saveWorkspaceState();
+  }
+
+  function pushHistory(id, message) {
+    var section = getSection(id);
+    section.aiHistory.push(message);
+    if (section.aiHistory.length > LIMITS.aiHistory) {
+      section.aiHistory = section.aiHistory.slice(-LIMITS.aiHistory);
+    }
+    saveWorkspaceState();
+  }
+
+  function pushVersion(id, text) {
+    var section = getSection(id);
+    section.versions.unshift({ text: text, savedAt: new Date().toLocaleTimeString() });
+    if (section.versions.length > LIMITS.versions) {
+      section.versions = section.versions.slice(0, LIMITS.versions);
+    }
+    saveWorkspaceState();
+  }
+
+  function saveWorkspaceState() {
+    try { localStorage.setItem('nira_workspace_state', JSON.stringify(WorkspaceState)); } catch(e) {}
+  }
+
+  function loadWorkspaceState() {
+    try {
+      // Only load workspace state if we have actual project data
+      if (typeof NiraProject !== 'undefined') {
+        var sg = NiraProject.load('proposal');
+        if (!sg || Object.keys(sg).length === 0) {
+          localStorage.removeItem('nira_workspace_state');
+          return;
+        }
+      }
+      var raw = localStorage.getItem('nira_workspace_state');
+      if (raw) WorkspaceState = JSON.parse(raw);
+    } catch(e) {}
+  }
+
+  // ── PROMPT SYSTEM ──
+  var BASE_SYSTEM = 'You are an academic writing assistant for a single section of a research proposal.\n' +
+    'Rules:\n' +
+    '- Only modify the provided section. Do not rewrite other sections.\n' +
+    '- Maintain formal academic tone throughout.\n' +
+    '- Preserve structure unless explicitly asked to change it.\n' +
+    '- If Knowledge Base context is provided, use it for consistency.\n' +
+    '- Output only the final improved section text. No labels, no headings, no explanation.';
+
+  var ACTION_PROMPTS = {
+    improve:   'Task: Improve academic tone and clarity.\nFocus: Make text more formal, improve sentence structure, remove informal expressions, increase academic precision.\nDo NOT change meaning or add new ideas.',
+    expand:    'Task: Expand the section with relevant academic detail.\nRules: Add supporting explanations and theoretical depth. Do not introduce unrelated concepts. If Knowledge Base exists, use relevant concepts.',
+    shorten:   'Task: Shorten the section while preserving meaning.\nRules: Remove redundancy, keep key academic points, maintain coherence, preserve citations if present.',
+    citations: 'Task: Improve academic credibility by adding citations.\nRules: Insert placeholder citations like (Author, Year). Do not invent real papers. Align with existing concepts. Use Knowledge Base keywords if available.',
+    align_kb:  'Task: Align this section with the Knowledge Base research context.\nRules:\n- Update terminology to match KB concepts\n- Ensure consistency with KB findings and variables\n- Strengthen conceptual alignment\n- Do NOT append KB content verbatim\n- Output a refined version of the section only',
+    rewrite:   'Task: Completely rewrite this section.\nRules: Keep original intent, improve structure, use academic style, use KB if available. Output clean final version.',
+    custom:    'Task: Follow the user instruction precisely.\nRules: Apply only requested changes, keep academic tone, do not rewrite unrelated parts.'
+  };
+
+  function buildKBContextForAction(kb, action) {
+    if (!kb || kb.status !== 'complete') return '';
+    var ext = kb.extracted || {};
+
+    // Standard context for most actions
+    var ctx = '';
+    if (kb.masterSummary) ctx += '\n[KNOWLEDGE BASE]\n' + kb.masterSummary.slice(0, 400);
+    if (ext.keywords   && ext.keywords.length)   ctx += '\nKeywords: ' + ext.keywords.slice(0,6).join(', ');
+    if (ext.variables  && ext.variables.length)  ctx += '\nVariables: ' + ext.variables.slice(0,4).join(', ');
+    if (ext.findings   && ext.findings.length)   ctx += '\nFindings: ' + ext.findings.slice(0,3).join(' | ');
+
+    // Enriched context only for align_kb
+    if (action === 'align_kb') {
+      if (ext.researchQuestions && ext.researchQuestions.length)
+        ctx += '\nResearch questions: ' + ext.researchQuestions.slice(0,2).join(' | ');
+      if (ext.methodology && ext.methodology.length)
+        ctx += '\nMethodology: ' + ext.methodology.slice(0,2).join(' | ');
+      // Top 3 most relevant chunk summaries
+      var chunks = (kb.chunkSummaries || []).slice(0, 3);
+      if (chunks.length) {
+        ctx += '\n[KEY INSIGHTS FROM DOCUMENT]';
+        chunks.forEach(function(c, i) {
+          ctx += '\n' + (i+1) + '. ' + (c.summary || '').slice(0, 200);
+        });
+      }
+    }
+    return ctx;
+  }
+
+  function buildWorkspacePrompt(action, sectionLabel, content, userInput, kb) {
+    var kbContext = buildKBContextForAction(kb, action);
+
+    return BASE_SYSTEM + '\n\n' +
+      '[SECTION]\n' + sectionLabel + '\n\n' +
+      '[CURRENT CONTENT]\n' + content +
+      (kbContext ? '\n\n' + kbContext : '') + '\n\n' +
+      '[ACTION]\n' + (ACTION_PROMPTS[action] || ACTION_PROMPTS.custom) +
+      (userInput ? '\n\nUser instruction: ' + userInput : '');
+  }
+
+  function buildMessagesWithHistory(sectionId, systemPrompt, userPrompt) {
+    var messages = [{ role: 'system', content: systemPrompt }];
+    // Inject last 5 history turns for real multi-turn chat
+    var section = getSection(sectionId);
+    var history = section.aiHistory || [];
+    var recent = history.slice(-10); // last 5 pairs
+    recent.forEach(function(h) {
+      if (h.role === 'user') messages.push({ role: 'user', content: h.text });
+      else if (h.role === 'assistant' && h.fullText) messages.push({ role: 'assistant', content: h.fullText });
+    });
+    messages.push({ role: 'user', content: userPrompt });
+    return messages;
+  }
+
+  // ── ACTION ROUTER ──
+  async function runAction(action, sectionId, userInput) {
+    if (isRunningAction) { showToast('Please wait for current action to complete.', 'warning'); return; }
+
+    var sectionDef = SECTIONS.find(function(s){ return s.id === sectionId; });
+    var sectionLabel = sectionDef ? sectionDef.label : sectionId;
+    var section = getSection(sectionId);
+    var currentContent = (section.content || generated[sectionId] || '').trim();
+
+    // ── LAYER 1: Content guard ──
+    if (!currentContent && action !== 'custom' && action !== 'align_kb') {
+      showToast('Please generate or write content first, then use workspace actions.', 'warning', 4000);
+      return;
+    }
+
+    // ── LAYER 2: Safe isRunningAction with logging ──
+    isRunningAction = true;
+    console.log('[Workspace] Action started:', action, sectionId);
+
+    // ── LAYER 3: Safe kb guard ──
+    var kb = null;
+    try {
+      if (typeof NiraKB !== 'undefined') {
+        kb = NiraKB.load();
+      }
+    } catch(kbErr) {
+      console.error('[Workspace] KB load failed:', kbErr);
+      kb = null;
+    }
+    console.log('[Workspace] KB loaded:', !!kb);
+
+    // Show loading in workspace
+    var wsLoading = document.getElementById('ws-loading-' + sectionId);
+    var wsInput = document.getElementById('ws-input-' + sectionId);
+    if (wsLoading) wsLoading.style.display = 'inline-block';
+    document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = true; });
+
+    try {
+      console.log('[Workspace] Content length:', currentContent.length);
+      console.log('[Workspace] Action:', action);
+      var userPrompt = buildWorkspacePrompt(action, sectionLabel, currentContent, userInput, kb);
+      var messages = buildMessagesWithHistory(sectionId, BASE_SYSTEM, userPrompt);
+
+      var data = await NiraAPI.callWithRetry(async function() {
+        var res = await fetch('/api/proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: messages })
+        });
+        if (res.status === 429) throw new Error('429 rate limit');
+        if (!res.ok) {
+          var e = await res.json().catch(function(){ return {}; });
+          throw new Error(e.error || 'API error ' + res.status);
+        }
+        return await res.json();
+      });
+
+      var result = (data.result || '').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'').trim();
+      if (!result) throw new Error('Empty response from AI');
+
+      // Save version before updating
+      pushVersion(sectionId, currentContent);
+      updateSection(sectionId, { content: result });
+
+      // Push history
+      var actionLabel = { improve:'Improve style', expand:'Expand', shorten:'Shorten', citations:'Add citations', align_kb:'Align with KB', rewrite:'Rewrite', custom: userInput || 'Custom' };
+      pushHistory(sectionId, { role: 'user', text: actionLabel[action] || userInput || action });
+      pushHistory(sectionId, { role: 'assistant', text: result.slice(0, 120) + (result.length > 120 ? '...' : ''), fullText: result });
+
+      // Update content display
+      var contentEl = document.getElementById('content-' + sectionId);
+      if (contentEl) contentEl.innerText = result;
+
+      renderWorkspaceHistory(sectionId);
+      renderWorkspaceVersions(sectionId);
+
+      showToast('Section updated! — Use Supervisor Review to evaluate quality.', 'success', 5000);
+      if (wsInput) wsInput.value = '';
+      console.log('[Workspace] Action completed:', action);
+
+    } catch(err) {
+      console.error('[Workspace] Action failed:', err.message);
+      showToast('Error: ' + err.message, 'error');
+    } finally {
+      isRunningAction = false;
+      console.log('[Workspace] isRunningAction reset to false');
+      if (wsLoading) wsLoading.style.display = 'none';
+      document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = false; });
+    }
+  }
+
+  function renderWorkspaceHistory(sectionId) {
+    var el = document.getElementById('ws-history-' + sectionId);
+    if (!el) return;
+    var section = getSection(sectionId);
+    if (section.aiHistory.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = section.aiHistory.slice(-8).map(function(h) {
+      var isUser = h.role === 'user';
+      return '<div class="ws-history-item ' + h.role + '">' +
+        '<div class="ws-history-label">' + (isUser ? 'You' : 'Dr. NIRA') + '</div>' +
+        h.text +
+        '</div>';
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function renderWorkspaceVersions(sectionId) {
+    var el = document.getElementById('ws-versions-' + sectionId);
+    if (!el) return;
+    var section = getSection(sectionId);
+    if (section.versions.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = '<span style="font-size:10px;color:#0891b2;font-weight:600;">Versions: </span>' +
+      section.versions.map(function(v, i) {
+        return '<button class="ws-version-btn" onclick="restoreVersion(\'' + sectionId + '\',' + i + ')">v' + (section.versions.length - i) + ' · ' + v.savedAt + '</button>';
+      }).join('');
+  }
+
+  function restoreVersion(sectionId, idx) {
+    showConfirm('Restore this version? Current content will be saved as a new version.', function() {
+      var section = getSection(sectionId);
+      var ver = section.versions[idx];
+      if (!ver) return;
+      pushVersion(sectionId, section.content);
+      updateSection(sectionId, { content: ver.text });
+      var contentEl = document.getElementById('content-' + sectionId);
+      if (contentEl) contentEl.innerText = ver.text;
+      renderWorkspaceVersions(sectionId);
+      showToast('Version restored', 'success');
+    });
+  }
+
+  function exportSectionPDF(sectionId) {
+    var sectionDef = SECTIONS.find(function(s){ return s.id === sectionId; });
+    var label = sectionDef ? sectionDef.label : sectionId;
+    var content = getSection(sectionId).content || generated[sectionId] || '';
+    if (!content) { showToast('No content to export.', 'warning'); return; }
+
+    var topicTitle = topic.title_en || 'Research Proposal';
+    var win = window.open('', '_blank');
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + label + '</title>' +
+      '<style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.8;color:#111;max-width:700px;margin:2cm auto;padding:0 1cm}' +
+      'h1{font-size:16pt;border-bottom:2px solid #1B2A4A;padding-bottom:8px;margin-bottom:4px}' +
+      '.meta{font-size:10pt;color:#555;margin-bottom:24px}' +
+      'p{margin-bottom:12px;text-align:justify}' +
+      '@media print{body{margin:1cm}}' +
+      '</style></head><body>' +
+      '<h1>' + label + '</h1>' +
+      '<div class="meta">' + topicTitle + ' · Generated by Dr. NIRA</div>' +
+      '<div>' + content.split('\n').map(function(p){ return p.trim() ? '<p>' + p + '</p>' : ''; }).join('') + '</div>' +
+      '</body></html>');
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 400);
+  }
+
+  function buildWorkspacePanel(sectionId) {
+    return '<div class="workspace-panel" id="workspace-' + sectionId + '">' +
+      '<div class="workspace-panel-header">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
+        'AI Writing Workspace' +
+        '<span id="ws-loading-' + sectionId + '" style="display:none" class="ws-spinner"></span>' +
+        '<button onclick="exportSectionPDF(\'' + sectionId + '\')" style="margin-left:auto;font-size:10px;padding:3px 10px;border:1px solid #bae6fd;border-radius:5px;background:#fff;color:#0369a1;cursor:pointer;font-family:Inter,sans-serif;">⬇ Export PDF</button>' +
+      '</div>' +
+      '<div class="workspace-actions">' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'improve\',\'' + sectionId + '\',\'\')">✦ Improve style</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'expand\',\'' + sectionId + '\',\'\')">⊕ Expand</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'shorten\',\'' + sectionId + '\',\'\')">⊖ Shorten</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'citations\',\'' + sectionId + '\',\'\')">📚 Add citations</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'align_kb\',\'' + sectionId + '\',\'\')">🔗 Align with KB</button><button class="help-icon" data-help-title="Align with KB" data-help-desc="Rewrites this section to align with your Knowledge Base content for academic consistency." aria-label="Help">i</button>' +
+        '<button class="ws-action-btn" data-section="' + sectionId + '" onclick="runAction(\'rewrite\',\'' + sectionId + '\',\'\')">↺ Rewrite</button>' +
+        '<button class="ws-action-btn" onclick="goToUpload()">📄 Upload PDF</button>' +
+        '<button class="ws-action-btn" onclick="openWriteFromPDF(\'' + sectionId + '\')" style="background:#f0fdf4;color:#16a34a;border-color:#bbf7d0;">✍️ Write from PDF</button><button class="help-icon" data-help-title="Write from PDF" data-help-desc="Generates this section directly from your uploaded PDF without creating a Knowledge Base." aria-label="Help">i</button>' +
+      '</div>' +
+      '<div class="ws-input-row">' +
+        '<input type="text" class="ws-input" id="ws-input-' + sectionId + '" placeholder="Custom instruction (e.g. more academic, focus on EFL teachers...)" onkeydown="if(event.key===\'Enter\'){var v=this.value.trim();if(v)runAction(\'custom\',\'' + sectionId + '\',v);}">' +
+        '<button class="ws-send-btn" data-section="' + sectionId + '" onclick="var v=document.getElementById(\'ws-input-' + sectionId + '\').value.trim();if(v)runAction(\'custom\',\'' + sectionId + '\',v);">Send</button>' +
+      '</div>' +
+      '<div class="ws-history" id="ws-history-' + sectionId + '"></div>' +
+      '<div class="ws-version-bar" id="ws-versions-' + sectionId + '"></div>' +
+    '</div>';
+  }
+
+  function changeTopic() {
+    var hasSections = Object.keys(generated).length > 0;
+    if (hasSections) {
+      showConfirm('Changing the topic will clear all generated sections. Continue?', function() {
+        generated = {};
+        NiraProject.resetModule('proposal');
+        window.location.href = 'topic.html';
+      }, { okLabel: 'Change topic', danger: true });
+      return;
+    }
+    window.location.href = 'topic.html';
+  }
+
+  function showModeSelection() {
+    document.getElementById('modeSelectionScreen').style.display = 'block';
+    document.getElementById('titleInputScreen').style.display = 'none';
+    document.getElementById('modeIndicator').style.display = 'none';
+    document.getElementById('topicChip').style.display = 'none';
+    document.getElementById('sectionCards').style.display = 'none';
+    document.getElementById('generateAllBar').style.display = 'none';
+    var pl = document.getElementById('proposalLayout');
+    if (pl) pl.style.display = 'none';
+  }
+
+  function selectMode(mode) {
+    authoringMode = mode;
+    localStorage.setItem('nira_authoring_mode', mode);
+    document.getElementById('modeSelectionScreen').style.display = 'none';
+    document.getElementById('titleInputScreen').style.display = 'none';
+
+    if (mode === 'fast') {
+      document.getElementById('titleInputScreen').style.display = 'block';
+      document.getElementById('modeIndicator').style.display = 'none';
+      document.getElementById('topicChip').style.display = 'none';
+      var pl2 = document.getElementById('proposalLayout');
+      if (pl2) pl2.style.display = 'none';
+      document.getElementById('sectionCards').style.display = 'none';
+      document.getElementById('generateAllBar').style.display = 'none';
+      var hasPrev = Object.keys(generated).length > 0;
+      if (hasPrev) {
+        var warn = document.getElementById('ftPrevWarn');
+        if (warn) warn.style.display = 'block';
+      }
+      return;
+    }
+
+    var modeColors = { ai:'var(--blue)', manual:'var(--green)', guided:'#d97706', workspace:'#0891b2' };
+    var modeLabels = { ai:'AI-Assisted Drafting', manual:'Independent Authoring', guided:'Guided Writing', workspace:'AI Writing Workspace' };
+    var modeInd = document.getElementById('modeIndicator');
+    if (modeInd) {
+      modeInd.style.display = 'flex';
+      modeInd.style.borderColor = modeColors[mode] || 'var(--blue)';
+      var dot = modeInd.querySelector('.mode-dot');
+      if (dot) dot.style.background = modeColors[mode] || 'var(--blue)';
+      var label = modeInd.querySelector('.mode-label');
+      if (label) label.textContent = modeLabels[mode] || mode;
+    }
+
+    document.getElementById('topicChip').style.display = 'flex';
+    document.getElementById('sectionCards').style.display = 'block';
+    var pl = document.getElementById('proposalLayout');
+    if (pl) pl.style.display = 'grid';
+
+    // Hide Generate All for workspace (section by section)
+    var genBar = document.getElementById('generateAllBar');
+    if (genBar) genBar.style.display = (mode === 'workspace' || mode === 'manual') ? 'none' : 'flex';
+
+    // Load workspace state if mode 5
+    if (mode === 'workspace') loadWorkspaceState();
+
+    renderSectionCards();
+  }
+  function setMode(mode) { selectMode(mode); }
+
+  // ── FAST TRACK: TITLE CONTEXT BUILDER ──
+  // ── FAST TRACK: INFERENCE ENGINE ──
+  function guessDomain(title) {
+    var t = title.toLowerCase();
+    var domains = [
+      { pattern: /efl|esl|english language|tefl|tesl|elt|bilingual|foreign language|second language|language learning|language teaching|language acquisition/, domain: 'Applied Linguistics & English Language Teaching', confidence: 'high' },
+      { pattern: /artificial intelligence|machine learning|deep learning|neural network|natural language processing|chatgpt|large language model|computer vision/, domain: 'Artificial Intelligence & Computer Science', confidence: 'high' },
+      { pattern: /finance|banking|investment|stock market|monetary|fiscal|fintech|cryptocurrency|capital market/, domain: 'Economics & Finance', confidence: 'high' },
+      { pattern: /health|medical|clinical|patient|hospital|nursing|therapy|covid|pandemic|disease|pharmaceutical|surgery/, domain: 'Health Sciences & Medicine', confidence: 'high' },
+      { pattern: /education|curriculum|pedagog|academic achievement|higher education|learning outcome|instructional/, domain: 'Education & Pedagogy', confidence: 'high' },
+      { pattern: /environment|climate change|carbon|sustainable|ecology|pollution|renewable energy|biodiversity/, domain: 'Environmental Science & Sustainability', confidence: 'high' },
+      { pattern: /psychology|behavior|cognitive|mental health|emotion|motivation|anxiety|depression|wellbeing/, domain: 'Psychology & Behavioral Science', confidence: 'high' },
+      { pattern: /business|management|organization|leadership|strategy|marketing|human resource|entrepreneurship/, domain: 'Business Administration & Management', confidence: 'high' },
+      { pattern: /social media|digital technology|internet|e-learning|online platform|technology adoption/, domain: 'Digital & Information Technology Studies', confidence: 'medium' },
+      { pattern: /social|society|community|culture|gender|ethnic|identity|inequality|migration/, domain: 'Social Sciences & Sociology', confidence: 'medium' },
+      { pattern: /law|legal|justice|policy|governance|regulation|constitutional|human rights/, domain: 'Law & Policy Studies', confidence: 'medium' },
+    ];
+    for (var i = 0; i < domains.length; i++) {
+      if (domains[i].pattern.test(t)) return { domain: domains[i].domain, confidence: domains[i].confidence };
+    }
+    return { domain: 'Interdisciplinary Academic Research', confidence: 'low' };
+  }
+
+  function guessMethod(title) {
+    var t = title.toLowerCase();
+    var methods = [
+      { pattern: /survey|questionnaire|likert|psychometric|self-report/, method: 'Quantitative — Survey Research', confidence: 'high' },
+      { pattern: /experiment|quasi-experiment|control group|pretest|posttest|intervention/, method: 'Quasi-Experimental Design', confidence: 'high' },
+      { pattern: /interview|narrative|ethnograph|grounded theory|phenomenolog|lived experience/, method: 'Qualitative — Interpretive Inquiry', confidence: 'high' },
+      { pattern: /meta-analysis|systematic review|scoping review/, method: 'Systematic Review & Meta-Analysis', confidence: 'high' },
+      { pattern: /case study|single case|multiple case/, method: 'Qualitative — Case Study', confidence: 'high' },
+      { pattern: /correlation|regression|structural equation|path analysis|factor analysis/, method: 'Quantitative — Correlational', confidence: 'high' },
+      { pattern: /content analysis|discourse analysis|thematic analysis/, method: 'Qualitative — Content/Discourse Analysis', confidence: 'medium' },
+      { pattern: /randomized|rct|randomised|controlled trial/, method: 'Randomized Controlled Trial (RCT)', confidence: 'high' },
+    ];
+    for (var i = 0; i < methods.length; i++) {
+      if (methods[i].pattern.test(t)) return { method: methods[i].method, confidence: methods[i].confidence };
+    }
+    return { method: 'Mixed Methods (Quantitative + Qualitative)', confidence: 'low' };
+  }
+
+  function inferContext(title) {
+    var d = guessDomain(title);
+    var m = guessMethod(title);
+    return { title: title, domain: d.domain, domainConfidence: d.confidence, methodology: m.method, methodConfidence: m.confidence };
+  }
+
+  // Live preview as user types
+  function ftPreview() {
+    var title = (document.getElementById('fastTrackTitle').value || '').trim();
+    var box = document.getElementById('ftPreviewBox');
+    if (title.length < 8) { box.style.display = 'none'; return; }
+    var ctx = inferContext(title);
+    var confBadge = function(c) {
+      var colors = { high: '#16a34a', medium: '#d97706', low: '#dc2626' };
+      return '<span style="color:' + (colors[c]||'#6b7280') + ';font-size:10px">● ' + c + ' confidence</span>';
+    };
+    box.style.display = 'block';
+    box.innerHTML =
+      '<strong style="font-size:11px;letter-spacing:0.05em;text-transform:uppercase;">Preliminary inference</strong><br>' +
+      '📚 ' + ctx.domain + ' ' + confBadge(ctx.domainConfidence) + '<br>' +
+      '🔬 ' + ctx.methodology + ' ' + confBadge(ctx.methodConfidence) + '<br>' +
+      '<span style="opacity:0.7;font-size:11px">You will review and edit these before generation begins.</span>';
+  }
+
+  function ftGoToConfirm() {
+    var title = (document.getElementById('fastTrackTitle').value || '').trim();
+    if (title.length < 10) { showToast('Please enter a research title (at least 10 characters).', 'warning'); return; }
+    var ctx = inferContext(title);
+    var confLabel = function(c) { return c === 'high' ? '(high confidence)' : c === 'medium' ? '(medium confidence — please verify)' : '(low confidence — please edit)'; };
+
+    document.getElementById('ftConfirmTitle').textContent = title;
+    document.getElementById('ftEditDomain').value = ctx.domain;
+    document.getElementById('ftEditMethod').value = ctx.methodology;
+    document.getElementById('domainConfidence').textContent = confLabel(ctx.domainConfidence);
+    document.getElementById('methodConfidence').textContent = confLabel(ctx.methodConfidence);
+
+    document.getElementById('ftStep1').style.display = 'none';
+    document.getElementById('ftStep2').style.display = 'block';
+  }
+
+  function ftBackToStep1() {
+    document.getElementById('ftStep1').style.display = 'block';
+    document.getElementById('ftStep2').style.display = 'none';
+  }
+
+  function startFastTrack() {
+    var title = (document.getElementById('fastTrackTitle').value || '').trim();
+    var domain = (document.getElementById('ftEditDomain').value || '').trim();
+    var methodology = (document.getElementById('ftEditMethod').value || '').trim();
+    var level = document.getElementById('ftEditLevel').value;
+    var citation = document.getElementById('ftEditCitation').value;
+    if (!title || !domain || !methodology) { showToast('Please complete all fields.', 'warning'); return; }
+
+    var btn = document.getElementById('fastTrackBtn');
+    btn.disabled = true; btn.textContent = 'Preparing...';
+
+    // Clear previous proposal data for new topic
+    generated = {};
+    NiraProject.resetModule('proposal');
+    localStorage.removeItem('nira_upload_context');
+
+    // Build synthetic context — independent of profile and topic generator
+    topic = {
+      title_en: title,
+      research_type: methodology,
+      research_gap: 'a substantive gap identified through systematic analysis of existing literature in ' + domain,
+      keywords: title.split(/\s+/).filter(function(w){ return w.length > 4; }).slice(0, 6)
+    };
+    profile = Object.assign({}, profile, { field: domain, degree: level, citation: citation, researchType: methodology });
+
+    document.getElementById('titleInputScreen').style.display = 'none';
+    document.getElementById('modeIndicator').style.display = 'block';
+    document.getElementById('modeIndicatorIcon').style.background = '#7c3aed';
+    document.getElementById('modeIndicatorSvg').innerHTML = '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>';
+    document.getElementById('modeIndicatorTitle').textContent = 'Title-to-Proposal Fast Track';
+    document.getElementById('modeIndicatorDesc').textContent = '"' + title.slice(0, 70) + (title.length > 70 ? '...' : '') + '"';
+    document.getElementById('topicChip').style.display = 'flex';
+    document.getElementById('chipTitle').textContent = title;
+    document.getElementById('chipMeta').textContent = domain + ' · ' + methodology;
+    document.getElementById('generateAllBar').style.display = 'flex';
+    var pl = document.getElementById('proposalLayout');
+    if (pl) pl.style.display = 'grid';
+    document.getElementById('sectionCards').style.display = 'block';
+
+    authoringMode = 'ai';
+    renderSectionsNav();
+    renderSectionCards();
+    updateProgress();
+    setTimeout(function(){ generateAll(); }, 300);
+  }
 
   window.addEventListener('load', function() {
     const sp = localStorage.getItem('nira_profile');
     if (sp) {
-      const p = JSON.parse(sp);
-      document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
-      document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
-      if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      profile = JSON.parse(sp);
+      document.getElementById('sidebarName').textContent = profile.fullName || 'Dr. Researcher';
+      document.getElementById('sidebarRole').textContent = (profile.degree || 'PhD') + ' Candidate';
+      if (profile.fullName) {
+        document.getElementById('sidebarAvatar').textContent = profile.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      }
+    }
+    // Load workspace state
+    loadWorkspaceState();
+
+    // Auto-generate from KB (triggered by "Build proposal from this")
+    var autoMode = localStorage.getItem('nira_auto_generate');
+    if (autoMode) {
+      localStorage.removeItem('nira_auto_generate');
+      setTimeout(function() {
+        selectMode(autoMode);
+        // Check if came from research gap
+        var selectedGap = localStorage.getItem('nira_selected_gap');
+        if (selectedGap) {
+          localStorage.removeItem('nira_selected_gap');
+          var gap = JSON.parse(selectedGap);
+          showToast('Research gap loaded: "' + gap.gap.slice(0, 60) + '..."', 'success', 5000);
+        } else {
+          showToast('Knowledge Base loaded — select a section and click Generate draft', 'success');
+        }
+      }, 400);
     }
 
-    // Check active proposal — NiraProject first, localStorage fallback
-    var activeData = (typeof NiraProject !== 'undefined') ? NiraProject.load('proposal') : null;
-    if (!activeData || Object.keys(activeData).length === 0) {
-      const activeLegacy = localStorage.getItem('nira_proposal');
-      if (activeLegacy) activeData = JSON.parse(activeLegacy);
-    }
-    var activeTopic = (typeof NiraProject !== 'undefined') ? NiraProject.loadTopic() : null;
-    if (!activeTopic || !activeTopic.title_en) {
-      const topicLegacy = localStorage.getItem('nira_selected_topic');
-      if (topicLegacy) activeTopic = JSON.parse(topicLegacy);
-    }
-
-    if (activeData) {
-      const done = Object.keys(activeData).length;
-      if (done > 0) {
-        document.getElementById('saveBar').style.display = 'flex';
-        const t = activeTopic || {};
-        document.getElementById('activeProposalMeta').textContent =
-          (t.title_en || 'Untitled proposal') + ' · ' + done + ' sections complete';
-        if (t.title_en) document.getElementById('proposalNameInput').value = t.title_en.slice(0, 60);
+    // Load KB context if available
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var kbContext = '';
+    if (kb && kb.status === 'complete') {
+      kbContext = kb.masterSummary
+        ? '\nDocument Knowledge Base: ' + kb.masterSummary
+        : '';
+      if (kb.extracted && kb.extracted.variables && kb.extracted.variables.length > 0) {
+        kbContext += '\nKey variables: ' + kb.extracted.variables.join(', ');
       }
     }
 
-    renderProposals();
+    // Load topic
+    var _tp = NiraProject.loadTopic();
+    if (_tp && _tp.title_en) {
+      topic = _tp;
+      document.getElementById('chipTitle').textContent = topic.title_en || 'Selected topic';
+      document.getElementById('chipMeta').textContent = (topic.research_type || '') + (topic.keywords ? ' · ' + topic.keywords.slice(0,3).join(', ') : '');
+    }
+
+    // Load proposal
+    const sg = NiraProject.load('proposal');
+    if (sg && Object.keys(sg).length > 0) {
+      generated = sg;
+    } else {
+      generated = {}; // Ensure clean state if no project data (e.g. after reset)
+    }
+
+    // Check if coming from upload
+    if (localStorage.getItem('nira_build_from_upload') === '1') {
+      const uploadText = localStorage.getItem('nira_upload_text') || '';
+      const uploadFile = localStorage.getItem('nira_upload_filename') || 'document';
+      if (uploadText) {
+        localStorage.setItem('nira_upload_context', uploadText);
+        localStorage.removeItem('nira_build_from_upload');
+        const chip = document.getElementById('chipTitle');
+        const meta = document.getElementById('chipMeta');
+        if (chip) chip.textContent = 'Based on: ' + uploadFile;
+        if (meta) meta.textContent = 'Dr. NIRA will use your uploaded document to generate each section';
+      }
+    }
+
+    renderSectionsNav();
+    renderSectionCards();
+    updateProgress();
+
+    // Always show mode selection on page load
+    showModeSelection();
   });
 
-  function saveCurrentProposal() {
-    const name = document.getElementById('proposalNameInput').value.trim();
-    if (!name) { showToast('Please enter a proposal name.', 'warning'); return; }
-
-    var data = (typeof NiraProject !== 'undefined') ? NiraProject.load('proposal') : null;
-    if (!data || Object.keys(data).length === 0) {
-      const activeLegacy = localStorage.getItem('nira_proposal');
-      if (activeLegacy) data = JSON.parse(activeLegacy);
-    }
-    var t = (typeof NiraProject !== 'undefined') ? NiraProject.loadTopic() : null;
-    if (!t || !t.title_en) {
-      const topicLegacy = localStorage.getItem('nira_selected_topic');
-      t = topicLegacy ? JSON.parse(topicLegacy) : {};
-    }
-
-    if (!data || Object.keys(data).length === 0) { showToast('No active proposal found.', 'warning'); return; }
-
-    const proposal = {
-      id: Date.now(),
-      name,
-      topic: t.title_en || name,
-      field: t.keywords ? t.keywords.slice(0,2).join(', ') : '',
-      researchType: t.research_type || '',
-      sections: data,
-      sectionCount: Object.keys(data).length,
-      wordCount: Object.values(data).reduce((acc, v) => acc + (v || '').trim().split(/\s+/).length, 0),
-      savedAt: new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }),
-      savedTs: Date.now()
-    };
-
-    proposals.unshift(proposal);
-    localStorage.setItem('nira_proposals', JSON.stringify(proposals));
-    document.getElementById('saveBar').style.display = 'none';
-    renderProposals();
-    showToast('Proposal saved!', 'success');
-
-    const btn = event.target;
-    btn.textContent = '✓ Saved!';
-    setTimeout(() => { btn.textContent = 'Save proposal'; }, 2000);
-  }
-
-  function renderProposals() {
-    const container = document.getElementById('proposalsContainer');
-    if (proposals.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
-          <h3>No saved proposals yet</h3>
-          <p>Build a proposal and save it here to manage all your work in one place.</p>
-          <button class="btn-sm" onclick="window.location.href='proposal.html'">Start a proposal</button>
+  function renderSectionsNav() {
+    const list = document.getElementById('sectionsList');
+    list.innerHTML = SECTIONS.map(s => {
+      const isDone = !!generated[s.id];
+      return `
+        <div class="section-nav-item ${isDone ? 'done-item' : ''}" onclick="scrollToSection('${s.id}')">
+          <div class="section-status ${isDone ? 'done' : ''}">
+            <svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg>
+          </div>
+          <span class="section-nav-label">${s.label}</span>
         </div>
       `;
-      return;
-    }
+    }).join('');
+  }
 
-    const keys = Object.keys(SECTION_LABELS);
-    container.innerHTML = `
-      <div class="proposals-grid">
-        ${proposals.map((p, i) => {
-          const pct = Math.round((p.sectionCount / 10) * 100);
-          const sectionDots = keys.map(k => `<div class="section-dot ${p.sections[k] ? 'done' : 'empty'}"></div>`).join('');
-          return `
-            <div class="proposal-card" onclick="openModal(${p.id})">
-              <div class="proposal-card-top">
-                <div class="proposal-card-num">Proposal ${proposals.length - i}</div>
-                <div class="proposal-card-title">${p.name}</div>
-                <div class="proposal-card-meta">${p.savedAt}${p.researchType ? ' · ' + p.researchType : ''}</div>
-              </div>
-              <div class="proposal-card-body">
-                <div class="proposal-progress">
-                  <div class="proposal-progress-fill" style="width:${pct}%"></div>
-                </div>
-                <div class="proposal-stats">
-                  <div class="proposal-stat"><strong>${p.sectionCount}/10</strong> sections</div>
-                  <div class="proposal-stat"><strong>${p.wordCount > 999 ? (p.wordCount/1000).toFixed(1)+'k' : p.wordCount}</strong> words</div>
-                  <div class="proposal-stat"><strong>${pct}%</strong> complete</div>
-                </div>
-                <div class="proposal-sections">${sectionDots}</div>
-                <div class="proposal-card-actions" onclick="event.stopPropagation()">
-                  <button class="btn-card primary" onclick="loadAndOpen(${p.id})">Open</button>
-                  <button class="btn-card" onclick="exportProposal(${p.id})">Export</button>
-                  <button class="btn-card danger" onclick="deleteProposal(${p.id})">Delete</button>
-                </div>
+  function renderSectionCards() {
+    const container = document.getElementById('sectionCards');
+    const isAI = authoringMode === 'ai';
+    const isManual = authoringMode === 'manual';
+    const isGuided = authoringMode === 'guided';
+    const isWorkspace = authoringMode === 'workspace';
+
+    container.innerHTML = SECTIONS.map((s, i) => {
+      const isDone = !!generated[s.id];
+      const rawContent = generated[s.id] || '';
+      const content = rawContent.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^#{1,3}\s+/gm,'').replace(/^[-*]\s+/gm,'• ').trim();
+      const wordCount = content ? content.trim().split(/\s+/).length : 0;
+
+      // ── ACTIONS ──
+      let actionsHtml;
+      if (isAI) {
+        actionsHtml = isDone
+          ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
+          : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')">
+              <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate draft
+             </button>`;
+      } else if (isWorkspace) {
+        actionsHtml = isDone
+          ? `<button class="btn-regen" onclick="generateSection('${s.id}')">Regenerate</button>`
+          : `<button class="btn-gen" id="btn-${s.id}" onclick="generateSection('${s.id}')" style="background:#0891b2">
+              <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate draft
+             </button>`;
+      } else if (isManual) {
+        actionsHtml = isDone
+          ? `<span class="mode-badge manual">Self-authored</span>
+             <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
+          : `<span class="mode-badge manual" style="opacity:0.5">Independent Authoring</span>`;
+      } else {
+        actionsHtml = isDone
+          ? `<span class="mode-badge guided">Guided Writing</span>
+             <button class="btn-regen" onclick="clearSection('${s.id}')">Clear</button>`
+          : `<span class="mode-badge guided" style="opacity:0.5">Guided Writing</span>`;
+      }
+
+      // ── BODY ──
+      let bodyHtml;
+      if (isAI) {
+        bodyHtml = isDone
+          ? `<div class="section-content" contenteditable="true" id="content-${s.id}"
+               oninput="onContentInput('${s.id}')"
+               onblur="onContentBlur('${s.id}')"
+               onpaste="onContentPaste(event)"
+               title="Click to edit">${content}</div>`
+          : `<div class="section-empty"><p>Click "Generate draft" to create this section with AI assistance.</p></div>`;
+      } else if (isWorkspace) {
+        bodyHtml = isDone
+          ? `<div class="section-content" contenteditable="true" id="content-${s.id}"
+               oninput="onContentInput('${s.id}')"
+               onblur="onContentBlur('${s.id}')"
+               onpaste="onContentPaste(event)"
+               title="Click to edit">${content}</div>
+             ${buildWorkspacePanel(s.id)}`
+          : `<div class="section-empty" style="border-color:#bae6fd">
+               <p>Click "Generate draft" to create this section, then use the AI Workspace to refine it iteratively.</p>
+             </div>`;
+      } else if (isManual) {
+        bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
+            placeholder="Write the ${s.label} section here. Maintain formal academic register and discipline-appropriate terminology..."
+            oninput="saveEdits('${s.id}')">${content}</textarea>`;
+      } else {
+        bodyHtml = `<textarea class="manual-textarea" id="content-${s.id}"
+            placeholder="Write the ${s.label} section here. When ready, click 'Get AI Feedback' to receive critique and improvement suggestions..."
+            oninput="saveEdits('${s.id}')">${content}</textarea>
+          <div class="guided-feedback-panel" id="feedback-${s.id}">
+            <div class="guided-feedback-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              AI Academic Feedback
+            </div>
+            <div class="guided-feedback-text" id="feedbackText-${s.id}"></div>
+          </div>`;
+      }
+
+      // ── FOOTER ──
+      let footerHtml;
+      if (isWorkspace) {
+        footerHtml = isDone
+          ? `<div class="section-footer">
+              <span class="word-count">${wordCount} words · AI Writing Workspace</span>
+              <span class="edit-hint" style="color:#0891b2">Click text to edit directly</span>
+             </div>`
+          : '';
+      } else if (isAI) {
+        footerHtml = isDone
+          ? `<div class="section-footer">
+              <span class="word-count">${wordCount} words · AI-drafted</span>
+              <span class="edit-hint">Click text to edit directly</span>
+             </div>`
+          : '';
+      } else if (isManual) {
+        footerHtml = `<div class="manual-section-footer">
+            <span style="font-size:11px;color:#16a34a">
+              ${isDone ? '✓ ' + wordCount + ' words — Self-authored' : 'Begin writing above'}
+            </span>
+            <button class="manual-save-btn" onclick="manualSave('${s.id}')">Save section</button>
+           </div>`;
+      } else {
+        // Guided footer
+        footerHtml = `<div class="manual-section-footer" style="background:#fffbeb;border-top-color:#fde68a;">
+            <span style="font-size:11px;color:#92400e">
+              ${isDone ? '✓ ' + wordCount + ' words — Guided draft' : 'Write above, then get AI feedback'}
+            </span>
+            <div style="display:flex;gap:8px;">
+              <button class="manual-save-btn" style="background:#92400e" onclick="manualSave('${s.id}')">Save section</button>
+              <button class="guided-get-btn" id="feedbackBtn-${s.id}" onclick="getGuidedFeedback('${s.id}')">
+                <svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Get AI Feedback
+              </button>
+            </div>
+           </div>`;
+      }
+
+      return `
+        <div class="section-card" id="card-${s.id}">
+          <div class="section-card-header">
+            <div class="section-card-title">
+              <div class="section-card-num ${isDone ? 'done' : ''}">${isDone ? '✓' : (i+1)}</div>
+              <div>
+                <div class="section-card-label">${s.label}</div>
+                <div class="section-card-desc">${s.desc}</div>
               </div>
             </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-  }
-
-  function openModal(id) {
-    const p = proposals.find(x => x.id === id);
-    if (!p) return;
-    activeModalId = id;
-    document.getElementById('modalTitle').textContent = p.name;
-    const keys = Object.keys(SECTION_LABELS);
-    let html = '';
-    keys.forEach(k => {
-      if (p.sections[k]) {
-        html += `
-          <div class="modal-section">
-            <div class="modal-section-title">${SECTION_LABELS[k]}</div>
-            <div class="modal-section-text">${p.sections[k].slice(0, 300)}${p.sections[k].length > 300 ? '...' : ''}</div>
+            <div class="section-card-actions">${actionsHtml}</div>
           </div>
-        `;
-      }
-    });
-    document.getElementById('modalBody').innerHTML = html || '<p style="color:var(--text-mid);font-size:13px">No sections found.</p>';
-    document.getElementById('modalOverlay').style.display = 'flex';
+          <div class="section-card-body" id="body-${s.id}">${bodyHtml}</div>
+          ${footerHtml}
+        </div>
+      `;
+    }).join('');
   }
 
-  function closeModal(e) {
-    if (!e || e.target === document.getElementById('modalOverlay')) {
-      document.getElementById('modalOverlay').style.display = 'none';
-      activeModalId = null;
+  function clearSection(sectionId) {
+    showConfirm('Clear this section? Your authored content will be removed.', function() {
+      delete generated[sectionId];
+      NiraProject.save('proposal', generated);
+      renderSectionCards();
+      renderSectionsNav();
+      updateProgress();
+      showToast('Section cleared.', 'info');
+    }, { okLabel: 'Clear', danger: true });
+  }
+
+  function manualSave(sectionId) {
+    const el = document.getElementById('content-' + sectionId);
+    if (!el) return;
+    const text = el.value.trim();
+    if (!text) return;
+    generated[sectionId] = text;
+    NiraProject.save('proposal', generated);
+    renderSectionCards();
+    renderSectionsNav();
+    updateProgress();
+    showToast('Section saved', 'success');
+  }
+
+  async function getGuidedFeedback(sectionId) {
+    const el = document.getElementById('content-' + sectionId);
+    if (!el || !el.value.trim()) {
+      showToast('Please write something first', 'warning');
+      return;
+    }
+    const text = el.value.trim();
+    const s = SECTIONS.find(x => x.id === sectionId);
+    const btn = document.getElementById('feedbackBtn-' + sectionId);
+    const panel = document.getElementById('feedback-' + sectionId);
+    const feedbackText = document.getElementById('feedbackText-' + sectionId);
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Analysing...'; }
+    if (panel) panel.classList.add('open');
+    if (feedbackText) feedbackText.textContent = 'Dr. NIRA is reviewing your writing...';
+
+    const prompt = `You are Dr. NIRA, an expert academic writing advisor. A student has written the "${s.label}" section of their PhD proposal.
+
+Review their writing and provide structured academic feedback covering:
+1. **Clarity & precision** — Is the academic language clear and precise?
+2. **Structure & coherence** — Is the section logically organized?
+3. **Academic register** — Is the tone appropriate for a PhD proposal?
+4. **Content completeness** — Are all required elements present?
+5. **Specific improvements** — Give 2-3 concrete, actionable suggestions.
+
+Be constructive, specific, and scholarly. Reference actual phrases from their text.
+
+Student's draft:
+${text}`;
+
+    try {
+      const result = await NiraAPI.callWithRetry(async function() {
+        const res = await fetch('/api/proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        if (res.status === 429) throw new Error('429 rate limit');
+        if (!res.ok) { const e = await res.json().catch(function(){ return {}; }); throw new Error(e.error || 'API error'); }
+        const d = await res.json(); return d.result || '';
+      });
+      if (feedbackText) feedbackText.textContent = result;
+      showToast('Feedback ready', 'success');
+    } catch(err) {
+      if (feedbackText) feedbackText.textContent = 'Error: ' + err.message;
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg style="width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Get AI Feedback';
+      }
     }
   }
 
-  function loadProposal() {
-    if (!activeModalId) return;
-    loadAndOpen(activeModalId);
+  function scrollToSection(id) {
+    const el = document.getElementById('card-' + id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function loadAndOpen(id) {
-    const p = proposals.find(x => x.id === id);
-    if (!p) return;
-    if (typeof NiraProject !== 'undefined') {
-      NiraProject.save('proposal', p.sections);
-      if (p.topic) {
-        NiraProject.saveTopic({ title_en: p.topic, field: p.field, research_type: p.researchType });
-      }
+  function updateProgress() {
+    const done = Object.keys(generated).length;
+    const total = SECTIONS.length;
+    const pct = Math.round((done / total) * 100);
+    document.getElementById('navProgressFill').style.width = pct + '%';
+    document.getElementById('navProgressLabel').textContent = `${done} of ${total} sections complete`;
+    if (done === total) document.getElementById('exportBar').style.display = 'flex';
+    updateSupervisorButton(done, total);
+  }
+
+  // ── SUPERVISOR REVIEW: button state ──
+  function updateSupervisorButton(done, total) {
+    var btn = document.getElementById('supervisorBtn');
+    if (!btn) return;
+    if (done === 0) {
+      btn.textContent = 'Supervisor Review';
+      btn.disabled = true;
+      btn.style.opacity = '0.45';
+      btn.style.cursor = 'not-allowed';
+    } else if (done < 2) {
+      btn.textContent = 'Supervisor Review (' + done + '/' + total + ')';
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'not-allowed';
     } else {
-      localStorage.setItem('nira_proposal', JSON.stringify(p.sections));
+      btn.textContent = 'Supervisor Review (Ready)';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
     }
-    window.location.href = 'proposal.html';
   }
 
-  function deleteProposal(id) {
-    showConfirm('Delete this proposal? This cannot be undone.', function() {
-      proposals = proposals.filter(p => p.id !== id);
-      localStorage.setItem('nira_proposals', JSON.stringify(proposals));
-      renderProposals();
-      showToast('Proposal deleted', 'success');
-    }, { okLabel: 'Delete', danger: true });
+  // ── MODE 2: WRITE FROM PDF (isolated — does NOT affect Mode 1 KB flow) ──
+  function openWriteFromPDF(sectionId) {
+    var existing = document.getElementById('writeFromPDFModal');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'writeFromPDFModal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,27,51,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    overlay.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.25);font-family:Inter,sans-serif;overflow:hidden;">' +
+        '<div style="background:#f0fdf4;padding:18px 24px;border-bottom:1px solid #bbf7d0;display:flex;align-items:center;gap:10px;">' +
+          '<div style="width:36px;height:36px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">✍️</div>' +
+          '<div>' +
+            '<div style="font-size:15px;font-weight:700;color:#15803d;">Write from PDF</div>' +
+            '<div style="font-size:12px;color:#16a34a;margin-top:2px;">AI will write directly from your document</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="padding:20px 24px;">' +
+          '<p style="font-size:13px;color:#374151;margin-bottom:16px;line-height:1.6;">Upload your thesis or research PDF. Dr. NIRA will extract research questions, methodology, and literature context — then write this section directly from your document.</p>' +
+          '<div id="wfpDropzone" style="border:2px dashed #bbf7d0;border-radius:10px;padding:28px;text-align:center;cursor:pointer;background:#f8fffe;margin-bottom:16px;" onclick="document.getElementById(\'wfpFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'#16a34a\'" ondragleave="this.style.borderColor=\'#bbf7d0\'" ondrop="handleWFPDrop(event)">' +
+            '<div style="font-size:28px;margin-bottom:8px;">📄</div>' +
+            '<div style="font-size:13px;font-weight:500;color:#15803d;">Click to select PDF</div>' +
+            '<div style="font-size:11px;color:#6B7FA3;margin-top:4px;">or drag and drop</div>' +
+          '</div>' +
+          '<input type="file" id="wfpFileInput" accept=".pdf" style="display:none" onchange="handleWFPFile(this.files[0])">' +
+          '<div id="wfpFileName" style="display:none;font-size:12px;color:#15803d;font-weight:500;margin-bottom:16px;padding:8px 12px;background:#f0fdf4;border-radius:8px;"></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+            '<button onclick="document.getElementById(\'writeFromPDFModal\').remove()" style="padding:8px 16px;border:1px solid #dde6f5;background:#fff;color:#374151;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;">Cancel</button>' +
+            '<button id="wfpGenerateBtn" onclick="executeWriteFromPDF(\'' + sectionId + '\')" disabled style="padding:8px 16px;border:none;background:#16a34a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;opacity:0.5;">Generate section →</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
   }
 
-  function exportProposal(id) {
-    const p = proposals.find(x => x.id === id);
-    if (!p) return;
-    const keys = Object.keys(SECTION_LABELS);
-    let text = `PhD RESEARCH PROPOSAL\n${'='.repeat(50)}\n`;
-    text += `Title: ${p.name}\nDate: ${p.savedAt}\n\n`;
-    let num = 1;
-    keys.forEach(k => {
-      if (p.sections[k]) {
-        text += `${num}. ${SECTION_LABELS[k].toUpperCase()}\n${'─'.repeat(40)}\n${p.sections[k]}\n\n`;
-        num++;
+  var wfpExtractedText = '';
+
+  function handleWFPDrop(e) {
+    e.preventDefault();
+    var file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') handleWFPFile(file);
+  }
+
+  async function handleWFPFile(file) {
+    if (!file) return;
+    var nameEl = document.getElementById('wfpFileName');
+    var btn = document.getElementById('wfpGenerateBtn');
+    var dropzone = document.getElementById('wfpDropzone');
+
+    if (nameEl) { nameEl.style.display = 'block'; nameEl.textContent = '⏳ Extracting text from ' + file.name + '...'; }
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+
+    try {
+      // Extract text using pdf.js (same as upload.html — no KB created)
+      if (typeof pdfjsLib === 'undefined') throw new Error('PDF library not loaded');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      var ab = await file.arrayBuffer();
+      var pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+      var text = '';
+      var maxPages = Math.min(pdf.numPages, 15); // first 15 pages
+      for (var i = 1; i <= maxPages; i++) {
+        var page = await pdf.getPage(i);
+        var content = await page.getTextContent();
+        text += content.items.map(function(item){ return item.str; }).join(' ') + '\n';
+      }
+
+      wfpExtractedText = text.trim().slice(0, 6000); // limit for API
+
+      if (!wfpExtractedText) throw new Error('Could not extract text from PDF');
+
+      if (nameEl) { nameEl.textContent = '✓ ' + file.name + ' ready (' + pdf.numPages + ' pages)'; }
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      if (dropzone) { dropzone.style.borderColor = '#16a34a'; dropzone.innerHTML = '<div style="font-size:20px">✅</div><div style="font-size:12px;color:#15803d;font-weight:500;">PDF loaded successfully</div>'; }
+
+    } catch(err) {
+      if (nameEl) { nameEl.textContent = '❌ Error: ' + err.message; nameEl.style.color = '#dc2626'; }
+    }
+  }
+
+  async function executeWriteFromPDF(sectionId) {
+    if (!wfpExtractedText) { showToast('Please select a PDF first.', 'warning'); return; }
+
+    var sectionDef = SECTIONS.find(function(s){ return s.id === sectionId; });
+    var sectionLabel = sectionDef ? sectionDef.label : sectionId;
+
+    // Confirmation dialog
+    var modal = document.getElementById('writeFromPDFModal');
+    if (modal) modal.remove();
+
+    showConfirm(
+      'Generate "' + sectionLabel + '" directly from this PDF?\n\nThis will NOT affect your Knowledge Base or any other workspace feature.',
+      async function() {
+        if (isRunningAction) { showToast('Please wait for current action.', 'warning'); return; }
+        isRunningAction = true;
+
+        showToast('Writing section from PDF...', 'info', 8000);
+
+        var wsLoading = document.getElementById('ws-loading-' + sectionId);
+        if (wsLoading) wsLoading.style.display = 'inline-block';
+        document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = true; });
+
+        try {
+          var prompt = 'You are Dr. NIRA, an expert academic writing assistant.\n\n' +
+            'The user has provided a research document. Your task is to write the "' + sectionLabel + '" section for their PhD proposal/thesis based ONLY on the content of this document.\n\n' +
+            'RULES:\n' +
+            '- Extract research questions, methodology, literature, and theoretical framework from the document\n' +
+            '- Write the section in formal academic English\n' +
+            '- Ground every claim in the provided document\n' +
+            '- Do NOT add information not present in the document\n' +
+            '- Output ONLY the section content, no headings or preamble\n\n' +
+            'DOCUMENT CONTENT:\n' + wfpExtractedText + '\n\n' +
+            'Write the "' + sectionLabel + '" section now:';
+
+          var data = await NiraAPI.callWithRetry(async function() {
+            var res = await fetch('/api/proposal', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ messages: [
+                { role: 'system', content: BASE_SYSTEM },
+                { role: 'user', content: prompt }
+              ]})
+            });
+            if (res.status === 429) throw new Error('429 rate limit');
+            if (!res.ok) { var e = await res.json().catch(function(){ return {}; }); throw new Error(e.error || 'API error'); }
+            return await res.json();
+          });
+
+          var result = (data.result || '').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'').trim();
+          if (!result) throw new Error('Empty response');
+
+          // Save version and update — same as normal actions
+          var section = getSection(sectionId);
+          pushVersion(sectionId, section.content || generated[sectionId] || '');
+          updateSection(sectionId, { content: result });
+          var contentEl = document.getElementById('content-' + sectionId);
+          if (contentEl) contentEl.innerText = result;
+          renderWorkspaceHistory(sectionId);
+          renderWorkspaceVersions(sectionId);
+
+          showToast('"' + sectionLabel + '" written from PDF ✓', 'success', 5000);
+          wfpExtractedText = '';
+
+          // Guidance banner
+          var guidanceBanner = document.createElement('div');
+          guidanceBanner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#0F1B33;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;z-index:9999;display:flex;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(0,0,0,0.25);white-space:nowrap;';
+          guidanceBanner.innerHTML = '✓ Section written — refine with workspace actions or' +
+            '<button onclick="var sb=document.getElementById(\'supervisorBtn\');if(sb&&!sb.disabled)sb.click();this.parentElement.remove();" style="background:#2563EB;color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Open Supervisor Review</button>' +
+            '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px;padding:0 4px;">✕</button>';
+          document.body.appendChild(guidanceBanner);
+          setTimeout(function(){ if (guidanceBanner.parentElement) guidanceBanner.remove(); }, 8000);
+
+        } catch(err) {
+          showToast('Error: ' + err.message, 'error');
+        } finally {
+          isRunningAction = false;
+          if (wsLoading) wsLoading.style.display = 'none';
+          document.querySelectorAll('[data-section="' + sectionId + '"]').forEach(function(btn){ btn.disabled = false; });
+        }
+      },
+      { okLabel: 'Yes, Generate Section' }
+    );
+  }
+
+  function goToUpload() {
+    localStorage.setItem('nira_return_context', 'kb_flow');
+    showToast('After analysis, come back to Proposal Builder to use your Knowledge Base.', 'info', 5000);
+    setTimeout(function() { window.location.href = 'upload.html'; }, 1500);
+  }
+
+  // ── SUPERVISOR REVIEW ──
+  var SUP_SECTION_LIMITS = {
+    title:        600,   // light — short by nature
+    problem:      1500,  // critical
+    objectives:   1200,  // default
+    questions:    1200,  // default
+    hypotheses:   1200,  // default
+    literature:   1500,  // critical — usually longest, most info loss risk
+    novelty:      1200,  // default
+    methodology:  1500,  // critical
+    limitations:  800,   // light
+    references:   600    // light — just a list
+  };
+  var SUP_LOADING_STEPS = [
+    'Analyzing research problem & gap...',
+    'Evaluating objectives & questions...',
+    'Reviewing literature & methodology...',
+    'Checking academic coherence...',
+    'Finalizing recommendations...'
+  ];
+  var supRunning = false;
+
+  function openSupervisorPanel() {
+    document.getElementById('supOverlay').classList.add('open');
+    document.getElementById('supPanel').classList.add('open');
+  }
+
+  function closeSupervisorPanel() {
+    document.getElementById('supOverlay').classList.remove('open');
+    document.getElementById('supPanel').classList.remove('open');
+  }
+
+  async function runSupervisorReview() {
+    if (supRunning) return;
+    var doneCount = Object.keys(generated).length;
+    if (doneCount < 2) {
+      showToast('Generate at least 2 sections before running a review.', 'warning');
+      return;
+    }
+    supRunning = true;
+    openSupervisorPanel();
+    showSupervisorLoading();
+
+    var rerunBtn = document.getElementById('supRerunBtn');
+    if (rerunBtn) rerunBtn.disabled = true;
+    document.getElementById('supFooter').style.display = 'none';
+
+    try {
+      var prompt = buildSupervisorPrompt();
+      var data = await NiraAPI.callWithRetry(async function() {
+        var res = await fetch('/api/proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt })
+        });
+        if (res.status === 429) throw new Error('429 rate limit');
+        if (!res.ok) {
+          var e = await res.json().catch(function(){ return {}; });
+          throw new Error(e.error || 'API error ' + res.status);
+        }
+        return await res.json();
+      });
+
+      var review = parseSupervisorResponse(data.result);
+      renderSupervisorReview(review);
+
+    } catch(err) {
+      document.getElementById('supBody').innerHTML =
+        '<div class="sup-empty" style="color:#dc2626">Review failed: ' + err.message + '</div>';
+    } finally {
+      supRunning = false;
+      if (rerunBtn) rerunBtn.disabled = false;
+      document.getElementById('supFooter').style.display = 'block';
+    }
+  }
+
+  function showSupervisorLoading() {
+    var html = '<div class="sup-loading" id="supLoadingSteps">';
+    SUP_LOADING_STEPS.forEach(function(step, i) {
+      html += '<div class="sup-loading-step" id="sup-step-' + i + '"><div class="sup-loading-dot"></div>' + step + '</div>';
+    });
+    html += '</div>';
+    document.getElementById('supBody').innerHTML = html;
+
+    // Simulated progressive steps (single API call underneath)
+    var idx = 0;
+    var iv = setInterval(function() {
+      if (idx > 0) {
+        var prev = document.getElementById('sup-step-' + (idx - 1));
+        if (prev) prev.className = 'sup-loading-step done';
+      }
+      var cur = document.getElementById('sup-step-' + idx);
+      if (cur) cur.className = 'sup-loading-step active';
+      idx++;
+      if (idx >= SUP_LOADING_STEPS.length) clearInterval(iv);
+    }, 900);
+  }
+
+  function buildSupervisorPrompt() {
+    var kb = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    var kbContext = '';
+    if (kb && kb.status === 'complete') {
+      kbContext = kb.masterSummary ? '\nKnowledge Base context: ' + kb.masterSummary.slice(0, 500) : '';
+    }
+
+    var sectionsText = SECTIONS.map(function(s) {
+      var content = generated[s.id];
+      if (!content) return null;
+      var limit = SUP_SECTION_LIMITS[s.id] || 1200;
+      return '[' + s.label + ']\n' + content.slice(0, limit);
+    }).filter(Boolean).join('\n\n');
+
+    return 'You are an academic supervisor conducting a final quality review of a PhD research proposal before submission.\n\n' +
+      'Evaluate the following proposal sections:\n\n' + sectionsText + kbContext + '\n\n' +
+      'Respond in this EXACT JSON format (no markdown, no extra text):\n' +
+      '{\n' +
+      '  "overallScore": 84,\n' +
+      '  "submissionReadiness": 78,\n' +
+      '  "categories": {\n' +
+      '    "researchProblem": 88,\n' +
+      '    "objectives": 82,\n' +
+      '    "literature": 79,\n' +
+      '    "methodology": 85,\n' +
+      '    "coherence": 91,\n' +
+      '    "writingQuality": 87,\n' +
+      '    "citations": 72\n' +
+      '  },\n' +
+      '  "criticalIssues": ["issue 1", "issue 2", "issue 3"],\n' +
+      '  "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"]\n' +
+      '}\n\n' +
+      'Scoring weights: Research Problem & Gap 20%, Objectives & Questions 15%, Literature 15%, Methodology 20%, Coherence 15%, Writing Quality 10%, Citations 5%.\n' +
+      'Be a rigorous but fair academic supervisor. Output only valid JSON.';
+  }
+
+  function parseSupervisorResponse(raw) {
+    var text = (raw || '').trim().replace(/```json|```/g, '').trim();
+    try {
+      return JSON.parse(text);
+    } catch(e) {
+      var match = text.match(/\{[\s\S]*\}/);
+      if (match) { try { return JSON.parse(match[0]); } catch(e2) {} }
+      throw new Error('Could not parse review response.');
+    }
+  }
+
+  function getRatingLabel(score) {
+    if (score >= 90) return { text: 'Excellent', cls: 'excellent' };
+    if (score >= 80) return { text: 'Strong', cls: 'strong' };
+    if (score >= 70) return { text: 'Acceptable', cls: 'acceptable' };
+    if (score >= 60) return { text: 'Needs Improvement', cls: 'needs-improvement' };
+    return { text: 'Major Revision Required', cls: 'major-revision' };
+  }
+
+  function scoreColor(score) {
+    if (score >= 80) return '#16a34a';
+    if (score >= 70) return '#2563EB';
+    if (score >= 60) return '#d97706';
+    return '#dc2626';
+  }
+
+  var CATEGORY_LABELS = {
+    researchProblem: 'Research Problem & Gap',
+    objectives: 'Objectives & Questions',
+    literature: 'Literature Review',
+    methodology: 'Methodology Design',
+    coherence: 'Academic Coherence',
+    writingQuality: 'Writing Quality',
+    citations: 'Citation Support'
+  };
+
+  function renderSupervisorReview(review) {
+    var rating = getRatingLabel(review.overallScore);
+    var html = '';
+
+    html += '<div class="sup-score-hero">' +
+      '<div><span class="sup-score-num">' + review.overallScore + '</span><span class="sup-score-max">/100</span></div>' +
+      '<div class="sup-score-label ' + rating.cls + '">' + rating.text + '</div>' +
+      '</div>';
+
+    html += '<div class="sup-readiness">' +
+      '<span class="sup-readiness-label">Submission Readiness</span>' +
+      '<span class="sup-readiness-val">' + review.submissionReadiness + '%</span>' +
+      '</div>';
+
+    html += '<div class="sup-section-title">Category breakdown</div>';
+    Object.keys(CATEGORY_LABELS).forEach(function(key) {
+      var score = (review.categories && review.categories[key]) || 0;
+      html += '<div class="sup-cat-row">' +
+        '<span class="sup-cat-name">' + CATEGORY_LABELS[key] + '</span>' +
+        '<div class="sup-cat-bar-track"><div class="sup-cat-bar-fill" style="width:' + score + '%;background:' + scoreColor(score) + '"></div></div>' +
+        '<span class="sup-cat-score">' + score + '</span>' +
+        '</div>';
+    });
+
+    if (review.criticalIssues && review.criticalIssues.length) {
+      html += '<div class="sup-section-title">Critical issues</div>';
+      review.criticalIssues.slice(0, 3).forEach(function(issue) {
+        html += '<div class="sup-issue-item"><span class="sup-icon-bullet issue">!</span>' + issue + '</div>';
+      });
+    }
+
+    if (review.recommendations && review.recommendations.length) {
+      html += '<div class="sup-section-title">Recommendations</div>';
+      review.recommendations.slice(0, 5).forEach(function(rec) {
+        html += '<div class="sup-rec-item"><span class="sup-icon-bullet rec">✓</span>' + rec + '</div>';
+      });
+    }
+
+    document.getElementById('supBody').innerHTML = html;
+  }
+
+  // ── EDITOR: auto-save timers per section ──
+  var autoSaveTimers = {};
+
+  function saveEdits(sectionId) {
+    var el = document.getElementById('content-' + sectionId);
+    if (!el) return;
+    var text = el.tagName === 'TEXTAREA' ? el.value : el.innerText;
+    generated[sectionId] = text;
+    NiraProject.save('proposal', generated);
+    // Clear unsaved state
+    el.classList.remove('unsaved');
+    var footer = el.closest('.section-card') && el.closest('.section-card').querySelector('.edit-hint');
+    if (footer) { footer.textContent = 'Saved ✓'; footer.className = 'edit-hint'; setTimeout(function(){ footer.textContent = 'Click text to edit directly'; }, 1500); }
+  }
+
+  function onContentInput(sectionId) {
+    var el = document.getElementById('content-' + sectionId);
+    if (!el) return;
+
+    // Mark unsaved
+    el.classList.add('unsaved');
+    var footer = el.closest('.section-card') && el.closest('.section-card').querySelector('.edit-hint');
+    if (footer) { footer.textContent = 'Unsaved changes...'; footer.className = 'edit-hint unsaved-hint'; }
+
+    // Auto-save after 1.5s inactivity
+    clearTimeout(autoSaveTimers[sectionId]);
+    autoSaveTimers[sectionId] = setTimeout(function(){ saveEdits(sectionId); }, 1500);
+  }
+
+  function onContentBlur(sectionId) {
+    // Save immediately on blur
+    clearTimeout(autoSaveTimers[sectionId]);
+    saveEdits(sectionId);
+  }
+
+  function onContentPaste(e) {
+    // Sanitize paste — plain text only, no HTML injection
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    sel.deleteFromDocument();
+    var range = sel.getRangeAt(0);
+    var textNode = document.createTextNode(text);
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    // Trigger input event
+    var el = e.target;
+    var sectionId = el.id.replace('content-', '');
+    onContentInput(sectionId);
+  }
+
+  function buildPrompt(sectionId) {
+    const s = SECTIONS.find(x => x.id === sectionId);
+    const topicTitle = topic.title_en || 'the research topic';
+    const field = profile.field || 'the research field';
+    const degree = profile.degree || 'PhD';
+    const citation = profile.citation || 'APA 7';
+    const researchType = topic.research_type || profile.researchType || 'Mixed methods';
+    const gap = topic.research_gap || '';
+    const keywords = topic.keywords ? topic.keywords.join(', ') : '';
+
+    const context = `
+Topic: ${topicTitle}
+Field: ${field}
+Degree level: ${degree}
+Research type: ${researchType}
+Citation format: ${citation}
+Research gap: ${gap}
+Keywords: ${keywords}
+    `.trim();
+
+    const uploadContext = localStorage.getItem('nira_upload_context');
+    const kbData = (typeof NiraKB !== 'undefined') ? NiraKB.load() : null;
+    const kbExtra = kbData && kbData.status === 'complete' && kbData.masterSummary
+      ? '\n\nKnowledge Base Summary: ' + kbData.masterSummary.slice(0, 800)
+      : '';
+    const uploadSection = uploadContext
+      ? '\n\nReference document context:\n' + uploadContext.slice(0, 2000) + kbExtra
+      : kbExtra;
+
+    const prompts = {
+      title: `Write the Title section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Full English title\n2. Persian translation of the title\n3. Short title (max 6 words)\n\nWrite in formal academic English. Be precise and scholarly.`,
+
+      problem: `Write the Problem Statement section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Introduction to the topic\n2. Importance of the research area\n3. The main problem being addressed\n4. The research gap in existing literature\n5. Necessity of this research\n\nWrite 400-600 words in formal academic English with strong scholarly tone.${uploadSection}`,
+
+      objectives: `Write the Objectives section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. General objective (1 clear statement)\n2. Specific objectives (3-4 numbered items)\n3. Applied objectives (2-3 practical goals)\n\nWrite in formal academic English.`,
+
+      questions: `Write the Research Questions section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Main research question\n2. Sub-questions (3-4 items)\n\nEach question should be clear, researchable, and directly tied to the research gap. Write in formal academic English.`,
+
+      hypotheses: `Write the Hypotheses section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Main hypothesis\n2. Sub-hypotheses (2-3 items)\n\nWrite testable, clear hypotheses appropriate for ${researchType} research. Use formal academic English.`,
+
+      literature: `Write the Literature Review / Research Background section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Overview of domestic (Iranian/local) studies (3-4 examples with years)\n2. Overview of international studies (4-5 examples with years)\n3. Comparison of existing research\n4. Identified gap in literature\n\nIMPORTANT: Write plausible, representative academic references in ${citation} format. These are illustrative examples — the researcher must verify all references independently. Write 500-700 words in formal academic English.`,
+
+      novelty: `Write the Innovation and Necessity section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. What makes this research innovative\n2. Why this research is necessary\n3. How it contributes to the field\n4. Practical significance\n\nWrite 250-350 words in formal academic English.`,
+
+      methodology: `Write the Methodology section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Type of research (${researchType})\n2. Statistical population / participants\n3. Sampling method and sample size\n4. Data collection instrument(s)\n5. Validity and reliability\n6. Data analysis method\n7. Software tools to be used\n\nWrite in formal academic English with clear structure.`,
+
+      limitations: `Write the Limitations section for a ${degree} research proposal.\n\n${context}\n\nInclude:\n1. Scope limitations (what is excluded)\n2. Methodological limitations\n3. Access/resource limitations\n4. Generalizability constraints\n\nWrite 200-300 words in formal academic English.`,
+
+      references: `Generate an Initial References list for a ${degree} research proposal on: ${topicTitle}\nField: ${field}\n\nProvide 10-12 illustrative academic references in ${citation} format. Include a mix of:\n- Journal articles (recent, 2020-2026)\n- Books\n- Conference papers\n\nIMPORTANT: These are representative examples to guide the researcher. Add a note at the end: "Note: All references must be independently verified before submission."\n\nFormat correctly in ${citation} style.`
+    };
+
+    return prompts[sectionId] || `Write the ${s.label} section for a research proposal on: ${topicTitle}`;
+  }
+
+  async function generateSection(sectionId) {
+    if (generating) return;
+    generating = true;
+
+    const btn = document.getElementById('btn-' + sectionId);
+    const body = document.getElementById('body-' + sectionId);
+    const card = document.getElementById('card-' + sectionId);
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+    body.innerHTML = `<div class="generating-placeholder"><div class="spinner"></div><span>Dr. NIRA is writing this section...</span></div>`;
+
+    // Mark as generating in nav
+    const navItems = document.querySelectorAll('.section-nav-item');
+    SECTIONS.forEach((s, i) => {
+      if (s.id === sectionId && navItems[i]) {
+        navItems[i].querySelector('.section-status').classList.add('generating');
       }
     });
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = p.name.replace(/[^a-z0-9]/gi,'-').toLowerCase() + '.txt';
-    a.click();
-    URL.revokeObjectURL(url);
+
+    try {
+      const prompt = buildPrompt(sectionId);
+      const data = await NiraAPI.callWithRetry(async function() {
+        const res = await fetch('/api/proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        if (res.status === 429) throw new Error('429 rate limit');
+        if (!res.ok) {
+          const e = await res.json().catch(function(){ return {}; });
+          throw new Error(e.error || 'API error ' + res.status);
+        }
+        return await res.json();
+      });
+
+      const content = data.result || '';
+      generated[sectionId] = content;
+      NiraProject.save('proposal', generated);
+      showToast('Section generated!', 'success');
+
+      // Clean markdown from AI response
+      var cleaned = content
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/^#{1,3}\s+/gm, '')
+        .replace(/^[-*]\s+/gm, '• ')
+        .trim();
+
+      const wordCount = cleaned.trim().split(/\s+/).length;
+
+      // Update card — use separate elements to avoid innerHTML+= breaking contenteditable
+      const sectionMeta = SECTIONS.find(s => s.id === sectionId);
+      const idx = SECTIONS.findIndex(s => s.id === sectionId);
+      card.querySelector('.section-card-num').textContent = '✓';
+      card.querySelector('.section-card-num').classList.add('done');
+      card.querySelector('.section-card-actions').innerHTML = `<button class="btn-regen" onclick="generateSection('${sectionId}')" style="${authoringMode==='workspace'?'background:#0891b2;border-color:#0891b2':''}">Regenerate</button>`;
+
+      if (authoringMode === 'workspace') {
+        body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}"
+          oninput="onContentInput('${sectionId}')"
+          onblur="onContentBlur('${sectionId}')"
+          onpaste="onContentPaste(event)"
+          title="Click to edit">${cleaned}</div>
+          ${buildWorkspacePanel(sectionId)}`;
+        // Init workspace state for this section
+        updateSection(sectionId, { content: cleaned });
+      } else {
+        body.innerHTML = `<div class="section-content" contenteditable="true" id="content-${sectionId}"
+          oninput="onContentInput('${sectionId}')"
+          onblur="onContentBlur('${sectionId}')"
+          onpaste="onContentPaste(event)"
+          title="Click to edit">${cleaned}</div>`;
+      }
+
+      // Remove old footer if exists, then add new one
+      var oldFooter = card.querySelector('.section-footer');
+      if (oldFooter) oldFooter.remove();
+      var footer = document.createElement('div');
+      footer.className = 'section-footer';
+      if (authoringMode === 'workspace') {
+        footer.innerHTML = '<span class="word-count">' + wordCount + ' words · AI Writing Workspace</span><span class="edit-hint" style="color:#0891b2">Click text to edit directly</span>';
+      } else {
+        footer.innerHTML = '<span class="word-count">' + wordCount + ' words · AI-drafted</span><span class="edit-hint">Click text to edit directly</span>';
+      }
+      card.appendChild(footer);
+
+      renderSectionsNav();
+      updateProgress();
+
+    } catch (err) {
+      body.innerHTML = `<div class="section-empty"><p style="color:#dc2626">Error: ${err.message}. Please try again.</p></div>`;
+      if (btn) { btn.disabled = false; btn.textContent = 'Generate'; }
+    } finally {
+      generating = false;
+    }
+  }
+
+  async function generateAll() {
+    const btn = document.getElementById('generateAllBtn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    for (const section of SECTIONS) {
+      if (!generated[section.id]) {
+        await generateSection(section.id);
+        await new Promise(r => setTimeout(r, 500));
+      }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '✓ All sections generated';
   }
 </script>
 
@@ -606,7 +2330,7 @@ function showConfirm(message, onConfirm, options) {
       <span class="more-group-sub">Organize & export</span>
     </div>
     <a class="more-item " href="citations.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><div class="more-item-text"><div class="more-item-label">Citations</div><div class="more-item-sub">APA, MLA, IEEE & more</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
-    <a class="more-item active-item" href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div class="more-item-text"><div class="more-item-label">My proposals</div><div class="more-item-sub">Saved proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a class="more-item " href="proposals.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div><div class="more-item-text"><div class="more-item-label">My proposals</div><div class="more-item-sub">Saved proposals</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
     <a class="more-item " href="export.html"><div class="more-item-icon"><svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><div class="more-item-text"><div class="more-item-label">Export</div><div class="more-item-sub">Download your work</div></div><svg class="more-item-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
   </div>
 </div>
@@ -629,6 +2353,27 @@ if (drawer) {
   });
 }
 </script>
+
+<!-- SUPERVISOR REVIEW PANEL -->
+<div class="sup-overlay" id="supOverlay" onclick="closeSupervisorPanel()"></div>
+<div class="sup-panel" id="supPanel">
+  <div class="sup-header">
+    <h3>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Supervisor Review
+    </h3>
+    <button class="sup-close" onclick="closeSupervisorPanel()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="sup-body" id="supBody">
+    <div class="sup-empty">Click "Supervisor Review" to evaluate your proposal.</div>
+  </div>
+  <div class="sup-footer" id="supFooter" style="display:none">
+    <button class="sup-rerun-btn" id="supRerunBtn" onclick="runSupervisorReview()">Re-run Review</button>
+  </div>
+</div>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
@@ -637,6 +2382,40 @@ if ('serviceWorker' in navigator) {
       .catch(function(err) { console.warn('[SW] Registration failed:', err); });
   });
 }
+</script>
+
+<script>
+  (function() {
+    var tt = document.createElement('div');
+    tt.className = 'help-tooltip'; tt.id = 'helpTooltip';
+    document.body.appendChild(tt);
+    document.addEventListener('mouseover', function(e) {
+      var b = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!b) return;
+      tt.innerHTML = (b.dataset.helpTitle ? '<strong>' + b.dataset.helpTitle + '</strong>' : '') + (b.dataset.helpDesc || '');
+      tt.style.display = 'block';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (tt.style.display === 'none') return;
+      var x = e.clientX+12, y = e.clientY+12;
+      if (x+255 > window.innerWidth) x = e.clientX-255;
+      if (y+90 > window.innerHeight) y = e.clientY-90;
+      tt.style.left = x+'px'; tt.style.top = y+'px';
+    });
+    document.addEventListener('mouseout', function(e) {
+      if (e.target.closest && e.target.closest('.help-icon')) tt.style.display = 'none';
+    });
+    document.addEventListener('click', function(e) {
+      var b = e.target.closest ? e.target.closest('.help-icon') : null;
+      if (!b) { tt.style.display = 'none'; return; }
+      e.stopPropagation();
+      tt.innerHTML = (b.dataset.helpTitle ? '<strong>' + b.dataset.helpTitle + '</strong>' : '') + (b.dataset.helpDesc || '');
+      var r = b.getBoundingClientRect();
+      tt.style.left = Math.min(r.left,window.innerWidth-255)+'px';
+      tt.style.top = (r.bottom+8)+'px';
+      tt.style.display = tt.style.display==='block'?'none':'block';
+    });
+  })();
 </script>
 </body>
 </html>
