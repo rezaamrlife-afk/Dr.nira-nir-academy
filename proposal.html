@@ -1802,7 +1802,7 @@ ${text}`;
           var guidanceBanner = document.createElement('div');
           guidanceBanner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#0F1B33;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;z-index:9999;display:flex;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(0,0,0,0.25);white-space:nowrap;';
           guidanceBanner.innerHTML = '✓ Section written — refine with workspace actions or' +
-            '<button onclick="document.querySelector(\'.supervisor-btn\') && document.querySelector(\'.supervisor-btn\').click();this.parentElement.remove();" style="background:#2563EB;color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Open Supervisor Review</button>' +
+            '<button onclick="var sb=document.getElementById(\'supervisorBtn\');if(sb&&!sb.disabled)sb.click();this.parentElement.remove();" style="background:#2563EB;color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Open Supervisor Review</button>' +
             '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px;padding:0 4px;">✕</button>';
           document.body.appendChild(guidanceBanner);
           setTimeout(function(){ if (guidanceBanner.parentElement) guidanceBanner.remove(); }, 8000);
