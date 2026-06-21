@@ -362,34 +362,34 @@ function saveCustomLabels(labels) {
 function getChapterLabel(cid) {
   var custom = getCustomLabels();
   var customVal = custom[cid] && custom[cid]._title;
-  if (!chapterSchema[cid]) {
+  if (!CHAPTERS[cid]) {
     console.warn('[getChapterLabel] Missing schema coverage for:', cid);
     return cid;
   }
-  return customVal || chapterSchema[cid].title;
+  return customVal || CHAPTERS[cid].title;
 }
 
 function getSectionLabel(cid, sid) {
   var custom = getCustomLabels();
   var customVal = custom[cid] && custom[cid][sid];
-  if (!chapterSchema[cid] || !chapterSchema[cid].sections[sid]) {
+  if (!CHAPTERS[cid] || !CHAPTERS[cid].sections[sid]) {
     console.warn('[getSectionLabel] Missing schema coverage for:', cid, sid);
     return sid;
   }
-  return customVal || chapterSchema[cid].sections[sid];
+  return customVal || CHAPTERS[cid].sections[sid];
 }
 
 function setChapterLabel(cid, value) {
   var labels = getCustomLabels();
   if (!labels[cid]) labels[cid] = {};
-  labels[cid]._title = value.trim() || chapterSchema[cid].title;
+  labels[cid]._title = value.trim() || CHAPTERS[cid].title;
   saveCustomLabels(labels);
 }
 
 function setSectionLabel(cid, sid, value) {
   var labels = getCustomLabels();
   if (!labels[cid]) labels[cid] = {};
-  labels[cid][sid] = value.trim() || chapterSchema[cid].sections[sid];
+  labels[cid][sid] = value.trim() || CHAPTERS[cid].sections[sid];
   saveCustomLabels(labels);
 }
 
