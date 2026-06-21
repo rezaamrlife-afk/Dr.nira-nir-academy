@@ -211,6 +211,60 @@ function showToast(msg, type, dur) {
   setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove();},300);},dur);
 }
 
+function showNotification(opts) {
+  var existing = document.getElementById('nira-notif-box');
+  if (existing) existing.remove();
+
+  if (!document.getElementById('nira-notif-style')) {
+    var style = document.createElement('style');
+    style.id = 'nira-notif-style';
+    style.textContent = '@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}';
+    document.head.appendChild(style);
+  }
+
+  var type = opts.type || 'success';
+  var iconColors = {success:'#16a34a',info:'#2563EB',warning:'#d97706',error:'#dc2626'};
+  var iconBgs   = {success:'#f0fdf4',info:'#eff6ff',warning:'#fffbeb',error:'#fef2f2'};
+  var color = iconColors[type] || iconColors.info;
+  var bg    = iconBgs[type]    || iconBgs.info;
+
+  var box = document.createElement('div');
+  box.id = 'nira-notif-box';
+  box.style.cssText = 'position:fixed;top:72px;right:24px;background:#fff;border:1px solid #dde6f5;border-radius:14px;box-shadow:0 8px 32px rgba(27,42,74,0.15);font-family:Inter,sans-serif;z-index:9999;max-width:320px;width:calc(100vw - 48px);overflow:hidden;animation:slideInRight 0.3s ease;';
+
+  var header = '<div style="background:' + bg + ';padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f0f4ff;">' +
+    '<div style="width:32px;height:32px;background:' + color + '20;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">' + (opts.icon || '✓') + '</div>' +
+    '<div style="flex:1;min-width:0;">' +
+      '<div style="font-size:13px;font-weight:600;color:#1B2A4A;">' + (opts.title || '') + '</div>' +
+      (opts.subtitle ? '<div style="font-size:11px;color:#6B7FA3;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + opts.subtitle + '</div>' : '') +
+    '</div>' +
+    '<button onclick="document.getElementById(\'nira-notif-box\').remove()" style="background:none;border:none;color:#a0b0cc;cursor:pointer;font-size:16px;padding:0;flex-shrink:0;">✕</button>' +
+  '</div>';
+
+  var detail = opts.detail ? '<div style="padding:10px 16px;font-size:12px;color:#374151;line-height:1.6;border-bottom:1px solid #f0f4ff;">' + opts.detail + '</div>' : '';
+
+  var actionsHtml = '';
+  if (opts.actions && opts.actions.length) {
+    actionsHtml = '<div style="padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;">';
+    opts.actions.forEach(function(a) {
+      var btnStyle = a.primary
+        ? 'background:#2563EB;color:#fff;border:none;'
+        : 'background:#fff;color:#374151;border:1px solid #dde6f5;';
+      var onclick = a.href ? 'window.location.href=\'' + a.href + '\'' : (a.onclick || '');
+      actionsHtml += '<button onclick="' + onclick + ';var nb=document.getElementById(\'nira-notif-box\');if(nb)nb.remove();" style="' + btnStyle + 'padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">' + a.label + '</button>';
+    });
+    actionsHtml += '</div>';
+  }
+
+  box.innerHTML = header + detail + actionsHtml;
+  document.body.appendChild(box);
+
+  setTimeout(function() {
+    var nb = document.getElementById('nira-notif-box');
+    if (nb) { nb.style.opacity='0'; nb.style.transition='opacity 0.3s'; setTimeout(function(){ nb.remove(); }, 300); }
+  }, opts.duration || 8000);
+}
+
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 window.addEventListener('load', function() {
@@ -302,21 +356,56 @@ function useInProposal(id) {
     if (typeof NiraProject !== 'undefined') NiraProject.saveTopic(autoTopic);
   }
 
-  showToast('Gap selected — opening Proposal Builder...', 'success');
-  setTimeout(function(){ window.location.href = 'proposal.html'; }, 800);
+  showNotification({
+    type: 'success',
+    icon: '🎯',
+    title: 'Research Gap Selected',
+    subtitle: g.gap.slice(0, 60) + (g.gap.length > 60 ? '...' : ''),
+    detail: 'This gap will be used to guide your <strong>Problem Statement</strong> and <strong>Research Questions</strong> in the Proposal Builder.',
+    actions: [
+      { label: 'Open Proposal Builder →', href: 'proposal.html', primary: true }
+    ],
+    duration: 4000
+  });
+  setTimeout(function(){ window.location.href = 'proposal.html'; }, 1500);
 }
 
 function copyGap(id) {
   var g = gaps.find(function(item){ return String(item.id) === String(id); });
   if (!g) return;
-  navigator.clipboard.writeText(g.gap).then(function(){ showToast('Copied ✓', 'success'); });
+  navigator.clipboard.writeText(g.gap).then(function(){
+    showNotification({
+      type: 'success',
+      icon: '📋',
+      title: 'Gap copied to clipboard',
+      subtitle: g.gap.slice(0, 60) + (g.gap.length > 60 ? '...' : ''),
+      detail: 'You can paste this gap directly into your Proposal Builder, Thesis, or any academic document.',
+      actions: [
+        { label: 'Use in Proposal', href: 'proposal.html', primary: true },
+        { label: 'Dismiss', onclick: '' }
+      ]
+    });
+  });
 }
 
 function removeGap(id) {
-  gaps = gaps.filter(function(g){ return String(g.id) !== String(id); });
+  var g = gaps.find(function(item){ return String(item.id) === String(id); });
+  var gapText = g ? g.gap.slice(0, 50) : '';
+  gaps = gaps.filter(function(item){ return String(item.id) !== String(id); });
   localStorage.setItem('nira_research_gaps', JSON.stringify(gaps));
   renderGaps();
-  showToast('Gap removed.', 'info');
+  showNotification({
+    type: 'info',
+    icon: '🗑️',
+    title: 'Gap removed',
+    subtitle: gapText + (gapText.length >= 50 ? '...' : ''),
+    detail: gaps.length > 0
+      ? 'You have <strong>' + gaps.length + ' gap' + (gaps.length !== 1 ? 's' : '') + '</strong> remaining.'
+      : 'Your gap library is now empty. Go to Literature Search to extract new gaps.',
+    actions: gaps.length === 0 ? [
+      { label: 'Search Literature', href: 'literature.html', primary: true }
+    ] : [{ label: 'Dismiss', onclick: '' }]
+  });
 }
 </script>
 <script>
