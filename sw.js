@@ -1,13 +1,12 @@
 // ─────────────────────────────────────────────
-// Dr. NIRA — Service Worker
-// Strategy: Cache-first for static assets,
-//            Network-first for API calls
+// Dr. NIRA — Service Worker (Production Safe)
+// Strategy: Cache-first static / Network-first API
+// Fully versioned + safe updates
 // ─────────────────────────────────────────────
 
-const CACHE_NAME = 'dr-nira-v1';
-const CACHE_VERSION = '1.0.0';
+const CACHE_VERSION = '1.2.0';
+const CACHE_NAME = `dr-nira-v${CACHE_VERSION}`;
 
-// Static assets to cache on install
 const STATIC_ASSETS = [
   '/',
   '/app.html',
@@ -35,89 +34,79 @@ const STATIC_ASSETS = [
 ];
 
 // ── INSTALL ──
-self.addEventListener('install', function(event) {
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(STATIC_ASSETS.map(function(url) {
-        return new Request(url, { cache: 'reload' });
-      })).catch(function(err) {
-        console.warn('[SW] Some assets failed to cache:', err);
-      });
-    }).then(function() {
-      return self.skipWaiting();
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(
+        STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' }))
+      );
     })
   );
 });
 
 // ── ACTIVATE ──
-self.addEventListener('activate', function(event) {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames
-          .filter(function(name) { return name !== CACHE_NAME; })
-          .map(function(name) { return caches.delete(name); })
-      );
-    }).then(function() {
-      return self.clients.claim();
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
 // ── FETCH ──
-self.addEventListener('fetch', function(event) {
-  var url = new URL(event.request.url);
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
 
-  // API calls — always network first, no caching
+  // API → network first, never cache
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(event.request).catch(function() {
-        return new Response(
+      fetch(event.request).catch(() =>
+        new Response(
           JSON.stringify({ error: 'You are offline. Please check your connection.' }),
           { status: 503, headers: { 'Content-Type': 'application/json' } }
-        );
-      })
+        )
+      )
     );
     return;
   }
 
-  // External resources (fonts, CDN) — network first with cache fallback
+  // External (fonts, CDN) → network first + cache fallback
   if (url.origin !== self.location.origin) {
     event.respondWith(
-      fetch(event.request).then(function(response) {
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, clone);
-        });
-        return response;
-      }).catch(function() {
-        return caches.match(event.request);
-      })
+      fetch(event.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Static assets — cache first, network fallback
+  // Static → cache first, network fallback
   event.respondWith(
-    caches.match(event.request).then(function(cached) {
+    caches.match(event.request).then((cached) => {
       if (cached) return cached;
-
-      return fetch(event.request).then(function(response) {
-        // Only cache successful responses
-        if (!response || response.status !== 200 || response.type === 'error') {
-          return response;
-        }
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, clone);
+      return fetch(event.request)
+        .then((res) => {
+          if (!res || res.status !== 200) return res;
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => {
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('/app.html');
+          }
         });
-        return response;
-      }).catch(function() {
-        // Offline fallback for HTML pages
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('/app.html');
-        }
-      });
     })
   );
 });
