@@ -1,13 +1,16 @@
 // ─────────────────────────────────────────────
 // Dr. NIRA — Service Worker (Production Safe)
-// Strategy: Cache-first static / Network-first API
-// Fully versioned + safe updates
+// Strategy:
+//   HTML       → network-first (همیشه آخرین نسخه)
+//   JS/CSS/img → cache-first (سریع)
+//   API        → network-only
+//   External   → network-first + cache fallback
 // ─────────────────────────────────────────────
 
-const CACHE_VERSION = '1.2.0';
+const CACHE_VERSION = '20260622';
 const CACHE_NAME = `dr-nira-v${CACHE_VERSION}`;
 
-const STATIC_ASSETS = [
+const HTML_PAGES = [
   '/',
   '/app.html',
   '/index.html',
@@ -27,7 +30,10 @@ const STATIC_ASSETS = [
   '/structural-editor.html',
   '/charts.html',
   '/conceptual-model.html',
-  '/questionnaire.html',
+  '/questionnaire.html'
+];
+
+const STATIC_ASSETS = [
   '/js/project-manager.js',
   '/js/knowledge-base.js',
   '/manifest.json'
@@ -52,6 +58,7 @@ self.addEventListener('activate', (event) => {
       Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', key);
             return caches.delete(key);
           }
         })
@@ -64,7 +71,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // API → network first, never cache
+  // ── API → network only, never cache ──
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() =>
@@ -77,13 +84,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // External (fonts, CDN) → network first + cache fallback
+  // ── External (fonts, CDN) → network-first + cache fallback ──
   if (url.origin !== self.location.origin) {
     event.respondWith(
       fetch(event.request)
         .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
           return res;
         })
         .catch(() => caches.match(event.request))
@@ -91,7 +100,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static → cache first, network fallback
+  // ── HTML pages → network-first (همیشه آخرین deploy) ──
+  const isHTML = event.request.headers.get('accept')?.includes('text/html') ||
+                 HTML_PAGES.some(p => url.pathname === p || url.pathname === p.replace('.html', ''));
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return res;
+        })
+        .catch(() => {
+          return caches.match(event.request)
+            .then(cached => cached || caches.match('/app.html'));
+        })
+    );
+    return;
+  }
+
+  // ── JS / CSS / images → cache-first ──
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
@@ -102,11 +133,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           return res;
         })
-        .catch(() => {
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/app.html');
-          }
-        });
+        .catch(() => undefined);
     })
   );
 });
