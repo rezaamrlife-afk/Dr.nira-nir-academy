@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-<script src="js/project-manager.js"></script>
-<script src="js/knowledge-base.js"></script>
+<script src="js/project-manager.js" defer></script>
+<script src="js/knowledge-base.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -430,20 +430,31 @@ function showConfirm(message, onConfirm, options) {
 }
 
 
-window.addEventListener('load', function() {
-  // Load profile
+// ── PROFILE ──
+function loadProfile() {
   var sp = localStorage.getItem('nira_profile');
-  if (sp) {
+  if (!sp) return;
+  try {
     var p = JSON.parse(sp);
-    document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
-    document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
-    if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
+    var nameEl = document.getElementById('sidebarName');
+    var roleEl = document.getElementById('sidebarRole');
+    var avatarEl = document.getElementById('sidebarAvatar');
+    if (nameEl) nameEl.textContent = p.fullName || 'Dr. Researcher';
+    if (roleEl) roleEl.textContent = (p.degree || 'PhD') + ' Candidate';
+    if (avatarEl && p.fullName) avatarEl.textContent = p.fullName.split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
+  } catch(e) {}
+}
+
+// ── INIT PAGE ──
+function initPage() {
+  loadProfile();
+
+  // Load thesis data
+  if (typeof NiraProject !== 'undefined') {
+    thesisData = NiraProject.load('thesis') || {};
   }
 
-  // Load thesis data from NiraProject
-  thesisData = NiraProject.load('thesis') || {};
-
-  // Check if thesis builder has data → show sync banner
+  // Show sync banner if data exists
   var s = countSections();
   if (s.done > 0) {
     var banner = document.getElementById('syncBanner');
@@ -455,6 +466,23 @@ window.addEventListener('load', function() {
   renderTOC();
   renderTOCPreview();
   updateStats();
+}
+
+window.addEventListener('load', initPage);
+
+// ── BFCACHE RESTORE ──
+window.addEventListener('pageshow', function(event) {
+  if (!event.persisted) return;
+  if (typeof NiraProject !== 'undefined') {
+    thesisData = NiraProject.load('thesis') || {};
+  }
+  loadProfile();
+  renderTOC();
+  renderTOCPreview();
+  updateStats();
+  if (activeChapter) {
+    renderChapterEditor(activeChapter);
+  }
 });
 
 // ── SYNC FROM THESIS BUILDER ──
