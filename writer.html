@@ -373,24 +373,33 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f0f4ff
   </div>
 </div>
 <script>
-// ── WRITER INIT ──
+// ── STATE ──
 var quill;
 var documents = [];
 var activeDocId = null;
 var autosaveTimer = null;
 var WRITER_KEY = 'nira_writer_docs';
 
-window.addEventListener('load', function() {
-  // Load profile
+// ── PROFILE ──
+function loadUserProfile() {
   var sp = localStorage.getItem('nira_profile');
-  if (sp) {
+  if (!sp) return;
+  try {
     var p = JSON.parse(sp);
-    document.getElementById('sidebarName').textContent = p.fullName || 'Dr. Researcher';
-    document.getElementById('sidebarRole').textContent = (p.degree || 'PhD') + ' Candidate';
-    if (p.fullName) document.getElementById('sidebarAvatar').textContent = p.fullName.split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
-  }
+    var nameEl = document.getElementById('sidebarName');
+    var roleEl = document.getElementById('sidebarRole');
+    var avatarEl = document.getElementById('sidebarAvatar');
+    if (nameEl) nameEl.textContent = p.fullName || 'Dr. Researcher';
+    if (roleEl) roleEl.textContent = (p.degree || 'PhD') + ' Candidate';
+    if (avatarEl && p.fullName) {
+      avatarEl.textContent = p.fullName.split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
+    }
+  } catch(e) {}
+}
 
-  // Init Quill
+// ── EDITOR INIT ──
+function initializeEditor() {
+  if (window.quill) return;
   quill = new Quill('#editor', {
     theme: 'snow',
     modules: {
@@ -400,7 +409,6 @@ window.addEventListener('load', function() {
     placeholder: 'Start writing your academic document...'
   });
 
-  // Autosave on change
   quill.on('text-change', function() {
     setAutosaveStatus('saving');
     clearTimeout(autosaveTimer);
@@ -411,7 +419,6 @@ window.addEventListener('load', function() {
     updateStats();
   });
 
-  // Autosave on title change
   document.getElementById('docTitle').addEventListener('input', function() {
     setAutosaveStatus('saving');
     clearTimeout(autosaveTimer);
@@ -420,11 +427,14 @@ window.addEventListener('load', function() {
       setAutosaveStatus('saved');
     }, 800);
   });
+}
 
-  // Load documents
+// ── FIRST LOAD ──
+window.addEventListener('load', function() {
+  loadUserProfile();
+  initializeEditor();
   loadDocuments();
   renderDocsList();
-
   if (documents.length === 0) {
     newDocument();
   } else {
@@ -432,7 +442,31 @@ window.addEventListener('load', function() {
   }
 });
 
+// ── BFCACHE RESTORE ──
+window.addEventListener('pageshow', function(event) {
+  if (!event.persisted) return;
+  if (!window.quill) {
+    initializeEditor();
+  }
+  loadUserProfile();
+  loadDocuments();
+  renderDocsList();
+  if (activeDocId) {
+    var doc = documents.find(function(d){ return d.id === activeDocId; });
+    if (doc) {
+      quill.root.innerHTML = doc.content || '';
+      document.getElementById('docTitle').value = doc.title || 'Untitled document';
+      updateStats();
+    }
+  } else if (documents.length > 0) {
+    openDocument(documents[0].id);
+  }
+  setAutosaveStatus('saved');
+});
+
+// ── STATS ──
 function updateStats() {
+  if (!window.quill) return;
   var text = quill.getText().trim();
   var words = text ? text.split(/\s+/).length : 0;
   var chars = quill.getText().length - 1;
@@ -442,12 +476,14 @@ function updateStats() {
   var rt = document.getElementById('readTime');
   if (wc) wc.textContent = words;
   if (cc) cc.textContent = chars > 0 ? chars : 0;
-  if (rt) rt.textContent = readTime;
+  if (rt) rt.textContent = readTime + ' min';
 }
 
+// ── AUTOSAVE STATUS ──
 function setAutosaveStatus(status) {
   var dot = document.getElementById('autosaveDot');
   var label = document.getElementById('autosaveLabel');
+  if (!dot || !label) return;
   if (status === 'saving') {
     dot.style.background = '#d97706';
     label.textContent = 'Saving...';
@@ -457,6 +493,7 @@ function setAutosaveStatus(status) {
   }
 }
 
+// ── DOCUMENTS ──
 function loadDocuments() {
   try {
     documents = JSON.parse(localStorage.getItem(WRITER_KEY) || '[]');
@@ -470,7 +507,7 @@ function saveDocuments() {
 }
 
 function saveActiveDoc() {
-  if (!activeDocId) return;
+  if (!activeDocId || !window.quill) return;
   var doc = documents.find(function(d){ return d.id === activeDocId; });
   if (!doc) return;
   doc.title = document.getElementById('docTitle').value || 'Untitled document';
@@ -496,14 +533,16 @@ function newDocument() {
 }
 
 function openDocument(id) {
-  if (activeDocId) saveActiveDoc();
+  if (activeDocId && activeDocId !== id) saveActiveDoc();
   var doc = documents.find(function(d){ return d.id === id; });
   if (!doc) return;
   activeDocId = id;
   document.getElementById('docTitle').value = doc.title || 'Untitled document';
-  quill.root.innerHTML = doc.content || '';
-  quill.history.clear();
-  updateStats();
+  if (window.quill) {
+    quill.root.innerHTML = doc.content || '';
+    quill.history.clear();
+    updateStats();
+  }
   setAutosaveStatus('saved');
   renderDocsList();
 }
@@ -528,17 +567,22 @@ function deleteDocument(id, e) {
 function renderDocsList() {
   var list = document.getElementById('docsList');
   if (!list) return;
+  if (documents.length === 0) {
+    list.innerHTML = '<div style="padding:20px 12px;text-align:center;color:var(--text-mid);font-size:12px;">No documents yet</div>';
+    return;
+  }
   list.innerHTML = documents.map(function(doc) {
     var isActive = doc.id === activeDocId;
-    var date = new Date(doc.updatedAt).toLocaleDateString('en-GB', {day:'numeric',month:'short'});
+    var date = new Date(doc.updatedAt).toLocaleDateString('en-GB', {day:'numeric', month:'short'});
     return '<div class="doc-item' + (isActive ? ' active' : '') + '" onclick="openDocument(\'' + doc.id + '\')">' +
       '<div class="doc-item-title">' + (doc.title || 'Untitled') + '</div>' +
       '<div class="doc-item-meta">' + date + '</div>' +
-      '<button class="doc-item-delete" onclick="deleteDocument(\'' + doc.id + '\', event)" title="Delete">×</button>' +
+      '<button class="doc-item-delete" onclick="deleteDocument(\'' + doc.id + '\', event)" title="Delete">&times;</button>' +
       '</div>';
   }).join('');
 }
 
+// ── EXPORT ──
 function exportTXT() {
   saveActiveDoc();
   var doc = documents.find(function(d){ return d.id === activeDocId; });
@@ -571,22 +615,40 @@ function exportPDF() {
   showToast('PDF print dialog opened', 'success');
 }
 
+// ── TOAST ──
 function showToast(msg, type) {
   type = type || 'info';
   var colors = { success:'#16a34a', error:'#dc2626', info:'#2563EB', warning:'#d97706' };
-  var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
-  if (!document.getElementById('nira-toast-c')) {
-    var c = document.createElement('div'); c.id = 'nira-toast-c';
-    c.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
-    document.body.appendChild(c);
+  var icons = { success:'&#10003;', error:'&#10005;', info:'&#8505;', warning:'&#9888;' };
+  var container = document.getElementById('nira-toast-c');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'nira-toast-c';
+    container.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(container);
   }
   var t = document.createElement('div');
   t.style.cssText = 'background:' + (colors[type]||colors.info) + ';color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;font-family:Inter,sans-serif;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;';
-  t.innerHTML = '<span>' + (icons[type]||'ℹ') + '</span>' + msg;
-  document.getElementById('nira-toast-c').appendChild(t);
-  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(function(){ t.remove(); }, 300); }, 3000);
+  t.innerHTML = '<span>' + (icons[type]||'&#8505;') + '</span>' + msg;
+  container.appendChild(t);
+  setTimeout(function(){
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 0.3s';
+    setTimeout(function(){ t.remove(); }, 300);
+  }, 3000);
+}
+
+// ── MOBILE DRAWER ──
+function toggleMoreDrawer() {
+  document.getElementById('moreDrawer').classList.toggle('open');
+  document.getElementById('moreOverlay').classList.toggle('open');
+}
+function closeMoreDrawer() {
+  document.getElementById('moreDrawer').classList.remove('open');
+  document.getElementById('moreOverlay').classList.remove('open');
 }
 </script>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
