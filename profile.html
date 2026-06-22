@@ -405,6 +405,16 @@ function showToast(message, type = 'success', duration = 3000) {
               </div>
               <div class="form-row">
                 <div class="form-group">
+                  <label class="form-label">Advisor 1 <span style="color:var(--text-mid);font-weight:400">(optional)</span></label>
+                  <input class="form-input" type="text" id="advisor1" placeholder="e.g. Dr. Jane Wilson">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Advisor 2 <span style="color:var(--text-mid);font-weight:400">(optional)</span></label>
+                  <input class="form-input" type="text" id="advisor2" placeholder="e.g. Dr. Robert Chen">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
                   <label class="form-label">Student ID <span style="color:var(--text-mid);font-weight:400">(optional)</span></label>
                   <input class="form-input" type="text" id="studentId" placeholder="e.g. 20241234">
                 </div>
@@ -710,6 +720,8 @@ function showToast(message, type = 'success', duration = 3000) {
       university: document.getElementById('university').value,
       country: document.getElementById('country').value,
       supervisor: document.getElementById('supervisor').value,
+      advisor1: document.getElementById('advisor1').value,
+      advisor2: document.getElementById('advisor2').value,
       studentId: document.getElementById('studentId').value,
       department: document.getElementById('department').value,
       universityLogo: document.getElementById('universityLogo').value,
@@ -752,6 +764,8 @@ function showToast(message, type = 'success', duration = 3000) {
     if (p.university) { document.getElementById('university').value = p.university; markDone('university', true); }
     if (p.country) document.getElementById('country').value = p.country;
     if (p.supervisor) document.getElementById('supervisor').value = p.supervisor;
+    if (p.advisor1) document.getElementById('advisor1').value = p.advisor1;
+    if (p.advisor2) document.getElementById('advisor2').value = p.advisor2;
     if (p.studentId) document.getElementById('studentId').value = p.studentId;
     if (p.department) document.getElementById('department').value = p.department;
     if (p.universityLogo) document.getElementById('universityLogo').value = p.universityLogo;
