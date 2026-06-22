@@ -127,6 +127,8 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
 .toc-entry-section{color:var(--text-mid);padding-left:16px;}
 .toc-dots{flex:1;border-bottom:1px dotted var(--border);margin:0 6px;min-width:20px;}
 .toc-page{font-size:11px;color:var(--text-mid);}
+.editable-page{cursor:pointer;border-bottom:1px dashed var(--text-mid);padding-bottom:1px;}
+.editable-page:hover{color:var(--blue);border-color:var(--blue);}
 
 /* MOBILE */
 .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy-dark);border-top:1px solid rgba(255,255,255,0.08);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;}
@@ -257,7 +259,10 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f4ff;color:va
         <div>
           <!-- TOC PREVIEW -->
           <div class="toc-preview">
-            <div class="toc-preview-title">Table of contents preview</div>
+            <div class="toc-preview-title" style="display:flex;align-items:center;justify-content:space-between;">
+              <span>Table of contents preview</span>
+              <button onclick="resetCustomPages()" title="Reset page numbers to auto" style="background:none;border:none;font-size:10px;color:#a0b0cc;cursor:pointer;padding:2px 6px;border-radius:4px;font-family:Inter,sans-serif;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#a0b0cc'">↺ Reset pages</button>
+            </div>
             <div id="tocPreview"></div>
           </div>
 
@@ -602,22 +607,88 @@ function renderTOC() {
 }
 
 // ── TOC PREVIEW ──
+// ── CUSTOM PAGE NUMBERS (isolated — nira_custom_pages) ──
+var CUSTOM_PAGES_KEY = 'nira_custom_pages';
+
+function getCustomPages() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_PAGES_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+
+function saveCustomPages(pages) {
+  try { localStorage.setItem(CUSTOM_PAGES_KEY, JSON.stringify(pages)); }
+  catch(e) {}
+}
+
+function getPageNum(cid, sid, autoNum) {
+  var pages = getCustomPages();
+  var key = sid ? (cid + '__' + sid) : cid;
+  return pages[key] !== undefined ? pages[key] : autoNum;
+}
+
+function resetCustomPages() {
+  localStorage.removeItem(CUSTOM_PAGES_KEY);
+  renderTOCPreview();
+  showToast('Page numbers reset to auto ✓', 'success');
+}
+
+// ── EDITABLE PAGE NUMBERS (event delegation) ──
+document.addEventListener('click', function(e) {
+  var el = e.target.closest('.editable-page');
+  if (!el) return;
+  var cid = el.dataset.cid;
+  var sid = el.dataset.sid || null;
+  var current = el.textContent.trim();
+
+  var input = document.createElement('input');
+  input.type = 'number';
+  input.value = current;
+  input.min = 1;
+  input.style.cssText = 'width:40px;font-size:11px;border:1px solid #2563EB;border-radius:3px;padding:1px 4px;font-family:Inter,sans-serif;outline:none;text-align:center;';
+
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+
+  function commitPage() {
+    var val = parseInt(input.value, 10);
+    var pages = getCustomPages();
+    var key = sid ? (cid + '__' + sid) : cid;
+    if (val > 0) {
+      pages[key] = val;
+    } else {
+      delete pages[key];
+    }
+    saveCustomPages(pages);
+    renderTOCPreview();
+    showToast('Page number updated ✓', 'success');
+  }
+
+  input.addEventListener('blur', commitPage);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); commitPage(); }
+    if (e.key === 'Escape') { renderTOCPreview(); }
+  });
+});
+
 function renderTOCPreview() {
   var html = '';
   var pageNum = 1;
   CHAPTER_IDS.forEach(function(cid) {
     var ch = CHAPTERS[cid];
+    var chPage = getPageNum(cid, null, pageNum);
     html += '<div class="toc-entry">' +
       '<span class="toc-entry-chapter">Chapter ' + ch.num + ': ' + getChapterLabel(cid) + '</span>' +
       '<span class="toc-dots"></span>' +
-      '<span class="toc-page">' + pageNum + '</span>' +
+      '<span class="toc-page editable-page" data-cid="' + cid + '" title="Click to edit page number">' + chPage + '</span>' +
       '</div>';
     pageNum += 2;
     Object.keys(ch.sections).forEach(function(sid) {
+      var sPage = getPageNum(cid, sid, pageNum);
       html += '<div class="toc-entry">' +
         '<span class="toc-entry-section">' + ch.num + '.' + (Object.keys(ch.sections).indexOf(sid)+1) + ' ' + getSectionLabel(cid, sid) + '</span>' +
         '<span class="toc-dots"></span>' +
-        '<span class="toc-page">' + pageNum + '</span>' +
+        '<span class="toc-page editable-page" data-cid="' + cid + '" data-sid="' + sid + '" title="Click to edit page number">' + sPage + '</span>' +
         '</div>';
       pageNum++;
     });
@@ -736,10 +807,12 @@ function exportTOC() {
   var page = 1;
   CHAPTER_IDS.forEach(function(cid) {
     var ch = CHAPTERS[cid];
-    lines.push('Chapter ' + ch.num + ': ' + getChapterLabel(cid) + ' ............ ' + page);
+    var chPage = getPageNum(cid, null, page);
+    lines.push('Chapter ' + ch.num + ': ' + getChapterLabel(cid) + ' ............ ' + chPage);
     page += 2;
     Object.keys(ch.sections).forEach(function(sid, idx) {
-      lines.push('  ' + ch.num + '.' + (idx+1) + ' ' + getSectionLabel(cid, sid) + ' ............ ' + page);
+      var sPage = getPageNum(cid, sid, page);
+      lines.push('  ' + ch.num + '.' + (idx+1) + ' ' + getSectionLabel(cid, sid) + ' ............ ' + sPage);
       page++;
     });
     lines.push('');
