@@ -7,7 +7,7 @@
 //   External   → network-first + cache fallback
 // ─────────────────────────────────────────────
 
-const CACHE_VERSION = '20260622';
+const CACHE_VERSION = '20260623';
 const CACHE_NAME = `dr-nira-v${CACHE_VERSION}`;
 
 const HTML_PAGES = [
@@ -47,6 +47,17 @@ self.addEventListener('install', (event) => {
       await cache.addAll(
         STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' }))
       );
+
+      const htmlResults = await Promise.allSettled(
+        HTML_PAGES.map(url =>
+          cache.add(new Request(url, { cache: 'reload' }))
+        )
+      );
+      htmlResults.forEach((result, i) => {
+        if (result.status === 'rejected') {
+          console.warn('[SW] Could not pre-cache:', HTML_PAGES[i], result.reason);
+        }
+      });
     })
   );
 });
@@ -86,10 +97,14 @@ self.addEventListener('fetch', (event) => {
 
   // ── External (fonts, CDN) → network-first + cache fallback ──
   if (url.origin !== self.location.origin) {
+    const externalRequest = event.request.mode === 'no-cors'
+      ? event.request
+      : new Request(event.request, { mode: 'no-cors' });
+
     event.respondWith(
-      fetch(event.request)
+      fetch(externalRequest)
         .then((res) => {
-          if (res && res.status === 200) {
+          if (res && (res.status === 200 || res.type === 'opaque')) {
             const clone = res.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
@@ -114,10 +129,7 @@ self.addEventListener('fetch', (event) => {
           }
           return res;
         })
-        .catch(() => {
-          return caches.match(event.request)
-            .then(cached => cached || caches.match('/app.html'));
-        })
+        .catch(() => fetch('/app.html'))
     );
     return;
   }
