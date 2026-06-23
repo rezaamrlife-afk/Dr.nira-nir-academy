@@ -3,8 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "com.niracademy.drnira",
-    "sha256_cert_fingerprints": [
-      "REPLACE_WITH_SHA256_FROM_GOOGLE_PLAY_CONSOLE"
-    ]
+    "sha256_cert_fingerprints": ["D8:12:A5:D3:E4:64:7E:70:44:6D:AB:F0:19:A3:53:5B:B7:4E:DA:B5:2B:E0:E6:6A:37:19:D6:96:E5:A6:1F:46"]
   }
 }]
